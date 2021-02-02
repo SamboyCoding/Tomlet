@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="CommentTestInput" xml:space="preserve">
+        <value># This is a full-line comment
+key = "value"  # This is a comment at the end of a line
+another = "# This is not a comment"</value>
+    </data>
+    <data name="BasicKVPTestInput" xml:space="preserve">
+        <value>key = "value"</value>
+    </data>
+    <data name="UnspecifiedValueTestInput" xml:space="preserve">
+        <value>key = # INVALID</value>
+    </data>
+    <data name="MultiplePairsOnOneLineTestInput" xml:space="preserve">
+        <value>first = "Tom" last = "Preston-Werner" # INVALID</value>
+    </data>
+    <data name="NonSimpleKeysTestInput" xml:space="preserve">
+        <value>key = "value"
+bare_key = "value"
+bare-key = "value"
+1234 = "value"</value>
+    </data>
+    <data name="QuotedKeysTestInput" xml:space="preserve">
+        <value>"127.0.0.1" = "value"
+"character encoding" = "value"
+"ʎǝʞ" = "value"
+'key2' = "value"
+'quoted "value"' = "value"</value>
+    </data>
+    <data name="EmptyKeyNameTestInput" xml:space="preserve">
+        <value>= "no key name"  # INVALID</value>
+    </data>
+    <data name="BlankKeysAreAcceptedTestInput" xml:space="preserve">
+        <value>"" = "blank"     # VALID but discouraged</value>
+    </data>
+</root>
