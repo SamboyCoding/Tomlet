@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -21,11 +20,10 @@ namespace Tomlet
             var document = new TomlDocument();
             using var reader = new StringReader(input);
 
-            while (reader.TryPeek(out var nextChar))
+            while (reader.TryPeek(out _))
             {
                 //We have more to read.
-                reader.SkipAnyComment();
-                reader.SkipAnyNewlineOrWhitespace();
+                reader.SkipAnyCommentNewlineWhitespaceEtc();
 
                 //TODO Check for [ here
 
@@ -248,7 +246,7 @@ namespace Tomlet
                 if (fourDigitUnicodeMode || eightDigitUnicodeMode)
                 {
                     //Handle \u1234 and \U12345678
-                    unicodeStringBuilder.Append(nextChar);
+                    unicodeStringBuilder.Append((char) nextChar);
 
                     if (fourDigitUnicodeMode && unicodeStringBuilder.Length == 4 || eightDigitUnicodeMode &&  unicodeStringBuilder.Length == 8)
                     {
@@ -259,8 +257,8 @@ namespace Tomlet
                         fourDigitUnicodeMode = false;
                         eightDigitUnicodeMode = false;
                         unicodeStringBuilder.Clear();
-                        continue;
                     }
+                    continue;
                 }
 
                 if (nextChar.IsNewline())
@@ -331,7 +329,7 @@ namespace Tomlet
                     eightDigitUnicodeMode = true;
                     return null;
                 default:
-                    if (allowNewline && escapedChar.IsWhitespace())
+                    if (allowNewline && escapedChar.IsNewline())
                         return null;
                     throw new InvalidTomlEscapeException(_lineNumber, $"\\{escapedChar}");
             }
@@ -342,7 +340,7 @@ namespace Tomlet
         private TomlValue ReadSingleLineLiteralString(StringReader reader)
         {
             //Literally (hah) just read until a single-quote
-            var stringContent = reader.ReadWhile(valueChar => !valueChar.IsWhitespace() && !valueChar.IsSingleQuote() && !valueChar.IsNewline());
+            var stringContent = reader.ReadWhile(valueChar => !valueChar.IsSingleQuote() && !valueChar.IsNewline());
 
             if (!reader.TryPeek(out var terminatingChar))
                 //Unexpected EOF
@@ -359,6 +357,8 @@ namespace Tomlet
         private TomlValue ReadMultiLineLiteralString(StringReader reader)
         {
             var content = new StringBuilder();
+            //Ignore any first-line newlines
+            _lineNumber += reader.SkipAnyNewline();
             while (reader.TryPeek(out _))
             {
                 var nextChar = reader.Read();
@@ -375,20 +375,27 @@ namespace Tomlet
                 
                 //We have a single quote.
                 //Is it alone? if so, just continue.
-                if(reader.TryPeek(out var potentialSecondQuote) && !potentialSecondQuote.IsSingleQuote())
+                if (!reader.TryPeek(out var potentialSecondQuote) || !potentialSecondQuote.IsSingleQuote())
+                {
+                    content.Append('\'');
                     continue;
-                
+                }
+
                 //We have two quotes in a row. Consume the second one
                 reader.Read();
                 
                 //Do we have three?
-                if(reader.TryPeek(out var potentialThirdQuote) && !potentialThirdQuote.IsSingleQuote())
+                if (!reader.TryPeek(out var potentialThirdQuote) || !potentialThirdQuote.IsSingleQuote())
+                {
+                    content.Append('\'');
+                    content.Append('\'');
                     continue;
-                
+                }
+
                 //Ok we have at least three quotes. Consume the third.
                 reader.Read();
                 
-                if(reader.TryPeek(out var afterThirdQuote) && !afterThirdQuote.IsSingleQuote())
+                if(!reader.TryPeek(out var afterThirdQuote) || !afterThirdQuote.IsSingleQuote())
                     //And ONLY three quotes. End of literal.
                     break;
                 
@@ -399,7 +406,7 @@ namespace Tomlet
                 content.Append('\'');
                 
                 //Check for a 5th.
-                if(reader.TryPeek(out var potentialFifthQuote) && !potentialFifthQuote.IsSingleQuote())
+                if(!reader.TryPeek(out var potentialFifthQuote) || !potentialFifthQuote.IsSingleQuote())
                     //Four in total, so we bail out here.
                     break;
                 
@@ -409,7 +416,7 @@ namespace Tomlet
                 content.Append('\'');
                 
                 //Check for sixth
-                if(reader.TryPeek(out var potentialSixthQuote) && !potentialSixthQuote.IsSingleQuote())
+                if(!reader.TryPeek(out var potentialSixthQuote) || !potentialSixthQuote.IsSingleQuote())
                     //Five in total, so we bail out here.
                     break;
                 
@@ -429,12 +436,13 @@ namespace Tomlet
             var eightDigitUnicodeMode = false;
 
             var unicodeStringBuilder = new StringBuilder();
+            
+            //Leading newlines are ignored
+            _lineNumber += reader.SkipAnyNewline();
+            
             while (reader.TryPeek(out _))
             {
                 var nextChar = reader.Read();
-                
-                if(nextChar == '"' && !escapeMode)
-                    break;
 
                 if (nextChar == '\\' && !escapeMode)
                 {
@@ -458,8 +466,8 @@ namespace Tomlet
                         //Increment line number
                         _lineNumber++;
                         
-                        //Escaped newline indicates we skip any whitespace at the start of the next line
-                        reader.SkipWhitespace();
+                        //Escaped newline indicates we skip this newline and any whitespace at the start of the next line
+                        reader.SkipAnyNewlineOrWhitespace();
                     }
                     continue;
                 }
@@ -467,7 +475,7 @@ namespace Tomlet
                 if (fourDigitUnicodeMode || eightDigitUnicodeMode)
                 {
                     //Handle \u1234 and \U12345678
-                    unicodeStringBuilder.Append(nextChar);
+                    unicodeStringBuilder.Append((char) nextChar);
 
                     if (fourDigitUnicodeMode && unicodeStringBuilder.Length == 4 || eightDigitUnicodeMode &&  unicodeStringBuilder.Length == 8)
                     {
@@ -478,12 +486,15 @@ namespace Tomlet
                         fourDigitUnicodeMode = false;
                         eightDigitUnicodeMode = false;
                         unicodeStringBuilder.Clear();
-                        continue;
                     }
+                    continue;
                 }
 
                 if (!nextChar.IsDoubleQuote())
                 {
+                    if (nextChar == '\n')
+                        _lineNumber++;
+                    
                     content.Append((char) nextChar);
                     continue;
                 }
@@ -492,20 +503,27 @@ namespace Tomlet
 
                 //We have a double quote.
                 //Is it alone? if so, just continue.
-                if(reader.TryPeek(out var potentialSecondQuote) && !potentialSecondQuote.IsDoubleQuote())
+                if (!reader.TryPeek(out var potentialSecondQuote) || !potentialSecondQuote.IsDoubleQuote())
+                {
+                    content.Append('"');
                     continue;
-                
+                }
+
                 //We have two quotes in a row. Consume the second one
                 reader.Read();
                 
                 //Do we have three?
-                if(reader.TryPeek(out var potentialThirdQuote) && !potentialThirdQuote.IsDoubleQuote())
+                if (!reader.TryPeek(out var potentialThirdQuote) || !potentialThirdQuote.IsDoubleQuote())
+                {
+                    content.Append('"');
+                    content.Append('"');
                     continue;
-                
+                }
+
                 //Ok we have at least three quotes. Consume the third.
                 reader.Read();
                 
-                if(reader.TryPeek(out var afterThirdQuote) && !afterThirdQuote.IsDoubleQuote())
+                if(!reader.TryPeek(out var afterThirdQuote) || !afterThirdQuote.IsDoubleQuote())
                     //And ONLY three quotes. End of literal.
                     break;
                 
@@ -516,7 +534,7 @@ namespace Tomlet
                 content.Append('"');
                 
                 //Check for a 5th.
-                if(reader.TryPeek(out var potentialFifthQuote) && !potentialFifthQuote.IsDoubleQuote())
+                if(!reader.TryPeek(out var potentialFifthQuote) || !potentialFifthQuote.IsDoubleQuote())
                     //Four in total, so we bail out here.
                     break;
                 
@@ -526,7 +544,7 @@ namespace Tomlet
                 content.Append('"');
                 
                 //Check for sixth
-                if(reader.TryPeek(out var potentialSixthQuote) && !potentialSixthQuote.IsDoubleQuote())
+                if(!reader.TryPeek(out var potentialSixthQuote) || !potentialSixthQuote.IsDoubleQuote())
                     //Five in total, so we bail out here.
                     break;
                 

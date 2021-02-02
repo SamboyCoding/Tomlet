@@ -51,4 +51,60 @@ bare-key = "value"
     <data name="BlankKeysAreAcceptedTestInput" xml:space="preserve">
         <value>"" = "blank"     # VALID but discouraged</value>
     </data>
+    <data name="EscapedDoubleQuotedStringTestInput" xml:space="preserve">
+        <value>str = "I'm a string. \"You can quote me\". Name\tJos\u00E9\nLocation\tSF."</value>
+    </data>
+    <data name="MultiLineSimpleStringTestInput" xml:space="preserve">
+        <value>str1 = """
+Roses are red
+Violets are blue"""</value>
+    </data>
+    <data name="WhitespaceRemovalTestInput" xml:space="preserve">
+        <value>str1 = "The quick brown fox jumps over the lazy dog."
+
+str2 = """
+The quick brown \
+
+
+  fox jumps over \
+    the lazy dog."""
+
+str3 = """\
+       The quick brown \
+       fox jumps over \
+       the lazy dog.\
+       """</value>
+    </data>
+    <data name="DoubleQuotesInMultilineBasicTestInput" xml:space="preserve">
+        <value>str4 = """Here are two quotation marks: "". Simple enough."""
+str5 = """Here are three quotation marks: ""\"."""
+str6 = """Here are fifteen quotation marks: ""\"""\"""\"""\"""\"."""
+
+# "This," she said, "is just a pointless statement."
+str7 = """"This," she said, "is just a pointless statement.""""</value>
+    </data>
+    <data name="LiteralStringTestInput" xml:space="preserve">
+        <value>winpath  = 'C:\Users\nodejs\templates'
+winpath2 = '\\ServerX\admin$\system32\'
+quoted   = 'Tom "Dubs" Preston-Werner'
+regex    = '&lt;\i\c*\s*&gt;'</value>
+    </data>
+    <data name="MultiLineLiteralStringTestInput" xml:space="preserve">
+        <value>regex2 = '''I [dw]on't need \d{2} apples'''
+lines  = '''
+The first newline is
+trimmed in raw strings.
+   All other whitespace
+   is preserved.
+'''</value>
+    </data>
+    <data name="SingleQuotesInMultilineLiteralTestInput" xml:space="preserve">
+        <value>quot15 = '''Here are fifteen quotation marks: """""""""""""""'''
+
+# apos15 = '''Here are fifteen apostrophes: ''''''''''''''''''  # INVALID
+apos15 = "Here are fifteen apostrophes: '''''''''''''''"
+
+# 'That,' she said, 'is still pointless.'
+str = ''''That,' she said, 'is still pointless.''''</value>
+    </data>
 </root>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Tomlet
@@ -92,6 +93,24 @@ namespace Tomlet
         internal static void SkipAnyNewlineOrWhitespace(this TextReader reader)
         {
             reader.ReadWhile(c => c.IsNewline() || c.IsWhitespace());
+        }
+
+        internal static void SkipAnyCommentNewlineWhitespaceEtc(this TextReader reader)
+        {
+            while (reader.TryPeek(out var nextChar))
+            {
+                if(!nextChar.IsHashSign() && !nextChar.IsNewline() && !nextChar.IsWhitespace())
+                    break;
+                
+                if(nextChar.IsHashSign())
+                    reader.SkipAnyComment();
+                reader.SkipAnyNewlineOrWhitespace();
+            }
+        }
+        
+        internal static int SkipAnyNewline(this TextReader reader)
+        {
+            return reader.ReadWhile(c => c.IsNewline()).Count(c => c == '\n');
         }
 
         internal static char[] ReadChars(this TextReader reader, int count)

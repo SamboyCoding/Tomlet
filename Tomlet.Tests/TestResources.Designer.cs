@@ -90,11 +90,72 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to str4 = &quot;&quot;&quot;Here are two quotation marks: &quot;&quot;. Simple enough.&quot;&quot;&quot;
+        ///str5 = &quot;&quot;&quot;Here are three quotation marks: &quot;&quot;\&quot;.&quot;&quot;&quot;
+        ///str6 = &quot;&quot;&quot;Here are fifteen quotation marks: &quot;&quot;\&quot;&quot;&quot;\&quot;&quot;&quot;\&quot;&quot;&quot;\&quot;&quot;&quot;\&quot;.&quot;&quot;&quot;
+        ///
+        ///# &quot;This,&quot; she said, &quot;is just a pointless statement.&quot;
+        ///str7 = &quot;&quot;&quot;&quot;This,&quot; she said, &quot;is just a pointless statement.&quot;&quot;&quot;&quot;.
+        /// </summary>
+        internal static string DoubleQuotesInMultilineBasicTestInput {
+            get {
+                return ResourceManager.GetString("DoubleQuotesInMultilineBasicTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to = &quot;no key name&quot;  # INVALID.
         /// </summary>
         internal static string EmptyKeyNameTestInput {
             get {
                 return ResourceManager.GetString("EmptyKeyNameTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to str = &quot;I&apos;m a string. \&quot;You can quote me\&quot;. Name\tJos\u00E9\nLocation\tSF.&quot;.
+        /// </summary>
+        internal static string EscapedDoubleQuotedStringTestInput {
+            get {
+                return ResourceManager.GetString("EscapedDoubleQuotedStringTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to winpath  = &apos;C:\Users\nodejs\templates&apos;
+        ///winpath2 = &apos;\\ServerX\admin$\system32\&apos;
+        ///quoted   = &apos;Tom &quot;Dubs&quot; Preston-Werner&apos;
+        ///regex    = &apos;&lt;\i\c*\s*&gt;&apos;.
+        /// </summary>
+        internal static string LiteralStringTestInput {
+            get {
+                return ResourceManager.GetString("LiteralStringTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to regex2 = &apos;&apos;&apos;I [dw]on&apos;t need \d{2} apples&apos;&apos;&apos;
+        ///lines  = &apos;&apos;&apos;
+        ///The first newline is
+        ///trimmed in raw strings.
+        ///   All other whitespace
+        ///   is preserved.
+        ///&apos;&apos;&apos;.
+        /// </summary>
+        internal static string MultiLineLiteralStringTestInput {
+            get {
+                return ResourceManager.GetString("MultiLineLiteralStringTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to str1 = &quot;&quot;&quot;
+        ///Roses are red
+        ///Violets are blue&quot;&quot;&quot;.
+        /// </summary>
+        internal static string MultiLineSimpleStringTestInput {
+            get {
+                return ResourceManager.GetString("MultiLineSimpleStringTestInput", resourceCulture);
             }
         }
         
@@ -133,11 +194,48 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to quot15 = &apos;&apos;&apos;Here are fifteen quotation marks: &quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&apos;&apos;&apos;
+        ///
+        ///# apos15 = &apos;&apos;&apos;Here are fifteen apostrophes: &apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;  # INVALID
+        ///apos15 = &quot;Here are fifteen apostrophes: &apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&apos;&quot;
+        ///
+        ///# &apos;That,&apos; she said, &apos;is still pointless.&apos;
+        ///str = &apos;&apos;&apos;&apos;That,&apos; she said, &apos;is still pointless.&apos;&apos;&apos;&apos;.
+        /// </summary>
+        internal static string SingleQuotesInMultilineLiteralTestInput {
+            get {
+                return ResourceManager.GetString("SingleQuotesInMultilineLiteralTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to key = # INVALID .
         /// </summary>
         internal static string UnspecifiedValueTestInput {
             get {
                 return ResourceManager.GetString("UnspecifiedValueTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to str1 = &quot;The quick brown fox jumps over the lazy dog.&quot;
+        ///
+        ///str2 = &quot;&quot;&quot;
+        ///The quick brown \
+        ///
+        ///
+        ///  fox jumps over \
+        ///    the lazy dog.&quot;&quot;&quot;
+        ///
+        ///str3 = &quot;&quot;&quot;\
+        ///       The quick brown \
+        ///       fox jumps over \
+        ///       the lazy dog.\
+        ///       &quot;&quot;&quot;.
+        /// </summary>
+        internal static string WhitespaceRemovalTestInput {
+            get {
+                return ResourceManager.GetString("WhitespaceRemovalTestInput", resourceCulture);
             }
         }
     }
