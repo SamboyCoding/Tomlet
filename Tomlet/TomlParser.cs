@@ -109,7 +109,6 @@ namespace Tomlet
                 //Read unquoted key
                 key = reader.ReadWhile(keyChar => !keyChar.IsEquals() && !keyChar.IsWhitespace() && !keyChar.IsHashSign());
 
-            Console.WriteLine("Read key: " + key);
             return key;
         }
 
