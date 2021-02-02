@@ -15,6 +15,6 @@ namespace Tomlet.Models
             long.TryParse(valueInToml, TomlNumberStyle.INTEGER, NumberFormatInfo.InvariantInfo, out var val) ? new TomlLong(val) : null;
 
         public long Value => _value;
-        public override string StringValue { get; }
+        public override string StringValue => Value.ToString();
     }
 }

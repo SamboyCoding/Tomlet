@@ -30,7 +30,12 @@
       <Compile Update="TestResources.Designer.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
-        <DependentUpon>Resources.resx</DependentUpon>
+        <DependentUpon>TestResources.resx</DependentUpon>
+      </Compile>
+      <Compile Update="TestResources.Designer.cs">
+        <AutoGen>True</AutoGen>
+        <DependentUpon>TestResources.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
       </Compile>
     </ItemGroup>
 

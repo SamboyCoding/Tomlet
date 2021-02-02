@@ -27,7 +27,7 @@ another = "# This is not a comment"</value>
         <value>key = "value"</value>
     </data>
     <data name="UnspecifiedValueTestInput" xml:space="preserve">
-        <value>key = # INVALID</value>
+        <value>key = # INVALID </value>
     </data>
     <data name="MultiplePairsOnOneLineTestInput" xml:space="preserve">
         <value>first = "Tom" last = "Preston-Werner" # INVALID</value>
