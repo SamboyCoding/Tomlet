@@ -50,6 +50,19 @@ namespace Tomlet
 
         public static double? GetDoubleValue(string input)
         {
+            var skippingFirst = input.Substring(1);
+
+            if (input == "nan" || input == "inf" || skippingFirst == "nan" || skippingFirst == "inf")
+            {
+                //Special value
+                if (input == "nan" || skippingFirst == "nan")
+                    return double.NaN;
+                if (input == "inf")
+                    return double.PositiveInfinity;
+                if (skippingFirst == "inf")
+                    return input.StartsWith("-") ? double.NegativeInfinity : double.PositiveInfinity;
+            }
+            
             if (input.Contains("__") || input.Any(c => c != '_' && c != '-' && c != '+' && c != 'e' && c != '.' && !char.IsDigit(c)))
                 return null;
 
@@ -65,7 +78,7 @@ namespace Tomlet
 
             //Theoretically we can have hex/octal/binary numbers with floating-point parts. I'm not implementing that.
             //None of the examples use it.
-            if (long.TryParse(input, TomlNumberStyle.FLOATING_POINT, CultureInfo.InvariantCulture, out var val))
+            if (double.TryParse(input, TomlNumberStyle.FLOATING_POINT, CultureInfo.InvariantCulture, out var val))
                 return val;
 
             return null;

@@ -97,14 +97,15 @@ namespace Tomlet.Tests
         {
             var document = GetDocument(TestResources.LiteralStringTestInput);
             
-            Assert.Equal(4, document.Entries.Count);
+            Assert.Equal(5, document.Entries.Count);
 
             //Check keys
             Assert.Collection(document.Entries.Keys,
                 key1 => Assert.Equal("winpath", key1),
                 key2 => Assert.Equal("winpath2", key2),
                 key3 => Assert.Equal("quoted", key3),
-                key4 => Assert.Equal("regex", key4)
+                key4 => Assert.Equal("regex", key4),
+                key5 => Assert.Equal("empty", key5)
             );
 
             //Check values
@@ -112,7 +113,8 @@ namespace Tomlet.Tests
                 entry => Assert.Equal(@"C:\Users\nodejs\templates", Assert.IsType<TomlString>(entry).Value),
                 entry => Assert.Equal(@"\\ServerX\admin$\system32\", Assert.IsType<TomlString>(entry).Value),
                 entry => Assert.Equal("Tom \"Dubs\" Preston-Werner", Assert.IsType<TomlString>(entry).Value),
-                entry => Assert.Equal(@"<\i\c*\s*>", Assert.IsType<TomlString>(entry).Value)
+                entry => Assert.Equal(@"<\i\c*\s*>", Assert.IsType<TomlString>(entry).Value),
+                entry => Assert.Empty(Assert.IsType<TomlString>(entry).Value)
             );
         }
         

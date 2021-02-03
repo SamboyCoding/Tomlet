@@ -87,7 +87,8 @@ str7 = """"This," she said, "is just a pointless statement.""""</value>
         <value>winpath  = 'C:\Users\nodejs\templates'
 winpath2 = '\\ServerX\admin$\system32\'
 quoted   = 'Tom "Dubs" Preston-Werner'
-regex    = '&lt;\i\c*\s*&gt;'</value>
+regex    = '&lt;\i\c*\s*&gt;'
+empty = ''</value>
     </data>
     <data name="MultiLineLiteralStringTestInput" xml:space="preserve">
         <value>regex2 = '''I [dw]on't need \d{2} apples'''
@@ -118,5 +119,54 @@ int4 = -17</value>
 int6 = 5_349_221
 int7 = 53_49_221  # Indian number system grouping
 int8 = 1_2_3_4_5  # VALID but discouraged</value>
+    </data>
+    <data name="BasicFloatTestInput" xml:space="preserve">
+        <value># fractional
+flt1 = +1.0
+flt2 = 3.1415
+flt3 = -0.01
+
+# exponent
+flt4 = 5e+22
+flt5 = 1e06
+flt6 = -2E-2
+
+# both
+flt7 = 6.626e-34</value>
+    </data>
+    <data name="FloatWithUnderscoresTestInput" xml:space="preserve">
+        <value>flt8 = 224_617.445_991_228</value>
+    </data>
+    <data name="FloatSpecialsTestInput" xml:space="preserve">
+        <value># infinity
+sf1 = inf  # positive infinity
+sf2 = +inf # positive infinity
+sf3 = -inf # negative infinity
+
+# not a number
+sf4 = nan  # actual sNaN/qNaN encoding is implementation-specific
+sf5 = +nan # same as `nan`
+sf6 = -nan # valid, actual encoding is implementation-specific</value>
+    </data>
+    <data name="BooleanTestInput" xml:space="preserve">
+        <value>bool1 = true
+bool2 = false</value>
+    </data>
+    <data name="OffsetDateTimeTestInput" xml:space="preserve">
+        <value>odt1 = 1979-05-27T07:32:00Z
+odt2 = 1979-05-27T00:32:00-07:00
+odt3 = 1979-05-27T00:32:00.999999-07:00
+odt4 = 1979-05-27 07:32:00Z</value>
+    </data>
+    <data name="LocalDateTimeTestInput" xml:space="preserve">
+        <value>ldt1 = 1979-05-27T07:32:00
+ldt2 = 1979-05-27T00:32:00.999999</value>
+    </data>
+    <data name="LocalDateTestInput" xml:space="preserve">
+        <value>ld1 = 1979-05-27</value>
+    </data>
+    <data name="LocalTimeTestInput" xml:space="preserve">
+        <value>lt1 = 07:32:00
+lt2 = 00:32:00.999999</value>
     </data>
 </root>

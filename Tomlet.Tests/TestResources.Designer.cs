@@ -61,6 +61,26 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to # fractional
+        ///flt1 = +1.0
+        ///flt2 = 3.1415
+        ///flt3 = -0.01
+        ///
+        ///# exponent
+        ///flt4 = 5e+22
+        ///flt5 = 1e06
+        ///flt6 = -2E-2
+        ///
+        ///# both
+        ///flt7 = 6.626e-34.
+        /// </summary>
+        internal static string BasicFloatTestInput {
+            get {
+                return ResourceManager.GetString("BasicFloatTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to int1 = +99
         ///int2 = 42
         ///int3 = 0
@@ -87,6 +107,16 @@ namespace Tomlet.Tests {
         internal static string BlankKeysAreAcceptedTestInput {
             get {
                 return ResourceManager.GetString("BlankKeysAreAcceptedTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to bool1 = true
+        ///bool2 = false.
+        /// </summary>
+        internal static string BooleanTestInput {
+            get {
+                return ResourceManager.GetString("BooleanTestInput", resourceCulture);
             }
         }
         
@@ -134,14 +164,70 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to # infinity
+        ///sf1 = inf  # positive infinity
+        ///sf2 = +inf # positive infinity
+        ///sf3 = -inf # negative infinity
+        ///
+        ///# not a number
+        ///sf4 = nan  # actual sNaN/qNaN encoding is implementation-specific
+        ///sf5 = +nan # same as `nan`
+        ///sf6 = -nan # valid, actual encoding is implementation-specific.
+        /// </summary>
+        internal static string FloatSpecialsTestInput {
+            get {
+                return ResourceManager.GetString("FloatSpecialsTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to flt8 = 224_617.445_991_228.
+        /// </summary>
+        internal static string FloatWithUnderscoresTestInput {
+            get {
+                return ResourceManager.GetString("FloatWithUnderscoresTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to winpath  = &apos;C:\Users\nodejs\templates&apos;
         ///winpath2 = &apos;\\ServerX\admin$\system32\&apos;
         ///quoted   = &apos;Tom &quot;Dubs&quot; Preston-Werner&apos;
-        ///regex    = &apos;&lt;\i\c*\s*&gt;&apos;.
+        ///regex    = &apos;&lt;\i\c*\s*&gt;&apos;
+        ///empty = &apos;&apos;.
         /// </summary>
         internal static string LiteralStringTestInput {
             get {
                 return ResourceManager.GetString("LiteralStringTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ld1 = 1979-05-27.
+        /// </summary>
+        internal static string LocalDateTestInput {
+            get {
+                return ResourceManager.GetString("LocalDateTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ldt1 = 1979-05-27T07:32:00
+        ///ldt2 = 1979-05-27T00:32:00.999999.
+        /// </summary>
+        internal static string LocalDateTimeTestInput {
+            get {
+                return ResourceManager.GetString("LocalDateTimeTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to lt1 = 07:32:00
+        ///lt2 = 00:32:00.999999.
+        /// </summary>
+        internal static string LocalTimeTestInput {
+            get {
+                return ResourceManager.GetString("LocalTimeTestInput", resourceCulture);
             }
         }
         
@@ -189,6 +275,18 @@ namespace Tomlet.Tests {
         internal static string NonSimpleKeysTestInput {
             get {
                 return ResourceManager.GetString("NonSimpleKeysTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to odt1 = 1979-05-27T07:32:00Z
+        ///odt2 = 1979-05-27T00:32:00-07:00
+        ///odt3 = 1979-05-27T00:32:00.999999-07:00
+        ///odt4 = 1979-05-27 07:32:00Z.
+        /// </summary>
+        internal static string OffsetDateTimeTestInput {
+            get {
+                return ResourceManager.GetString("OffsetDateTimeTestInput", resourceCulture);
             }
         }
         

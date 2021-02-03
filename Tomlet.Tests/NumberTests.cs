@@ -58,5 +58,71 @@ namespace Tomlet.Tests
                 entry => Assert.Equal(12345, Assert.IsType<TomlLong>(entry).Value)
             );
         }
+
+        [Fact]
+        public void BasicFloatValuesWorkAsIntended()
+        {
+            var document = GetDocument(TestResources.BasicFloatTestInput);
+            
+            Assert.Equal(7, document.Entries.Count);
+
+            //Check keys
+            Assert.Collection(document.Entries.Keys,
+                key => Assert.Equal("flt1", key),
+                key => Assert.Equal("flt2", key),
+                key => Assert.Equal("flt3", key),
+                key => Assert.Equal("flt4", key),
+                key => Assert.Equal("flt5", key),
+                key => Assert.Equal("flt6", key),
+                key => Assert.Equal("flt7", key)
+            );
+            
+            //Check values
+            Assert.Collection(document.Entries.Values,
+                entry => Assert.Equal(1.0, Assert.IsType<TomlDouble>(entry).Value),
+                entry => Assert.Equal(3.1415, Assert.IsType<TomlDouble>(entry).Value),
+                entry => Assert.Equal(-0.01, Assert.IsType<TomlDouble>(entry).Value),
+                entry => Assert.Equal(5e+22, Assert.IsType<TomlDouble>(entry).Value),
+                entry => Assert.Equal(1e06, Assert.IsType<TomlDouble>(entry).Value),
+                entry => Assert.Equal(-2e-2, Assert.IsType<TomlDouble>(entry).Value),
+                entry => Assert.Equal(6.626e-34, Assert.IsType<TomlDouble>(entry).Value)
+            );
+        }
+
+        [Fact]
+        public void FloatsWithUnderscoresWorkAsIntended()
+        {
+            var document = GetDocument(TestResources.FloatWithUnderscoresTestInput);
+
+            Assert.Single(document.Entries, kvp => kvp.Key == "flt8" && kvp.Value is TomlDouble {Value: 224617.445991228});
+        }
+
+        [Fact]
+        public void SpecialFloatConstantsAreAllowedAndReturnTheCorrectValues()
+        {
+            var document = GetDocument(TestResources.FloatSpecialsTestInput);
+            
+            Assert.Equal(6, document.Entries.Count);
+            
+            //Check keys
+            Assert.Collection(document.Entries.Keys,
+                key => Assert.Equal("sf1", key),
+                key => Assert.Equal("sf2", key),
+                key => Assert.Equal("sf3", key),
+                key => Assert.Equal("sf4", key),
+                key => Assert.Equal("sf5", key),
+                key => Assert.Equal("sf6", key)
+            );
+            
+            //Check values
+            Assert.Collection(document.Entries.Values,
+                entry => Assert.Equal(double.PositiveInfinity, Assert.IsType<TomlDouble>(entry).Value),
+                entry => Assert.Equal(double.PositiveInfinity, Assert.IsType<TomlDouble>(entry).Value),
+                entry => Assert.Equal(double.NegativeInfinity, Assert.IsType<TomlDouble>(entry).Value),
+                entry => Assert.Equal(double.NaN, Assert.IsType<TomlDouble>(entry).Value),
+                entry => Assert.Equal(double.NaN, Assert.IsType<TomlDouble>(entry).Value),
+                entry => Assert.Equal(double.NaN, Assert.IsType<TomlDouble>(entry).Value)
+            );
+        }
     }
 }

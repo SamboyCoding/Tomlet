@@ -116,7 +116,7 @@ namespace Tomlet
         internal static char[] ReadChars(this TextReader reader, int count)
         {
             char[] result = new char[count];
-            reader.ReadBlock(result, 0, 4);
+            reader.ReadBlock(result, 0, count);
 
             return result;
         }
