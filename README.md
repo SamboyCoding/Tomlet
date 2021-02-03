@@ -7,7 +7,7 @@ Currently supported features are as follows:
 
 - [x] Primitive key-value pair reading
 - [ ] Table Reading
-- [ ] Array Reading
+- [x] Array Reading
 - [ ] Primitive key-value pair writing
 - [ ] Table Writing
 - [ ] Array Writing

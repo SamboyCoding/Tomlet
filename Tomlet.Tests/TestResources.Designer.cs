@@ -267,6 +267,16 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to nested_arrays_of_ints = [ [ 1, 2 ], [3, 4, 5] ]
+        ///nested_mixed_array = [ [ 1, 2 ], [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] ].
+        /// </summary>
+        internal static string NestedArraysTestInput {
+            get {
+                return ResourceManager.GetString("NestedArraysTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to key = &quot;value&quot;
         ///bare_key = &quot;value&quot;
         ///bare-key = &quot;value&quot;
@@ -287,6 +297,17 @@ namespace Tomlet.Tests {
         internal static string OffsetDateTimeTestInput {
             get {
                 return ResourceManager.GetString("OffsetDateTimeTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to integers = [ 1, 2, 3 ]
+        ///colors = [ &quot;red&quot;, &quot;yellow&quot;, &quot;green&quot; ]
+        ///string_array = [ &quot;all&quot;, &apos;strings&apos;, &quot;&quot;&quot;are the same&quot;&quot;&quot;, &apos;&apos;&apos;type&apos;&apos;&apos; ].
+        /// </summary>
+        internal static string PrimitiveArraysTestInput {
+            get {
+                return ResourceManager.GetString("PrimitiveArraysTestInput", resourceCulture);
             }
         }
         

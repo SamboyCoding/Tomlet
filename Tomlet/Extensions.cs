@@ -45,15 +45,16 @@ namespace Tomlet
             return char.IsDigit((char) val);
         }
 
-        internal static bool IsHexDigit(this int val)
+        internal static bool IsComma(this int val)
         {
-            if (val.IsDigit())
-                return true;
-
-            var upper = char.ToUpperInvariant((char) val);
-            return upper >= 'A' && upper <= 'F';
+            return val == ',';
         }
-        
+
+        internal static bool IsEndOfArrayChar(this int val)
+        {
+            return val == ']';
+        }
+
         internal static bool IsHexDigit(this char c)
         {
             var val = (int) c;
@@ -90,13 +91,14 @@ namespace Tomlet
                 reader.ReadWhile(commentChar => !commentChar.IsNewline());
         }
 
-        internal static void SkipAnyNewlineOrWhitespace(this TextReader reader)
+        internal static int SkipAnyNewlineOrWhitespace(this TextReader reader)
         {
-            reader.ReadWhile(c => c.IsNewline() || c.IsWhitespace());
+            return reader.ReadWhile(c => c.IsNewline() || c.IsWhitespace()).Count(c => c == '\n');
         }
 
-        internal static void SkipAnyCommentNewlineWhitespaceEtc(this TextReader reader)
+        internal static int SkipAnyCommentNewlineWhitespaceEtc(this TextReader reader)
         {
+            var countRead = 0;
             while (reader.TryPeek(out var nextChar))
             {
                 if(!nextChar.IsHashSign() && !nextChar.IsNewline() && !nextChar.IsWhitespace())
@@ -104,8 +106,10 @@ namespace Tomlet
                 
                 if(nextChar.IsHashSign())
                     reader.SkipAnyComment();
-                reader.SkipAnyNewlineOrWhitespace();
+                countRead += reader.SkipAnyNewlineOrWhitespace();
             }
+
+            return countRead;
         }
         
         internal static int SkipAnyNewline(this TextReader reader)

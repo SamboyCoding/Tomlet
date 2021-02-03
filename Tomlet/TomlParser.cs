@@ -120,7 +120,8 @@ namespace Tomlet
             {
                 case '[':
                     //Array
-                    throw new NotImplementedException("Reading arrays is not supported yet");
+                    value = ReadArray(reader);
+                    break;
                 case '{':
                     //Inline table
                     throw new NotImplementedException("Reading inline tables is not supported yet");
@@ -174,7 +175,7 @@ namespace Tomlet
                     //i and n indicate special floating point values (inf and nan).
 
                     //Read a string, stopping if we hit an equals, whitespace, newline, or comment.
-                    var stringValue = reader.ReadWhile(valueChar => !valueChar.IsEquals() && !valueChar.IsNewline() && !valueChar.IsHashSign()).ToLowerInvariant().Trim();
+                    var stringValue = reader.ReadWhile(valueChar => !valueChar.IsEquals() && !valueChar.IsNewline() && !valueChar.IsHashSign() && !valueChar.IsComma() && !valueChar.IsEndOfArrayChar()).ToLowerInvariant().Trim();
 
                     if (stringValue.Contains(':') || stringValue.Contains('t') || stringValue.Contains(' ') || stringValue.Contains('z'))
                         value = TomlDateTimeUtils.ParseDateString(stringValue, _lineNumber) ?? throw new InvalidTomlDateTimeException(_lineNumber, stringValue);
@@ -561,6 +562,46 @@ namespace Tomlet
             }
 
             return new TomlString(content.ToString());
+        }
+
+        private TomlArray ReadArray(StringReader reader)
+        {
+            //Consume the opening bracket
+            if (!reader.ExpectAndConsume('['))
+                throw new ArgumentException("Internal Tomlet Bug: ReadArray called and first char is not a [");
+            
+            //Move to the first value
+            _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
+
+            var result = new TomlArray();
+
+            while (reader.TryPeek(out _))
+            {
+                //Skip any empty lines
+                _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
+                
+                //Read a value
+                result.ArrayValues.Add(ReadValue(reader));
+                
+                //Skip any whitespace or newlines, NOT comments - that would be a syntax error
+                _lineNumber += reader.SkipAnyNewlineOrWhitespace();
+
+                if (!reader.TryPeek(out var postValueChar))
+                    throw new TomlEOFException(_lineNumber);
+                
+                if(postValueChar.IsEndOfArrayChar())
+                    break; //end of array
+
+                if (!postValueChar.IsComma())
+                    throw new TomlArraySyntaxException(_lineNumber, (char) postValueChar);
+
+                reader.ExpectAndConsume(','); //We've already verified we have one.
+            }
+
+            if (!reader.ExpectAndConsume(']'))
+                throw new UnterminatedTomlArrayException(_lineNumber);
+
+            return result;
         }
     }
 }
