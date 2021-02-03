@@ -61,6 +61,18 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to integers3 = [
+        ///  1,
+        ///  2, # this is ok
+        ///].
+        /// </summary>
+        internal static string ArrayWithTrailingCommaTestInput {
+            get {
+                return ResourceManager.GetString("ArrayWithTrailingCommaTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to # fractional
         ///flt1 = +1.0
         ///flt2 = 3.1415

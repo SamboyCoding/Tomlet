@@ -178,4 +178,10 @@ string_array = [ "all", 'strings', """are the same""", '''type''' ]</value>
         <value>nested_arrays_of_ints = [ [ 1, 2 ], [3, 4, 5] ]
 nested_mixed_array = [ [ 1, 2 ], ["a", "b", "c"] ]</value>
     </data>
+    <data name="ArrayWithTrailingCommaTestInput" xml:space="preserve">
+        <value>integers3 = [
+  1,
+  2, # this is ok
+]</value>
+    </data>
 </root>

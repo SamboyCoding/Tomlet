@@ -579,7 +579,14 @@ namespace Tomlet
             {
                 //Skip any empty lines
                 _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
+
+                if (!reader.TryPeek(out var nextChar))
+                    throw new TomlEOFException(_lineNumber);
                 
+                //Check for end of array here (helps with trailing commas, which are legal)
+                if(nextChar.IsEndOfArrayChar())
+                    break;
+
                 //Read a value
                 result.ArrayValues.Add(ReadValue(reader));
                 
