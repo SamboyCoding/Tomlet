@@ -107,4 +107,16 @@ apos15 = "Here are fifteen apostrophes: '''''''''''''''"
 # 'That,' she said, 'is still pointless.'
 str = ''''That,' she said, 'is still pointless.''''</value>
     </data>
+    <data name="BasicIntegerTestInput" xml:space="preserve">
+        <value>int1 = +99
+int2 = 42
+int3 = 0
+int4 = -17</value>
+    </data>
+    <data name="UnderscoresInIntegersTestInput" xml:space="preserve">
+        <value>int5 = 1_000
+int6 = 5_349_221
+int7 = 53_49_221  # Indian number system grouping
+int8 = 1_2_3_4_5  # VALID but discouraged</value>
+    </data>
 </root>

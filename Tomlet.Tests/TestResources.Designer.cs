@@ -61,6 +61,18 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to int1 = +99
+        ///int2 = 42
+        ///int3 = 0
+        ///int4 = -17.
+        /// </summary>
+        internal static string BasicIntegerTestInput {
+            get {
+                return ResourceManager.GetString("BasicIntegerTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to key = &quot;value&quot;.
         /// </summary>
         internal static string BasicKVPTestInput {
@@ -205,6 +217,18 @@ namespace Tomlet.Tests {
         internal static string SingleQuotesInMultilineLiteralTestInput {
             get {
                 return ResourceManager.GetString("SingleQuotesInMultilineLiteralTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to int5 = 1_000
+        ///int6 = 5_349_221
+        ///int7 = 53_49_221  # Indian number system grouping
+        ///int8 = 1_2_3_4_5  # VALID but discouraged.
+        /// </summary>
+        internal static string UnderscoresInIntegersTestInput {
+            get {
+                return ResourceManager.GetString("UnderscoresInIntegersTestInput", resourceCulture);
             }
         }
         

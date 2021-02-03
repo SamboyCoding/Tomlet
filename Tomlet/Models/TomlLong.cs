@@ -11,8 +11,15 @@ namespace Tomlet.Models
             _value = value;
         }
         
-        internal static TomlLong? Parse(string valueInToml) => 
-            long.TryParse(valueInToml, TomlNumberStyle.INTEGER, NumberFormatInfo.InvariantInfo, out var val) ? new TomlLong(val) : null;
+        internal static TomlLong? Parse(string valueInToml)
+        {
+            var nullableDouble = TomlNumberUtils.GetLongValue(valueInToml);
+
+            if (!nullableDouble.HasValue)
+                return null;
+
+            return new TomlLong(nullableDouble.Value);
+        }
 
         public long Value => _value;
         public override string StringValue => Value.ToString();
