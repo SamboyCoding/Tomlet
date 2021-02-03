@@ -16,7 +16,7 @@ namespace Tomlet
                 input = input.Substring(2);
 
             //Invalid characters, double underscores
-            if (input.Contains("__") || input.Any(c => c != '_' && !char.IsDigit(c) && (c < 'a' || c > 'f')))
+            if (input.Contains("__") || input.Any(c => c != '_' && c != '-' && c != '+' && !char.IsDigit(c) && (c < 'a' || c > 'f')))
                 return null;
 
             //Underscore without a digit before
@@ -50,7 +50,7 @@ namespace Tomlet
 
         public static double? GetDoubleValue(string input)
         {
-            if (input.Contains("__") || input.Any(c => c != '_' && c != 'e' && c != '.' && !char.IsDigit(c)))
+            if (input.Contains("__") || input.Any(c => c != '_' && c != '-' && c != '+' && c != 'e' && c != '.' && !char.IsDigit(c)))
                 return null;
 
             //Underscore without a digit before
