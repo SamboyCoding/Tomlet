@@ -14,6 +14,8 @@ namespace Tomlet
         private static readonly char[] FalseChars = {'f', 'a', 'l', 's', 'e'};
 
         private int _lineNumber = 1;
+        
+        private string currentTableKey = "";
 
         public TomlDocument Parse(string input)
         {
@@ -23,13 +25,33 @@ namespace Tomlet
             while (reader.TryPeek(out _))
             {
                 //We have more to read.
-                reader.SkipAnyCommentNewlineWhitespaceEtc();
+                _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
 
-                //TODO Check for [ here
+                if(!reader.TryPeek(out var nextChar))
+                    break;
+
+                if (nextChar == '[')
+                {
+                    reader.Read(); //Consume the [
+                    
+                    //Table or table-array?
+                    if(!reader.TryPeek(out var potentialSecondBracket))
+                        throw new TomlEOFException(_lineNumber);
+
+                    if (potentialSecondBracket != '[')
+                        ReadTableStatement(reader, document);
+                    else
+                        throw new NotImplementedException("Reading table-arrays is not yet supported");
+                    
+                    continue; //Restart loop.
+                }
 
                 //Read a key-value pair
                 var (key, value) = ReadKeyValuePair(reader);
 
+                if (currentTableKey.Length > 0)
+                    key = currentTableKey + "." + key;
+                
                 //Insert into the document
                 document.ParserPutValue(key, value, _lineNumber);
 
@@ -673,6 +695,56 @@ namespace Tomlet
 
             result.Locked = true; //Defined inline, cannot be later modified
             return result;
+        }
+        
+        private void ReadTableStatement(StringReader reader, TomlDocument document)
+        {
+            //Table name
+            currentTableKey = reader.ReadWhile(c => !c.IsEndOfArrayChar() && !c.IsNewline());
+
+            try
+            {
+                if (document.ContainsKey(currentTableKey))
+                {
+                    try
+                    {
+                        // this is an intentional variable, resharper.
+                        
+                        // ReSharper disable once UnusedVariable
+                        var table = (TomlTable) document.GetValue(currentTableKey);
+
+                        //The cast succeeded - we are redefining an existing table
+                        throw new TomlTableRedefinitionException(_lineNumber, currentTableKey);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        //The cast failed, we are re-defining a non-table.
+                        throw new TomlKeyRedefinitionException(_lineNumber, currentTableKey);
+                    }
+                }
+            }
+            catch (TomlContainsDottedKeyNonTableException e)
+            {
+                //Re-throw with correct line number and exception type.
+                //To be clear - here we're re-defining a NON-TABLE key as a table, so this is a key redefinition exception
+                //while the one above is a TableRedefinition exception because it's re-defining a key which is already a table.
+                throw new TomlKeyRedefinitionException(_lineNumber, e._key, e);
+            }
+
+            if (!reader.TryPeek(out _))
+                throw new TomlEOFException(_lineNumber);
+
+            if (!reader.ExpectAndConsume(']'))
+                throw new UnterminatedTomlTableNameException(_lineNumber);
+            
+            reader.SkipWhitespace();
+            reader.SkipPotentialCR();
+            
+            if (!reader.TryPeek(out var shouldBeNewline))
+                throw new TomlEOFException(_lineNumber);
+
+            if (!shouldBeNewline.IsNewline())
+                throw new TomlMissingNewlineException(_lineNumber, (char) shouldBeNewline);
         }
     }
 }

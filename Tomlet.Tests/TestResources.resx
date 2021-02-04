@@ -208,4 +208,31 @@ animal = { type.name = "pug" }</value>
         <value>type = { name = "Nail" }
 type.edible = false  # INVALID</value>
     </data>
+    <data name="BasicTableTestInput" xml:space="preserve">
+        <value>[table-1]
+key1 = "some string"
+key2 = 123
+
+[table-2]
+key1 = "another string"
+key2 = 456</value>
+    </data>
+    <data name="TableWithQuotedDottedStringTestInput" xml:space="preserve">
+        <value>[dog."tater.man"]
+type.name = "pug"</value>
+    </data>
+    <data name="TableRedefinitionTestInput" xml:space="preserve">
+        <value>[fruit]
+apple = "red"
+
+[fruit]
+orange = "orange"</value>
+    </data>
+    <data name="KeyRedefinitionViaTableTestInput" xml:space="preserve">
+        <value>[fruit]
+apple = "red"
+
+[fruit.apple]
+texture = "smooth"</value>
+    </data>
 </root>

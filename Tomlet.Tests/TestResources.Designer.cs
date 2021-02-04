@@ -125,6 +125,21 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [table-1]
+        ///key1 = &quot;some string&quot;
+        ///key2 = 123
+        ///
+        ///[table-2]
+        ///key1 = &quot;another string&quot;
+        ///key2 = 456.
+        /// </summary>
+        internal static string BasicTableTestInput {
+            get {
+                return ResourceManager.GetString("BasicTableTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &quot;&quot; = &quot;blank&quot;     # VALID but discouraged.
         /// </summary>
         internal static string BlankKeysAreAcceptedTestInput {
@@ -241,6 +256,19 @@ namespace Tomlet.Tests {
         internal static string InlineTableLockedTestInput {
             get {
                 return ResourceManager.GetString("InlineTableLockedTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [fruit]
+        ///apple = &quot;red&quot;
+        ///
+        ///[fruit.apple]
+        ///texture = &quot;smooth&quot;.
+        /// </summary>
+        internal static string KeyRedefinitionViaTableTestInput {
+            get {
+                return ResourceManager.GetString("KeyRedefinitionViaTableTestInput", resourceCulture);
             }
         }
         
@@ -402,6 +430,29 @@ namespace Tomlet.Tests {
         internal static string SingleQuotesInMultilineLiteralTestInput {
             get {
                 return ResourceManager.GetString("SingleQuotesInMultilineLiteralTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [fruit]
+        ///apple = &quot;red&quot;
+        ///
+        ///[fruit]
+        ///orange = &quot;orange&quot;.
+        /// </summary>
+        internal static string TableRedefinitionTestInput {
+            get {
+                return ResourceManager.GetString("TableRedefinitionTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [dog.&quot;tater.man&quot;]
+        ///type.name = &quot;pug&quot;.
+        /// </summary>
+        internal static string TableWithQuotedDottedStringTestInput {
+            get {
+                return ResourceManager.GetString("TableWithQuotedDottedStringTestInput", resourceCulture);
             }
         }
         

@@ -6,11 +6,13 @@ Tomlet is a WIP library for the [TOML](https://toml.io/) configuration file form
 Currently supported features are as follows:
 
 - [x] Primitive key-value pair reading
-- [ ] Table Reading
+- [x] Table Reading
 - [x] Inline Table Reading
 - [x] Array Reading
+- [ ] Table-Array Reading
 - [ ] Primitive key-value pair writing
 - [ ] Table Writing
 - [ ] Inline Table Writing
 - [ ] Array Writing
+- [ ] Table-Array Writing
 - [x] Full Unit Tests for everything supported here.

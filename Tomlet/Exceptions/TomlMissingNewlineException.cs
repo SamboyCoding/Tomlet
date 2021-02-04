@@ -9,6 +9,6 @@
             _found = found;
         }
 
-        public override string Message => $"Finished reading a key-value pair on line {LineNumber} and was expecting a newline character, but found an unexpected '{_found}'";
+        public override string Message => $"Expecting a newline character at the end of a statement on line {LineNumber}, but found an unexpected '{_found}'";
     }
 }

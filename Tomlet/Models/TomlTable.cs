@@ -31,39 +31,60 @@ namespace Tomlet.Models
             var wholeKeyIsQuoted = key.StartsWith("\"") && key.EndsWith("\"") || key.StartsWith("'") && key.EndsWith("'");
             return !wholeKeyIsQuoted ? key : key.Substring(1, key.Length - 2);
         }
+        
+        private string QuoteKey(string key)
+        {
+            if (key.Contains("'") && key.Contains("\""))
+                throw new InvalidTomlKeyException(key);
+
+            if (key.Contains("\""))
+                return $"'{key}'";
+
+            return $"\"{key}\"";
+        }
+
+        private (string ourKeyName, string restOfKey) GetTopLevelAndSubKeys(string key)
+        {
+            var wholeKeyIsQuoted = key.StartsWith("\"") && key.EndsWith("\"") || key.StartsWith("'") && key.EndsWith("'");
+            var firstPartOfKeyIsQuoted = !wholeKeyIsQuoted && (key.StartsWith("\"") || key.StartsWith("'"));
+
+            if (!key.Contains(".") || wholeKeyIsQuoted)
+                return (key, "");
+
+            //Unquoted dotted key means we put this in a sub-table.
+
+            //First get the name of the key in *this* table.
+            string ourKeyName;
+            if (!firstPartOfKeyIsQuoted)
+            {
+                var split = key.Split('.');
+                ourKeyName = split[0];
+            }
+            else
+            {
+                ourKeyName = key;
+                var keyNameWithoutOpeningQuote = ourKeyName.Substring(1);
+                if (ourKeyName.Contains("\""))
+                    ourKeyName = ourKeyName.Substring(0, 2 + keyNameWithoutOpeningQuote.IndexOf("\"", StringComparison.Ordinal));
+                else
+                    ourKeyName = ourKeyName.Substring(0, 2 + keyNameWithoutOpeningQuote.IndexOf("'", StringComparison.Ordinal));
+            }
+
+            //And get the remainder of the key, relative to the sub-table.
+            var restOfKey = key.Substring(ourKeyName.Length + 1);
+
+            ourKeyName = ourKeyName.Trim();
+
+            return (ourKeyName, restOfKey);
+        }
 
         private void InternalPutValue(string key, TomlValue value, int? lineNumber, bool callParserForm)
         {
             key = key.Trim();
+            var (ourKeyName, restOfKey) = GetTopLevelAndSubKeys(key);
 
-            var wholeKeyIsQuoted = key.StartsWith("\"") && key.EndsWith("\"") || key.StartsWith("'") && key.EndsWith("'");
-            var firstPartOfKeyIsQuoted = !wholeKeyIsQuoted && (key.StartsWith("\"") || key.StartsWith("'"));
-            if (key.Contains(".") && !wholeKeyIsQuoted)
+            if (!string.IsNullOrEmpty(restOfKey))
             {
-                //Unquoted dotted key means we put this in a sub-table.
-
-                //First get the name of the key in *this* table.
-                string ourKeyName;
-                if (!firstPartOfKeyIsQuoted)
-                {
-                    var split = key.Split('.');
-                    ourKeyName = split[0];
-                }
-                else
-                {
-                    ourKeyName = key;
-                    var keyNameWithoutOpeningQuote = ourKeyName.Substring(1);
-                    if (ourKeyName.Contains("\""))
-                        ourKeyName = ourKeyName.Substring(0, 2 + keyNameWithoutOpeningQuote.IndexOf("\"", StringComparison.Ordinal));
-                    else
-                        ourKeyName = ourKeyName.Substring(0, 2 + keyNameWithoutOpeningQuote.IndexOf("'", StringComparison.Ordinal));
-                }
-
-                //And get the remainder of the key, relative to the sub-table.
-                var restOfKey = key.Substring(ourKeyName.Length + 1);
-
-                ourKeyName = ourKeyName.Trim();
-
                 if (!Entries.TryGetValue(DequoteKey(ourKeyName), out var existingValue))
                 {
                     //We don't have a sub-table with this name defined. That's fine, make one.
@@ -99,31 +120,59 @@ namespace Tomlet.Models
                 return;
             }
 
+            //Non-dotted keys land here.
             key = DequoteKey(key);
 
-            //Non-dotted keys land here.
+            if (Entries.ContainsKey(key) && lineNumber.HasValue)
+                throw new TomlKeyRedefinitionException(lineNumber.Value, key);
+
             Entries[key] = value;
         }
 
         public bool ContainsKey(string key)
         {
-            return Entries.ContainsKey(key);
+            var (ourKeyName, restOfKey) = GetTopLevelAndSubKeys(key);
+            
+            if(string.IsNullOrEmpty(restOfKey))
+                //Non-dotted key
+                return Entries.ContainsKey(DequoteKey(key));
+
+            if (!Entries.TryGetValue(ourKeyName, out var existingKey))
+                return false;
+            
+            if(existingKey is TomlTable table)
+                return table.ContainsKey(restOfKey);
+
+            throw new TomlContainsDottedKeyNonTableException(key);
         }
 
         /// <summary>
         /// Returns the raw instance of <see cref="TomlValue"/> associated with this key. You must cast to a sub-class and access its value
         /// yourself.
+        /// Unlike all the specific getters, this Getter respects dotted keys and quotes. You must quote any keys which contain a dot if you want to access the key itself,
+        /// not a sub-key.
         /// </summary>
         /// <param name="key">The key to look up.</param>
         /// <returns>An instance of <see cref="TomlValue"/> associated with this key.</returns>
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public TomlValue GetValue(string key)
         {
-            //todo dotted keys
-            if (!Entries.ContainsKey(key))
+            if (!ContainsKey(key))
                 throw new TomlNoSuchValueException(key);
+            
+            var (ourKeyName, restOfKey) = GetTopLevelAndSubKeys(key);
+            
+            if(string.IsNullOrEmpty(restOfKey))
+                //Non-dotted key
+                return Entries[DequoteKey(key)];
 
-            return Entries[key];
+            if (!Entries.TryGetValue(ourKeyName, out var existingKey))
+                throw new TomlNoSuchValueException(key); //Should already be handled by ContainsKey test
+            
+            if(existingKey is TomlTable table)
+                return table.GetValue(restOfKey);
+
+            throw new Exception("Tomlet Internal bug - existing key is not a table in TomlTable GetValue, but we didn't throw in ContainsKey?");
         }
 
         /// <summary>
@@ -135,7 +184,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public string GetString(string key)
         {
-            var value = GetValue(key);
+            var value = GetValue(QuoteKey(key));
 
             if (!(value is TomlString str))
                 throw new TomlTypeMismatchException(typeof(TomlString), value.GetType());
@@ -152,7 +201,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public int GetInteger(string key)
         {
-            var value = GetValue(key);
+            var value = GetValue(QuoteKey(key));
 
             if (!(value is TomlLong lng))
                 throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType());
@@ -169,7 +218,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public bool GetBoolean(string key)
         {
-            var value = GetValue(key);
+            var value = GetValue(QuoteKey(key));
 
             if (!(value is TomlBoolean b))
                 throw new TomlTypeMismatchException(typeof(TomlBoolean), value.GetType());
@@ -186,7 +235,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public TomlArray GetArray(string key)
         {
-            var value = GetValue(key);
+            var value = GetValue(QuoteKey(key));
 
             if (!(value is TomlArray arr))
                 throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType());
@@ -203,7 +252,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public TomlTable GetSubTable(string key)
         {
-            var value = GetValue(key);
+            var value = GetValue(QuoteKey(key));
 
             if (!(value is TomlTable tbl))
                 throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType());
