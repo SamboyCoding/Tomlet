@@ -28,7 +28,7 @@ TomlDocument document = TomlParser.ParseFile(@"C:\MyFile.toml");
 ```
 
 ### Parse Arbitrary TOML input
-Useful for parsing e.g. the request of a web request.
+Useful for parsing e.g. the response of a web request.
 ```c#
 TomlParser parser = new TomlParser();
 TomlDocument document = parser.Parse(myTomlString);
