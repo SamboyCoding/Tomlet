@@ -9,7 +9,7 @@ Currently supported features are as follows:
 - [x] Table Reading
 - [x] Inline Table Reading
 - [x] Array Reading
-- [ ] Table-Array Reading
+- [x] Table-Array Reading
 - [ ] Primitive key-value pair writing
 - [ ] Table Writing
 - [ ] Inline Table Writing

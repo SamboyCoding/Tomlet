@@ -14,61 +14,71 @@ namespace Tomlet
         private static readonly char[] FalseChars = {'f', 'a', 'l', 's', 'e'};
 
         private int _lineNumber = 1;
-        
-        private string currentTableKey = "";
+
+        private string? _lastTableArrayName;
+        private int _currentTableArrayIndex;
+        private TomlTable? _currentTable;
 
         public TomlDocument Parse(string input)
         {
-            var document = new TomlDocument();
-            using var reader = new StringReader(input);
-
-            while (reader.TryPeek(out _))
+            try
             {
-                //We have more to read.
-                _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
+                var document = new TomlDocument();
+                using var reader = new StringReader(input);
 
-                if(!reader.TryPeek(out var nextChar))
-                    break;
-
-                if (nextChar == '[')
+                while (reader.TryPeek(out _))
                 {
-                    reader.Read(); //Consume the [
-                    
-                    //Table or table-array?
-                    if(!reader.TryPeek(out var potentialSecondBracket))
-                        throw new TomlEOFException(_lineNumber);
+                    //We have more to read.
+                    _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
 
-                    if (potentialSecondBracket != '[')
-                        ReadTableStatement(reader, document);
+                    if (!reader.TryPeek(out var nextChar))
+                        break;
+
+                    if (nextChar == '[')
+                    {
+                        reader.Read(); //Consume the [
+
+                        //Table or table-array?
+                        if (!reader.TryPeek(out var potentialSecondBracket))
+                            throw new TomlEOFException(_lineNumber);
+
+                        if (potentialSecondBracket != '[')
+                            ReadTableStatement(reader, document);
+                        else
+                            ReadTableArrayStatement(reader, document);
+
+                        continue; //Restart loop.
+                    }
+
+                    //Read a key-value pair
+                    var (key, value) = ReadKeyValuePair(reader);
+
+                    if (_currentTable != null)
+                        //Insert into current table
+                        _currentTable.ParserPutValue(key, value, _lineNumber);
                     else
-                        throw new NotImplementedException("Reading table-arrays is not yet supported");
-                    
-                    continue; //Restart loop.
+                        //Insert into the document
+                        document.ParserPutValue(key, value, _lineNumber);
+
+                    //Read up until the end of the line, ignoring any comments or whitespace
+                    reader.SkipWhitespace();
+                    reader.SkipAnyComment();
+
+                    //Ensure we have a newline
+                    reader.SkipPotentialCR();
+                    if (!reader.ExpectAndConsume('\n') && reader.TryPeek(out var shouldHaveBeenLF))
+                        //Not EOF and found a non-newline char
+                        throw new TomlMissingNewlineException(_lineNumber, (char) shouldHaveBeenLF);
+
+                    _lineNumber++; //We've consumed a newline, move to the next line number.
                 }
 
-                //Read a key-value pair
-                var (key, value) = ReadKeyValuePair(reader);
-
-                if (currentTableKey.Length > 0)
-                    key = currentTableKey + "." + key;
-                
-                //Insert into the document
-                document.ParserPutValue(key, value, _lineNumber);
-
-                //Read up until the end of the line, ignoring any comments or whitespace
-                reader.SkipWhitespace();
-                reader.SkipAnyComment();
-
-                //Ensure we have a newline
-                reader.SkipPotentialCR();
-                if (!reader.ExpectAndConsume('\n') && reader.TryPeek(out var shouldHaveBeenLF))
-                    //Not EOF and found a non-newline char
-                    throw new TomlMissingNewlineException(_lineNumber, (char) shouldHaveBeenLF);
-
-                _lineNumber++; //We've consumed a newline, move to the next line number.
+                return document;
             }
-
-            return document;
+            catch (Exception e) when (!(e is TomlException))
+            {
+                throw new TomlInternalException(_lineNumber, e);
+            }
         }
 
         private (string key, TomlValue value) ReadKeyValuePair(StringReader reader)
@@ -680,7 +690,7 @@ namespace Tomlet
 
                 //Non-comma, consume any whitespace
                 reader.SkipWhitespace();
-                
+
                 if (!reader.TryPeek(out postValueChar))
                     throw new TomlEOFException(_lineNumber);
 
@@ -696,22 +706,31 @@ namespace Tomlet
             result.Locked = true; //Defined inline, cannot be later modified
             return result;
         }
-        
+
         private void ReadTableStatement(StringReader reader, TomlDocument document)
         {
             //Table name
-            currentTableKey = reader.ReadWhile(c => !c.IsEndOfArrayChar() && !c.IsNewline());
+            var currentTableKey = reader.ReadWhile(c => !c.IsEndOfArrayChar() && !c.IsNewline());
+
+            var parent = (TomlTable) document;
+            var relativeKey = currentTableKey;
+
+            if (_lastTableArrayName != null && currentTableKey.StartsWith(_lastTableArrayName + "."))
+            {
+                parent = (TomlTable) document.GetArray(_lastTableArrayName).Last();
+                relativeKey = relativeKey.Replace(_lastTableArrayName + ".", "");
+            }
 
             try
             {
-                if (document.ContainsKey(currentTableKey))
+                if (parent.ContainsKey(relativeKey))
                 {
                     try
                     {
                         // this is an intentional variable, resharper.
-                        
+
                         // ReSharper disable once UnusedVariable
-                        var table = (TomlTable) document.GetValue(currentTableKey);
+                        var table = (TomlTable) parent.GetValue(relativeKey);
 
                         //The cast succeeded - we are redefining an existing table
                         throw new TomlTableRedefinitionException(_lineNumber, currentTableKey);
@@ -736,15 +755,145 @@ namespace Tomlet
 
             if (!reader.ExpectAndConsume(']'))
                 throw new UnterminatedTomlTableNameException(_lineNumber);
-            
+
             reader.SkipWhitespace();
+            reader.SkipAnyComment();
             reader.SkipPotentialCR();
-            
+
             if (!reader.TryPeek(out var shouldBeNewline))
                 throw new TomlEOFException(_lineNumber);
 
             if (!shouldBeNewline.IsNewline())
                 throw new TomlMissingNewlineException(_lineNumber, (char) shouldBeNewline);
+
+            _currentTable = new TomlTable();
+            _lastTableArrayName = null;
+            parent.PutValue(relativeKey, _currentTable);
+        }
+
+        private void ReadTableArrayStatement(StringReader reader, TomlDocument document)
+        {
+            //Consume the (second) opening bracket
+            if (!reader.ExpectAndConsume('['))
+                throw new ArgumentException("Internal Tomlet Bug: ReadTableArrayStatement called and first char is not a [");
+
+            //Array
+            var arrayName = reader.ReadWhile(c => !c.IsEndOfArrayChar() && !c.IsNewline());
+
+            if (!reader.ExpectAndConsume(']') || !reader.ExpectAndConsume(']'))
+                throw new UnterminatedTomlTableArrayException(_lineNumber);
+
+            TomlTable parentTable;
+            if (_lastTableArrayName != null && arrayName.StartsWith(_lastTableArrayName + "."))
+            {
+                //nested array of tables directly relative to parent - we can cheat
+
+                //Save parent table
+                parentTable = _currentTable;
+
+                //Work out relative key
+                var relativeKey = arrayName.Replace(_lastTableArrayName + ".", "");
+
+                //Make new array and table
+                var newArray = new TomlArray();
+                _currentTable = new TomlTable();
+                newArray.ArrayValues.Add(_currentTable);
+
+                //Insert into parent table
+                parentTable!.ParserPutValue(relativeKey, newArray, _lineNumber);
+
+                //Save variables
+                _lastTableArrayName = arrayName;
+                _currentTableArrayIndex = 0;
+                return;
+            }
+
+            if (TomlKeyUtils.IsSimpleKey(arrayName))
+            {
+                //Not present - create and populate with one table.
+                _currentTable = new TomlTable();
+
+                TomlArray tableArray;
+
+                //Simple key so looking up via document.ContainsKey is fine.
+                if (!document.ContainsKey(arrayName))
+                    //make a new one if it doesn't exist
+                    tableArray = new TomlArray {IsTableArray = true};
+                else if (document.Entries.TryGetValue(arrayName, out var hopefullyArray) && hopefullyArray is TomlArray arr)
+                    //already exists, use it
+                    tableArray = arr;
+                else
+                    throw new TomlTableArrayAlreadyExistsAsNonArrayException(_lineNumber, arrayName);
+
+                if (!tableArray.IsTableArray)
+                    throw new TomlNonTableArrayUsedAsTableArrayException(_lineNumber, arrayName);
+
+                tableArray.ArrayValues.Add(_currentTable);
+
+                if (!document.ContainsKey(arrayName))
+                    //Insert into the document
+                    document.ParserPutValue(arrayName, tableArray, _lineNumber);
+
+                //Save variables
+                _currentTableArrayIndex = tableArray.Count - 1;
+                _lastTableArrayName = arrayName;
+                return;
+            }
+
+            //Need to add to a complex-keyed table array, so may be behind one or more table arrays.
+
+            parentTable = document;
+            var components = TomlKeyUtils.GetKeyComponents(arrayName).ToList();
+
+            //Don't check last component
+            for (var index = 0; index < components.Count - 1; index++)
+            {
+                var pathComponent = components[index];
+
+                if (!parentTable.ContainsKey(pathComponent))
+                    throw new MissingIntermediateInTomlTableArraySpecException(_lineNumber, pathComponent);
+
+                var value = parentTable.GetValue(pathComponent);
+
+                if (value is TomlArray intermediateArray)
+                {
+                    if (intermediateArray.Last() is TomlTable table)
+                        parentTable = table;
+                    else
+                        throw new TomlTableArrayIntermediateNonTableException(_lineNumber, arrayName);
+                }
+                else if (value is TomlTable table)
+                    parentTable = table;
+                else
+                    throw new TomlKeyRedefinitionException(_lineNumber, pathComponent);
+            }
+
+            var lastComponent = components.Last();
+            if (parentTable.ContainsKey(lastComponent))
+            {
+                if (!(parentTable.GetValue(lastComponent) is TomlArray array))
+                    throw new TomlTableArrayAlreadyExistsAsNonArrayException(_lineNumber, lastComponent);
+
+                if (!array.IsTableArray)
+                    throw new TomlNonTableArrayUsedAsTableArrayException(_lineNumber, arrayName);
+
+                _currentTable = new TomlTable();
+                array.ArrayValues.Add(_currentTable);
+
+                _currentTableArrayIndex = array.Count - 1;
+                _lastTableArrayName = arrayName;
+            }
+            else
+            {
+                var array = new TomlArray {IsTableArray = true};
+                _currentTable = new TomlTable();
+                array.ArrayValues.Add(_currentTable);
+
+                parentTable.PutValue(lastComponent, array);
+
+                _currentTableArrayIndex = array.Count - 1;
+                _lastTableArrayName = arrayName;
+            }
         }
     }
 }

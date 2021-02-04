@@ -6,6 +6,7 @@ namespace Tomlet.Models
     public class TomlArray : TomlValue, IEnumerable<TomlValue>
     {
         public readonly List<TomlValue> ArrayValues = new();
+        internal bool IsTableArray = false;
         public override string StringValue => $"Toml Array ({ArrayValues.Count} values)";
 
         public TomlValue this[int index] => ArrayValues[index];

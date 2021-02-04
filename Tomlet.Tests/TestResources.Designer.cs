@@ -170,6 +170,48 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [[fruits]]
+        ///name = &quot;apple&quot;
+        ///
+        ///[fruits.physical]  # subtable
+        ///color = &quot;red&quot;
+        ///shape = &quot;round&quot;
+        ///
+        ///[[fruits.varieties]]  # nested array of tables
+        ///name = &quot;red delicious&quot;
+        ///
+        ///[[fruits.varieties]]
+        ///name = &quot;granny smith&quot;
+        ///
+        ///
+        ///[[fruits]]
+        ///name = &quot;banana&quot;
+        ///
+        ///[[fruits.varieties]]
+        ///name = &quot;plantain&quot;.
+        /// </summary>
+        internal static string ComplexTableArrayTestInput {
+            get {
+                return ResourceManager.GetString("ComplexTableArrayTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [fruit.physical]  # subtable, but to which parent element should it belong?
+        ///color = &quot;red&quot;
+        ///shape = &quot;round&quot;
+        ///
+        ///[[fruit]]  # parser must throw an error upon discovering that &quot;fruit&quot; is
+        ///           # an array rather than a table
+        ///name = &quot;apple&quot;.
+        /// </summary>
+        internal static string DefiningAsArrayWhenAlreadyTableTestInput {
+            get {
+                return ResourceManager.GetString("DefiningAsArrayWhenAlreadyTableTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to site.&quot;google.com&quot;.allowed = true
         ///site.&quot;google.com&quot;.name = &quot;Google&quot;
         ///site.&quot;youtube.com&quot; = false.
@@ -408,6 +450,44 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to # INVALID TOML DOC
+        ///fruits = []
+        ///
+        ///[[fruits]] # Not allowed.
+        /// </summary>
+        internal static string ReDefiningAnArrayAsATableArrayIsAnErrorTestInput {
+            get {
+                return ResourceManager.GetString("ReDefiningAnArrayAsATableArrayIsAnErrorTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # INVALID TOML DOC
+        ///[[fruits]]
+        ///name = &quot;apple&quot;
+        ///
+        ///[[fruits.varieties]]
+        ///name = &quot;red delicious&quot;
+        ///
+        ///# INVALID: This table conflicts with the previous array of tables
+        ///[fruits.varieties]
+        ///name = &quot;granny smith&quot;
+        ///
+        ///[fruits.physical]
+        ///color = &quot;red&quot;
+        ///shape = &quot;round&quot;
+        ///
+        ///# INVALID: This array of tables conflicts with the previous table
+        ///[[fruits.physical]]
+        ///color = &quot;green&quot;.
+        /// </summary>
+        internal static string ReDefiningSubTableAsSubTableArrayTestInput {
+            get {
+                return ResourceManager.GetString("ReDefiningSubTableAsSubTableArrayTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to name = &quot;Orange&quot;
         ///physical.color = &quot;orange&quot;
         ///physical.shape = &quot;round&quot;.
@@ -415,6 +495,25 @@ namespace Tomlet.Tests {
         internal static string SimpleDottedKeyTestInput {
             get {
                 return ResourceManager.GetString("SimpleDottedKeyTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [[products]]
+        ///name = &quot;Hammer&quot;
+        ///sku = 738594937
+        ///
+        ///[[products]]  # empty table within the array
+        ///
+        ///[[products]]
+        ///name = &quot;Nail&quot;
+        ///sku = 284758393
+        ///
+        ///color = &quot;gray&quot;.
+        /// </summary>
+        internal static string SimpleTableArrayTestInput {
+            get {
+                return ResourceManager.GetString("SimpleTableArrayTestInput", resourceCulture);
             }
         }
         
