@@ -16,8 +16,14 @@ namespace Tomlet
         private int _lineNumber = 1;
 
         private string? _lastTableArrayName;
-        private int _currentTableArrayIndex;
         private TomlTable? _currentTable;
+
+        public static TomlDocument ParseFile(string filePath)
+        {
+            var fileContent = File.ReadAllText(filePath);
+            TomlParser parser = new();
+            return parser.Parse(fileContent);
+        }
 
         public TomlDocument Parse(string input)
         {
@@ -768,7 +774,7 @@ namespace Tomlet
 
             _currentTable = new TomlTable();
             _lastTableArrayName = null;
-            parent.PutValue(relativeKey, _currentTable);
+            parent.ParserPutValue(relativeKey, _currentTable, _lineNumber);
         }
 
         private void ReadTableArrayStatement(StringReader reader, TomlDocument document)
@@ -804,7 +810,6 @@ namespace Tomlet
 
                 //Save variables
                 _lastTableArrayName = arrayName;
-                _currentTableArrayIndex = 0;
                 return;
             }
 
@@ -835,7 +840,6 @@ namespace Tomlet
                     document.ParserPutValue(arrayName, tableArray, _lineNumber);
 
                 //Save variables
-                _currentTableArrayIndex = tableArray.Count - 1;
                 _lastTableArrayName = arrayName;
                 return;
             }
@@ -880,7 +884,6 @@ namespace Tomlet
                 _currentTable = new TomlTable();
                 array.ArrayValues.Add(_currentTable);
 
-                _currentTableArrayIndex = array.Count - 1;
                 _lastTableArrayName = arrayName;
             }
             else
@@ -891,7 +894,6 @@ namespace Tomlet
 
                 parentTable.PutValue(lastComponent, array);
 
-                _currentTableArrayIndex = array.Count - 1;
                 _lastTableArrayName = arrayName;
             }
         }
