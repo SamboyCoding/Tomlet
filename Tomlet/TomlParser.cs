@@ -789,7 +789,7 @@ namespace Tomlet
                 //nested array of tables directly relative to parent - we can cheat
 
                 //Save parent table
-                parentTable = _currentTable;
+                parentTable = _currentTable!;
 
                 //Work out relative key
                 var relativeKey = arrayName.Replace(_lastTableArrayName + ".", "");
