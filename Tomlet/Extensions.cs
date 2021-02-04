@@ -55,6 +55,11 @@ namespace Tomlet
             return val == ']';
         }
 
+        internal static bool IsEndOfInlineObjectChar(this int val)
+        {
+            return val == '}';
+        }
+
         internal static bool IsHexDigit(this char c)
         {
             var val = (int) c;

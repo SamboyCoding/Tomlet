@@ -7,8 +7,10 @@ Currently supported features are as follows:
 
 - [x] Primitive key-value pair reading
 - [ ] Table Reading
+- [x] Inline Table Reading
 - [x] Array Reading
 - [ ] Primitive key-value pair writing
 - [ ] Table Writing
+- [ ] Inline Table Writing
 - [ ] Array Writing
 - [x] Full Unit Tests for everything supported here.

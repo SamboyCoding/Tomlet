@@ -21,9 +21,9 @@ namespace Tomlet.Tests
 
             var tomlArrays = document.Entries.Values.Select(Assert.IsType<TomlArray>).ToList();
 
-            Assert.Equal(3, tomlArrays[0].ArrayValues.Count);
-            Assert.Equal(3, tomlArrays[1].ArrayValues.Count);
-            Assert.Equal(4, tomlArrays[2].ArrayValues.Count);
+            Assert.Equal(3, tomlArrays[0].Count);
+            Assert.Equal(3, tomlArrays[1].Count);
+            Assert.Equal(4, tomlArrays[2].Count);
         }
 
         [Fact]
@@ -36,16 +36,16 @@ namespace Tomlet.Tests
             var tomlArrays = document.Entries.Values.Select(Assert.IsType<TomlArray>).ToList();
 
             //Check nested_arrays_of_ints contains two values
-            Assert.Equal(2, tomlArrays[0].ArrayValues.Count);
+            Assert.Equal(2, tomlArrays[0].Count);
 
             //And that those values are also arrays and that there's 2 and 3 values within the nested arrays, respectively.
-            Assert.Equal(new[] {2, 3}, tomlArrays[0].ArrayValues.Select(Assert.IsType<TomlArray>).Select(arr => arr.ArrayValues.Count));
+            Assert.Equal(new[] {2, 3}, tomlArrays[0].Select(Assert.IsType<TomlArray>).Select(arr => arr.ArrayValues.Count));
 
             //Check nested_mixed_array contains two values
-            Assert.Equal(2, tomlArrays[1].ArrayValues.Count);
+            Assert.Equal(2, tomlArrays[1].Count);
 
             //And that those values are also arrays and that there's 2 and 3 values within the nested arrays, respectively.
-            Assert.Equal(new[] {2, 3}, tomlArrays[0].ArrayValues.Select(Assert.IsType<TomlArray>).Select(arr => arr.ArrayValues.Count));
+            Assert.Equal(new[] {2, 3}, tomlArrays[0].Select(Assert.IsType<TomlArray>).Select(arr => arr.ArrayValues.Count));
         }
 
         [Fact]
@@ -54,7 +54,7 @@ namespace Tomlet.Tests
             var document = GetDocument(TestResources.ArrayWithTrailingCommaTestInput);
 
             Assert.Single(document.Entries.Values,
-                value => Assert.IsType<TomlArray>(value).ArrayValues.Count == 2);
+                value => Assert.IsType<TomlArray>(value).Count == 2);
         }
     }
 }

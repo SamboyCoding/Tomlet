@@ -10,5 +10,10 @@ namespace Tomlet.Exceptions
         {
             LineNumber = lineNumber;
         }
+
+        protected TomlExceptionWithLine(int lineNumber, Exception cause) : base(cause)
+        {
+            LineNumber = lineNumber;
+        }
     }
 }

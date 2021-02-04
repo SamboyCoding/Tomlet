@@ -184,4 +184,28 @@ nested_mixed_array = [ [ 1, 2 ], ["a", "b", "c"] ]</value>
   2, # this is ok
 ]</value>
     </data>
+    <data name="SimpleDottedKeyTestInput" xml:space="preserve">
+        <value>name = "Orange"
+physical.color = "orange"
+physical.shape = "round"</value>
+    </data>
+    <data name="DottedKeysCanHaveQuotedSubkeysTestInput" xml:space="preserve">
+        <value>site."google.com".allowed = true
+site."google.com".name = "Google"
+site."youtube.com" = false</value>
+    </data>
+    <data name="DottedKeyWhitespaceTestInput" xml:space="preserve">
+        <value>fruit.name = "banana"     # this is best practice
+fruit. color = "yellow"    # same as fruit.color
+fruit . flavor = "banana"   # same as fruit.flavor</value>
+    </data>
+    <data name="BasicInlineTableTestInput" xml:space="preserve">
+        <value>name = { first = "Tom", last = "Preston-Werner" }
+point = { x = 1, y = 2 }
+animal = { type.name = "pug" }</value>
+    </data>
+    <data name="InlineTableLockedTestInput" xml:space="preserve">
+        <value>type = { name = "Nail" }
+type.edible = false  # INVALID</value>
+    </data>
 </root>

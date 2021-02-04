@@ -31,7 +31,7 @@ namespace Tomlet
                 var (key, value) = ReadKeyValuePair(reader);
 
                 //Insert into the document
-                document.PutValue(key, value);
+                document.ParserPutValue(key, value, _lineNumber);
 
                 //Read up until the end of the line, ignoring any comments or whitespace
                 reader.SkipWhitespace();
@@ -90,7 +90,7 @@ namespace Tomlet
             {
                 reader.Read(); //Consume opening quote
                 //Read double-quoted key
-                key = reader.ReadWhile(keyChar => !keyChar.IsEquals() && !keyChar.IsNewline() && !keyChar.IsDoubleQuote());
+                key = '"' + reader.ReadWhile(keyChar => !keyChar.IsNewline() && !keyChar.IsDoubleQuote()) + '"';
                 if (!reader.ExpectAndConsume('"'))
                     throw new UnterminatedTomlKeyException(_lineNumber);
             }
@@ -99,13 +99,13 @@ namespace Tomlet
                 reader.Read(); //Consume opening quote.
 
                 //Read single-quoted key
-                key = reader.ReadWhile(keyChar => !keyChar.IsEquals() && !keyChar.IsNewline() && !keyChar.IsSingleQuote());
+                key = "'" + reader.ReadWhile(keyChar => !keyChar.IsNewline() && !keyChar.IsSingleQuote()) + "'";
                 if (!reader.ExpectAndConsume('\''))
                     throw new UnterminatedTomlKeyException(_lineNumber);
             }
             else
                 //Read unquoted key
-                key = reader.ReadWhile(keyChar => !keyChar.IsEquals() && !keyChar.IsWhitespace() && !keyChar.IsHashSign());
+                key = reader.ReadWhile(keyChar => !keyChar.IsEquals() && !keyChar.IsHashSign());
 
             return key;
         }
@@ -124,7 +124,8 @@ namespace Tomlet
                     break;
                 case '{':
                     //Inline table
-                    throw new NotImplementedException("Reading inline tables is not supported yet");
+                    value = ReadInlineTable(reader);
+                    break;
                 case '"':
                 case '\'':
                     //Basic or Literal String, maybe multiline
@@ -175,7 +176,7 @@ namespace Tomlet
                     //i and n indicate special floating point values (inf and nan).
 
                     //Read a string, stopping if we hit an equals, whitespace, newline, or comment.
-                    var stringValue = reader.ReadWhile(valueChar => !valueChar.IsEquals() && !valueChar.IsNewline() && !valueChar.IsHashSign() && !valueChar.IsComma() && !valueChar.IsEndOfArrayChar()).ToLowerInvariant().Trim();
+                    var stringValue = reader.ReadWhile(valueChar => !valueChar.IsEquals() && !valueChar.IsNewline() && !valueChar.IsHashSign() && !valueChar.IsComma() && !valueChar.IsEndOfArrayChar() && !valueChar.IsEndOfInlineObjectChar()).ToLowerInvariant().Trim();
 
                     if (stringValue.Contains(':') || stringValue.Contains('t') || stringValue.Contains(' ') || stringValue.Contains('z'))
                         value = TomlDateTimeUtils.ParseDateString(stringValue, _lineNumber) ?? throw new InvalidTomlDateTimeException(_lineNumber, stringValue);
@@ -569,7 +570,7 @@ namespace Tomlet
             //Consume the opening bracket
             if (!reader.ExpectAndConsume('['))
                 throw new ArgumentException("Internal Tomlet Bug: ReadArray called and first char is not a [");
-            
+
             //Move to the first value
             _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
 
@@ -582,21 +583,21 @@ namespace Tomlet
 
                 if (!reader.TryPeek(out var nextChar))
                     throw new TomlEOFException(_lineNumber);
-                
+
                 //Check for end of array here (helps with trailing commas, which are legal)
-                if(nextChar.IsEndOfArrayChar())
+                if (nextChar.IsEndOfArrayChar())
                     break;
 
                 //Read a value
                 result.ArrayValues.Add(ReadValue(reader));
-                
+
                 //Skip any whitespace or newlines, NOT comments - that would be a syntax error
                 _lineNumber += reader.SkipAnyNewlineOrWhitespace();
 
                 if (!reader.TryPeek(out var postValueChar))
                     throw new TomlEOFException(_lineNumber);
-                
-                if(postValueChar.IsEndOfArrayChar())
+
+                if (postValueChar.IsEndOfArrayChar())
                     break; //end of array
 
                 if (!postValueChar.IsComma())
@@ -608,6 +609,69 @@ namespace Tomlet
             if (!reader.ExpectAndConsume(']'))
                 throw new UnterminatedTomlArrayException(_lineNumber);
 
+            return result;
+        }
+
+        private TomlTable ReadInlineTable(StringReader reader)
+        {
+            //Consume the opening brace
+            if (!reader.ExpectAndConsume('{'))
+                throw new ArgumentException("Internal Tomlet Bug: ReadInlineTable called and first char is not a {");
+
+            //Move to the first key
+            _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
+
+            var result = new TomlTable();
+
+            while (reader.TryPeek(out _))
+            {
+                //Skip any whitespace. Do not skip comments or newlines, those aren't allowed. 
+                reader.SkipWhitespace();
+
+                if (!reader.TryPeek(out var nextChar))
+                    throw new TomlEOFException(_lineNumber);
+
+                //Newlines are not permitted
+                if (nextChar.IsNewline())
+                    throw new NewLineInTomlInlineTableException(_lineNumber);
+
+                //Note that unlike in the above case, we do not check for the end of the value here. Trailing commas aren't permitted
+                //and so all cases where the table ends should be handled at the end of this look
+                try
+                {
+                    //Read a key-value pair
+                    var (key, value) = ReadKeyValuePair(reader);
+                    //Insert into the table
+                    result.ParserPutValue(key, value, _lineNumber);
+                }
+                catch (TomlException ex) when (ex is TomlMissingEqualsException || ex is NoTomlKeyException)
+                {
+                    //Wrap missing keys or equals signs in a parent exception.
+                    throw new InvalidTomlInlineTableException(_lineNumber, ex);
+                }
+
+                if (!reader.TryPeek(out var postValueChar))
+                    throw new TomlEOFException(_lineNumber);
+
+                if (reader.ExpectAndConsume(','))
+                    continue; //Comma, we have more.
+
+                //Non-comma, consume any whitespace
+                reader.SkipWhitespace();
+                
+                if (!reader.TryPeek(out postValueChar))
+                    throw new TomlEOFException(_lineNumber);
+
+                if (postValueChar.IsEndOfInlineObjectChar())
+                    break; //end of table
+
+                throw new TomlInlineTableSeparatorException(_lineNumber, (char) postValueChar);
+            }
+
+            if (!reader.ExpectAndConsume('}'))
+                throw new UnterminatedTomlInlineObjectException(_lineNumber);
+
+            result.Locked = true; //Defined inline, cannot be later modified
             return result;
         }
     }

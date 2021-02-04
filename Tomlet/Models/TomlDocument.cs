@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
-
-namespace Tomlet.Models
+﻿namespace Tomlet.Models
 {
-    public class TomlDocument
+    public class TomlDocument : TomlTable
     {
-        public Dictionary<string, TomlValue> Entries = new();
-
-        internal void PutValue(string key, TomlValue value)
+        internal TomlDocument()
         {
-            //TODO Check for dupe key, handle tables, arrays, etc.
-            Entries[key] = value;
+            //Non-public ctor.
         }
+
+        public override string StringValue => $"Toml root document ({Entries.Count} entries)";
     }
 }

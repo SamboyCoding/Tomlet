@@ -93,6 +93,17 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to name = { first = &quot;Tom&quot;, last = &quot;Preston-Werner&quot; }
+        ///point = { x = 1, y = 2 }
+        ///animal = { type.name = &quot;pug&quot; }.
+        /// </summary>
+        internal static string BasicInlineTableTestInput {
+            get {
+                return ResourceManager.GetString("BasicInlineTableTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to int1 = +99
         ///int2 = 42
         ///int3 = 0
@@ -140,6 +151,28 @@ namespace Tomlet.Tests {
         internal static string CommentTestInput {
             get {
                 return ResourceManager.GetString("CommentTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to site.&quot;google.com&quot;.allowed = true
+        ///site.&quot;google.com&quot;.name = &quot;Google&quot;
+        ///site.&quot;youtube.com&quot; = false.
+        /// </summary>
+        internal static string DottedKeysCanHaveQuotedSubkeysTestInput {
+            get {
+                return ResourceManager.GetString("DottedKeysCanHaveQuotedSubkeysTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to fruit.name = &quot;banana&quot;     # this is best practice
+        ///fruit. color = &quot;yellow&quot;    # same as fruit.color
+        ///fruit . flavor = &quot;banana&quot;   # same as fruit.flavor.
+        /// </summary>
+        internal static string DottedKeyWhitespaceTestInput {
+            get {
+                return ResourceManager.GetString("DottedKeyWhitespaceTestInput", resourceCulture);
             }
         }
         
@@ -198,6 +231,16 @@ namespace Tomlet.Tests {
         internal static string FloatWithUnderscoresTestInput {
             get {
                 return ResourceManager.GetString("FloatWithUnderscoresTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type = { name = &quot;Nail&quot; }
+        ///type.edible = false  # INVALID.
+        /// </summary>
+        internal static string InlineTableLockedTestInput {
+            get {
+                return ResourceManager.GetString("InlineTableLockedTestInput", resourceCulture);
             }
         }
         
@@ -333,6 +376,17 @@ namespace Tomlet.Tests {
         internal static string QuotedKeysTestInput {
             get {
                 return ResourceManager.GetString("QuotedKeysTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to name = &quot;Orange&quot;
+        ///physical.color = &quot;orange&quot;
+        ///physical.shape = &quot;round&quot;.
+        /// </summary>
+        internal static string SimpleDottedKeyTestInput {
+            get {
+                return ResourceManager.GetString("SimpleDottedKeyTestInput", resourceCulture);
             }
         }
         
