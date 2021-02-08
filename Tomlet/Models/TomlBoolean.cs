@@ -11,8 +11,10 @@
             _value = value;
         }
 
+        public static TomlBoolean ValueOf(bool b) => b ? TRUE : FALSE;
+
         public bool Value => _value;
 
-        public override string StringValue => Value ? bool.TrueString : bool.FalseString;
+        public override string StringValue => Value ? bool.TrueString.ToLowerInvariant() : bool.FalseString.ToLowerInvariant();
     }
 }

@@ -499,6 +499,18 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MyString = &quot;Hello, world!&quot;
+        ///MyFloat = 690.42 # I&apos;m a child.
+        ///MyBool = true
+        ///MyDateTime = 1970-01-01T07:00:00.
+        /// </summary>
+        internal static string SimplePrimitiveDeserializationTestInput {
+            get {
+                return ResourceManager.GetString("SimplePrimitiveDeserializationTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [[products]]
         ///name = &quot;Hammer&quot;
         ///sku = 738594937

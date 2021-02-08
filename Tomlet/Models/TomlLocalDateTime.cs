@@ -1,10 +1,11 @@
 ﻿
 using System;
 using System.Globalization;
+using System.Xml;
 
 namespace Tomlet.Models
 {
-    public class TomlLocalDateTime : TomlValue
+    public class TomlLocalDateTime : TomlValue, TomlValueWithDateTime
     {
         private readonly DateTime _value;
 
@@ -15,7 +16,7 @@ namespace Tomlet.Models
         
         public DateTime Value => _value;
         
-        public override string StringValue => Value.ToString(CultureInfo.InvariantCulture);
+        public override string StringValue => XmlConvert.ToString(Value, XmlDateTimeSerializationMode.Unspecified); //XmlConvert specifies RFC 3339
 
         public static TomlLocalDateTime? Parse(string input)
         {

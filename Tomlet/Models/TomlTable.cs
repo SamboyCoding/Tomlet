@@ -21,8 +21,10 @@ namespace Tomlet.Models
             InternalPutValue(key, value, lineNumber, true);
         }
 
-        public void PutValue(string key, TomlValue value)
+        public void PutValue(string key, TomlValue value, bool quote = false)
         {
+            if (quote)
+                key = QuoteKey(key);
             InternalPutValue(key, value, null, false);
         }
 
@@ -31,7 +33,7 @@ namespace Tomlet.Models
             var wholeKeyIsQuoted = key.StartsWith("\"") && key.EndsWith("\"") || key.StartsWith("'") && key.EndsWith("'");
             return !wholeKeyIsQuoted ? key : key.Substring(1, key.Length - 2);
         }
-        
+
         private string QuoteKey(string key)
         {
             if (key.Contains("'") && key.Contains("\""))
@@ -97,15 +99,15 @@ namespace Tomlet.Models
         public bool ContainsKey(string key)
         {
             var (ourKeyName, restOfKey) = TomlKeyUtils.GetTopLevelAndSubKeys(key);
-            
-            if(string.IsNullOrEmpty(restOfKey))
+
+            if (string.IsNullOrEmpty(restOfKey))
                 //Non-dotted key
                 return Entries.ContainsKey(DequoteKey(key));
 
             if (!Entries.TryGetValue(ourKeyName, out var existingKey))
                 return false;
-            
-            if(existingKey is TomlTable table)
+
+            if (existingKey is TomlTable table)
                 return table.ContainsKey(restOfKey);
 
             throw new TomlContainsDottedKeyNonTableException(key);
@@ -124,17 +126,17 @@ namespace Tomlet.Models
         {
             if (!ContainsKey(key))
                 throw new TomlNoSuchValueException(key);
-            
+
             var (ourKeyName, restOfKey) = TomlKeyUtils.GetTopLevelAndSubKeys(key);
-            
-            if(string.IsNullOrEmpty(restOfKey))
+
+            if (string.IsNullOrEmpty(restOfKey))
                 //Non-dotted key
                 return Entries[DequoteKey(key)];
 
             if (!Entries.TryGetValue(ourKeyName, out var existingKey))
                 throw new TomlNoSuchValueException(key); //Should already be handled by ContainsKey test
-            
-            if(existingKey is TomlTable table)
+
+            if (existingKey is TomlTable table)
                 return table.GetValue(restOfKey);
 
             throw new Exception("Tomlet Internal bug - existing key is not a table in TomlTable GetValue, but we didn't throw in ContainsKey?");

@@ -304,4 +304,10 @@ sku = 284758393
 
 color = "gray"</value>
     </data>
+    <data name="SimplePrimitiveDeserializationTestInput" xml:space="preserve">
+        <value>MyString = "Hello, world!"
+MyFloat = 690.42 # I'm a child.
+MyBool = true
+MyDateTime = 1970-01-01T07:00:00</value>
+    </data>
 </root>
