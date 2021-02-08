@@ -34,7 +34,7 @@ namespace Tomlet.Models
             return !wholeKeyIsQuoted ? key : key.Substring(1, key.Length - 2);
         }
 
-        private string QuoteKey(string key)
+        private static string QuoteKey(string key)
         {
             if (key.Contains("'") && key.Contains("\""))
                 throw new InvalidTomlKeyException(key);

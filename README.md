@@ -17,6 +17,19 @@ Currently supported features are as follows:
 - [ ] Table-Array Writing
 - [x] Full Unit Tests for everything supported here.
 
+## A word on dotted keys
+
+The TOML specification allows for dotted keys (e.g. `a.b.c = "d"`, which creates a table `a`, containing a table `b`, containing the key `c` with the string value `d`), 
+as well as quoted dotted keys (e.g. `a."b.c" = "d"`, which creates a table `a`, containing the key `b.c`, with the string value `d`).
+
+Tomlet correctly handles both of these cases, but there is room for ambiguity in calls to `TomlTable#GetValue` and its sibling methods.
+
+For ease of internal use, `GetValue` and `ContainsKey` will interpret keys as-above, with key names containing dots requiring the key name to be quoted. So a call to `ContainsKey("a.b")` will look for a table `a` containing a key `b`.
+Note that, if you mistakenly do this, and there is a value mapped to the key `a` which is NOT a table, a `TomlContainsDottedKeyNonTableException` will be thrown.
+
+However, for a more convenient API, calls to specific typed variants of `GetValue` (`GetString`, `GetInteger`, `GetDouble`, etc.) will assume keys are supposed to be quoted. That is, a call to
+`GetString("a.b")` will look for a single key `a.b`, not a table `a` containing key `b`.
+
 ## Usage
 
 ### Parse a TOML File
@@ -33,6 +46,45 @@ Useful for parsing e.g. the response of a web request.
 TomlParser parser = new TomlParser();
 TomlDocument document = parser.Parse(myTomlString);
 ```
+
+### Mapping a TOML document to an object
+
+```c#
+string tomlString; //From a web API, file, etc.
+
+//Parse TOML string into a document, instantiate a MyModelClass instance, and populate its fields from the document.
+MyModelClass model = Tomlet.To<MyModelClass>(tomlString); 
+```
+
+### Creating your own mappers.
+
+By default, serialization will call ToString on an object, and deserialization will piece together an object field-by-field using reflection, excluding fields marked as 
+`[NonSerialized]`, and using a parameterless constructor to instantiate the object. 
+
+This approach should work for most model classes, but should something more complex be used, such as storing a colour as an integer/hex string, or if you have a more compact/proprietary
+method of serializing your classes, then you can override this default using code such as this:
+
+```c#
+// Example: UnityEngine.Color stored as an integer in TOML.
+Tomlet.RegisterMapper<Color>(
+        //Serializer (toml value from class) 
+        color => new TomlLong(color.a << 24 | color.r << 16 | color.g << 8 | color.b),
+        //Deserializler (class from toml value)
+        tomlValue => {
+            if(!(tomlValue is TomlLong tomlLong)) 
+                throw new TomlTypeMismatchException(typeof(TomlLong), tomlValue.GetType()));
+            
+            int a = tomlLong.Value >> 24 & 0xFF;
+            int r = tomlLong.Value >> 16 & 0xFF;
+            int g = tomlLong.Value >> 8 & 0xFF;
+            int b = tomlLong.Value & 0xFF;
+            
+            return new Color(r, g, b, a); 
+        }
+);
+```
+
+Calls to `Tomlet.RegisterMapper` can specify either the serializer or deserializer as `null`, in which case the default (de)serializer will be used.
 
 ### Retrieve data from a TomlDocument
 
@@ -100,7 +152,9 @@ The full list of exceptions follows, in alphabetical order:
 | `TomlDottedKeyException` | An attempt was made to programmatically insert a value into a `TomlTable` using a dotted key, which implied that an intermediary key was a table, when it is in fact not. The exception message provides the intermediary key. | Fix the code which inserted the value into the TomlTable |
 | `TomlDottedKeyParserException` | Similar to the above, except the dotted key was in the TOML document being parsed. The exception message provides the line number and intermediary key. | Check the TOML document to ensure you are using the correct key.|
 | `TomlEOFException` | The end of a file was reached while attempting to parse a key/value pair. | Restore the truncated data from the end of the file |
+| `TomlFieldTypeMismatchException` | While deserializing an object, the mapper found a field for which the type did not match the type of data in the document. The exception message provides the type and field being deserialized, the type of the field, and the type of data in the document. | Ensure the field declaration in your model class matches the type of the data in the document. | 
 | `TomlInlineTableSeparatorException` | The parser was expecting a comma (`,`) or closing brace (`}`) after a key-value pair, while parsing an inline table, but found something else. The exception message provides the line number and offending character. | Fix the syntax error in the inline table.|
+| `TomlInstantiationException` | While deserializing an object, the mapper found a type which has no public parameterless constructor. The exception message provides the type for which a constructor is missing. | Ensure all model types have a public parameterless constructor. | 
 | `TomlInternalException` | Detailed in the paragraph preceding this table | Report the issue on the GitHub repository.|
 | `TomlInvalidValueException` | While parsing a key-value pair, the parser read the first character of a value, which does not appear to indicate the start of any valid value type. The exception message provides the line number and offending character. | Correct the value. Is it supposed to be a (quoted) string literal?|
 | `TomlKeyRedefinitionException` | The Parser found that a value is present twice within the TOML document. | Remove the duplicate assignment. |

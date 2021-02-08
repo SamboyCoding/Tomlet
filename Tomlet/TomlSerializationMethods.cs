@@ -13,8 +13,8 @@ namespace Tomlet
 
         public delegate TomlValue Serialize<in T>(T t);
 
-        private static Dictionary<Type, Delegate> _deserializers = new ();
-        private static Dictionary<Type, Delegate> _serializers = new();
+        private static readonly Dictionary<Type, Delegate> _deserializers = new ();
+        private static readonly Dictionary<Type, Delegate> _serializers = new();
 
         static TomlSerializationMethods()
         {
@@ -63,8 +63,8 @@ namespace Tomlet
             
             return null;
         }
-        
-        internal static Deserialize<object>? GetDeserializer(Type t)
+
+        private static Deserialize<object>? GetDeserializer(Type t)
         {
             if (_deserializers.TryGetValue(t, out var value))
                 return (Deserialize<object>) value;
@@ -78,8 +78,8 @@ namespace Tomlet
 
             return value => (T) deserializer.Invoke(value);
         }
-        
-        internal static Deserialize<object> GetCompositeDeserializer(Type type)
+
+        private static Deserialize<object> GetCompositeDeserializer(Type type)
         {
             //Get all instance fields
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -109,6 +109,9 @@ namespace Tomlet
                 {
                     try
                     {
+                        if(!table.ContainsKey(field.Name)) 
+                            continue; //Do we want to make this configurable? As in, throw exception if data is missing?
+                        
                         var entry = table.GetValue(field.Name);
                         var fieldDeserializer = GetDeserializer(field.FieldType) ?? GetCompositeDeserializer(field.FieldType);
                         var fieldValue = fieldDeserializer.Invoke(entry);
@@ -130,7 +133,7 @@ namespace Tomlet
             return deserializer;
         }
 
-        public static void Register<T>(Serialize<T>? serializer, Deserialize<T>? deserializer)
+        internal static void Register<T>(Serialize<T>? serializer, Deserialize<T>? deserializer)
         {
             if (serializer != null)
             {
@@ -143,7 +146,7 @@ namespace Tomlet
 
             if (deserializer != null)
             {
-                RegisterDeserializer<T>(deserializer);
+                RegisterDeserializer(deserializer);
                 RegisterDeserializer<T[]>(value => value is TomlArray arr ? arr.ArrayValues.Select(deserializer.Invoke).ToArray() : throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType()));
                 RegisterDeserializer<List<T>>(value => value is TomlArray arr ? arr.ArrayValues.Select(deserializer.Invoke).ToList() : throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType()));
                 RegisterDictionaryDeserializer(deserializer);
@@ -152,14 +155,14 @@ namespace Tomlet
         
         private static void RegisterDeserializer<T>(Deserialize<T> deserializer)
         {
-            Deserialize<object> boxed = value => (object) deserializer.Invoke(value);
-            _deserializers[typeof(T)] = boxed;
+            object BoxedDeserializer(TomlValue value) => deserializer.Invoke(value) ?? throw new Exception($"TOML Deserializer returned null for type {nameof(T)}");
+            _deserializers[typeof(T)] = (Deserialize<object>) BoxedDeserializer;
         }
 
         private static void RegisterSerializer<T>(Serialize<T> serializer)
         {
-            Serialize<object> boxed = value => serializer.Invoke((T) value);
-            _serializers[typeof(T)] = boxed;
+            TomlValue ObjectAcceptingSerializer(object value) => serializer.Invoke((T) value);
+            _serializers[typeof(T)] = (Serialize<object>) ObjectAcceptingSerializer;
         }
 
         private static void RegisterDictionarySerializer<T>(Serialize<T> serializer)
