@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -72,7 +73,7 @@ namespace Tomlet
             return null;
         }
 
-        private static Deserialize<object>? GetDeserializer(Type t)
+        internal static Deserialize<object>? GetDeserializer(Type t)
         {
             if (_deserializers.TryGetValue(t, out var value))
                 return (Deserialize<object>) value;
@@ -86,7 +87,7 @@ namespace Tomlet
 
             return value => (T) deserializer.Invoke(value);
         }
-        
+
         internal static Serialize<T> GetCompositeSerializer<T>()
         {
             var serializer = GetCompositeSerializer(typeof(T));
@@ -94,7 +95,7 @@ namespace Tomlet
             return value => serializer.Invoke(value);
         }
 
-        private static Deserialize<object> GetCompositeDeserializer(Type type)
+        internal static Deserialize<object> GetCompositeDeserializer(Type type)
         {
             //Get all instance fields
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -104,6 +105,17 @@ namespace Tomlet
 
             if (fields.Length == 0)
                 return _ => Activator.CreateInstance(type);
+
+            if (type.Namespace + "." + type.Name == "System.Collections.Generic.List`1")
+            {
+                //List deserializer.
+
+                //Process base type
+                GetCompositeDeserializer(type.GenericTypeArguments[0]);
+
+                //And now return default list deserializer
+                return GetDeserializer(type)!;
+            }
 
             var deserializer = (Deserialize<object>) (value =>
             {
@@ -143,7 +155,7 @@ namespace Tomlet
             });
 
             //Cache composite deserializer.
-            _deserializers[type] = deserializer;
+            Register(type, null, deserializer);
 
             return deserializer;
         }
@@ -159,6 +171,17 @@ namespace Tomlet
             if (fields.Length == 0)
                 return _ => new TomlTable();
 
+            if (type.Namespace + "." + type.Name == "System.Collections.Generic.List`1")
+            {
+                //List deserializer.
+
+                //Process base type
+                GetCompositeSerializer(type.GenericTypeArguments[0]);
+
+                //And now return default list serializer
+                return GetSerializer(type)!;
+            }
+
             var serializer = (Serialize<object>) (instance =>
             {
                 var resultTable = new TomlTable();
@@ -166,10 +189,10 @@ namespace Tomlet
                 foreach (var field in fields)
                 {
                     var fieldValue = field.GetValue(instance);
-                    
-                    if(fieldValue == null)
+
+                    if (fieldValue == null)
                         continue; //Skip nulls - TOML doesn't support them.
-                    
+
                     var fieldSerializer = GetSerializer(field.FieldType) ?? GetCompositeSerializer(field.FieldType);
                     var tomlValue = fieldSerializer.Invoke(fieldValue);
 
@@ -180,7 +203,7 @@ namespace Tomlet
             });
 
             //Cache composite deserializer.
-            _serializers[type] = serializer;
+            Register(type, serializer, null);
 
             return serializer;
         }
@@ -205,16 +228,81 @@ namespace Tomlet
             }
         }
 
+        internal static void Register(Type t, Serialize<object>? serializer, Deserialize<object>? deserializer)
+        {
+            if (serializer != null)
+            {
+                RegisterSerializer(serializer);
+
+                RegisterSerializer(t.MakeArrayType(1), arr =>
+                {
+                    var ret = new TomlArray();
+                    foreach (var o in (IEnumerable) arr)
+                    {
+                        ret.ArrayValues.Add(serializer.Invoke(o));
+                    }
+
+                    if (ret.ArrayValues.All(o => o is TomlTable))
+                        ret.IsTableArray = true;
+
+                    return ret;
+                });
+                RegisterSerializer(typeof(List<>).MakeGenericType(t), arr =>
+                {
+                    var ret = new TomlArray();
+                    foreach (var o in (IEnumerable) arr)
+                    {
+                        ret.ArrayValues.Add(serializer.Invoke(o));
+                    }
+                    
+                    if (ret.ArrayValues.All(o => o is TomlTable))
+                        ret.IsTableArray = true;
+
+                    return ret;
+                });
+            }
+
+            if (deserializer != null)
+            {
+                RegisterDeserializer(deserializer);
+                RegisterDeserializer(t, value => value is TomlArray arr ? arr.ArrayValues.Select(deserializer.Invoke).ToArray() : throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType()));
+                RegisterDeserializer(typeof(List<>).MakeGenericType(t), delegate(TomlValue value)
+                {
+                    if (value is not TomlArray arr)
+                        throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType());
+
+                    object o = Activator.CreateInstance(typeof(List<>).MakeGenericType(t));
+
+                    foreach (var o1 in arr.ArrayValues.Select(deserializer.Invoke))
+                    {
+                        o.GetType().GetMethod(nameof(List<object>.Add)).Invoke(o, new []{o1});
+                    }
+
+                    return o;
+                });
+            }
+        }
+
         private static void RegisterDeserializer<T>(Deserialize<T> deserializer)
         {
             object BoxedDeserializer(TomlValue value) => deserializer.Invoke(value) ?? throw new Exception($"TOML Deserializer returned null for type {nameof(T)}");
             _deserializers[typeof(T)] = (Deserialize<object>) BoxedDeserializer;
         }
 
+        private static void RegisterDeserializer(Type type, Deserialize<object> deserializer)
+        {
+            _deserializers[type] = deserializer;
+        }
+
         private static void RegisterSerializer<T>(Serialize<T> serializer)
         {
             TomlValue ObjectAcceptingSerializer(object value) => serializer.Invoke((T) value);
             _serializers[typeof(T)] = (Serialize<object>) ObjectAcceptingSerializer;
+        }
+
+        private static void RegisterSerializer(Type type, Serialize<object> serializer)
+        {
+            _serializers[type] = serializer;
         }
 
         private static void RegisterDictionarySerializer<T>(Serialize<T> serializer)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Tomlet.Models
@@ -23,17 +24,30 @@ namespace Tomlet.Models
             get
             {
                 var builder = new StringBuilder();
-                foreach (var (key, value) in Entries)
+                
+                var keys = new List<string>(Keys);
+
+                keys.Sort(SortComplexTypesToEnd);
+
+                foreach (var key in Keys)
                 {
+                    var value = GetValue(key);
                     switch (value)
                     {
                         case TomlTable table:
-                            //[table name]
-                            //key = value
-                            //key2 = value2
-                            //etc
-                            builder.Append('[').Append(key).Append("]\n");
-                            builder.Append(table.SerializedValue).Append('\n');
+                            if (table.ShouldBeSerializedInline)
+                            {
+                                //key = {key1 = value1, key2 = value2, etc}
+                                builder.Append('[').Append(key).Append("]\n");
+                                builder.Append(table.SerializedValue).Append('\n');
+                            }
+                            else
+                                //[table name]
+                                //key = value
+                                //key2 = value2
+                                //etc
+                                builder.Append(table.SerializeNonInlineTable(key)).Append('\n');
+
                             continue;
                         case TomlArray {IsTableArray: true} array:
                             //[[table-array name]]

@@ -14,7 +14,7 @@ namespace Tomlet.Models
         
         public DateTimeOffset Value => _value;
         
-        public override string StringValue => Value.ToString(CultureInfo.InvariantCulture);
+        public override string StringValue => Value.ToString("O");
 
         public static TomlOffsetDateTime? Parse(string input)
         {

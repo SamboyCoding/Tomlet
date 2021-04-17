@@ -1,4 +1,5 @@
-﻿using Tomlet.Exceptions;
+﻿using System;
+using Tomlet.Exceptions;
 using Tomlet.Models;
 
 namespace Tomlet
@@ -16,6 +17,20 @@ namespace Tomlet
             var deserializer = TomlSerializationMethods.GetDeserializer<T>() ?? TomlSerializationMethods.GetCompositeDeserializer<T>();
 
             return deserializer.Invoke(tomlDocument);
+        }
+
+        public static T To<T>(TomlValue value)
+        {
+            var deserializer = TomlSerializationMethods.GetDeserializer<T>() ?? TomlSerializationMethods.GetCompositeDeserializer<T>();
+
+            return deserializer.Invoke(value);
+        }
+
+        public static object To(Type what, TomlValue value)
+        {
+            var deserializer = TomlSerializationMethods.GetDeserializer(what) ?? TomlSerializationMethods.GetCompositeDeserializer(what);
+
+            return deserializer.Invoke(value);
         }
 
         public static TomlValue ValueFrom<T>(T t)

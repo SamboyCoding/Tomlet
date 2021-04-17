@@ -15,7 +15,7 @@ namespace Tomlet.Models
         public override string StringValue => $"Table ({Entries.Count} entries)";
 
         public HashSet<string> Keys => new(Entries.Keys);
-        
+
         public virtual bool ShouldBeSerializedInline => Entries.Count < 4 && Entries.All(e => e.Value is not TomlTable && !e.Value.SerializedValue.Contains("\n"));
 
         public override string SerializedValue
@@ -23,16 +23,77 @@ namespace Tomlet.Models
             get
             {
                 if (!ShouldBeSerializedInline)
-                    throw new NotImplementedException("Full TOML Table Serialization is not yet implemented");
-                
-                var builder = new StringBuilder("[ ");
+                    throw new Exception("Cannot use SerializeValue to serialize non-inline tables. Use SerializeNonInlineTable(keyName).");
+
+                var builder = new StringBuilder("{ ");
 
                 builder.Append(string.Join(", ", Entries.Select(o => o.Key + " = " + o.Value.SerializedValue)));
 
-                builder.Append(" ]");
+                builder.Append(" }");
 
                 return builder.ToString();
             }
+        }
+
+        public string SerializeNonInlineTable(string? keyName, bool includeHeader = true)
+        {
+            var builder = new StringBuilder();
+            if (includeHeader)
+                builder.Append('[').Append(keyName).Append("]").Append('\n');
+
+            var keys = new List<string>(Keys);
+
+            keys.Sort(SortComplexTypesToEnd);
+
+            foreach (var subKey in Keys)
+            {
+                var value = GetValue(subKey);
+                
+                switch (value)
+                {
+                    case TomlArray {IsTableArray: true} subArray:
+                        builder.Append(subArray.SerializeTableArray($"{keyName}.{subKey}")).Append('\n').Append('\n');
+                        break;
+                    case TomlArray subArray:
+                        builder.Append(keyName).Append(" = ").Append(subArray.SerializedValue).Append('\n');
+                        break;
+                    case TomlTable {ShouldBeSerializedInline: true} subTable:
+                        builder.Append(subKey).Append(" = ").Append(subTable.SerializedValue).Append('\n');
+                        break;
+                    case TomlTable subTable:
+                        builder.Append(subTable.SerializeNonInlineTable($"{keyName}.{subKey}")).Append('\n');
+                        break;
+                    default:
+                        builder.Append(subKey).Append(" = ").Append(value.SerializedValue).Append('\n');
+                        break;
+                }
+            }
+
+            return builder.ToString();
+        }
+
+        private bool ShouldBeSortedToEnd(TomlValue val)
+        {
+            return val is TomlArray {IsTableArray: true} or TomlTable {ShouldBeSerializedInline: false};
+        }
+
+        protected int SortComplexTypesToEnd(string a, string b)
+        {
+            var valA = GetValue(a);
+            var valB = GetValue(b);
+
+            if (ShouldBeSortedToEnd(valA) && ShouldBeSortedToEnd(valB))
+                //Fall back to default sorting if both need to be pushed to end
+                return string.Compare(a, b, StringComparison.Ordinal);
+            
+            if(!ShouldBeSortedToEnd(valA) && !ShouldBeSortedToEnd(valB))
+                //Fall back to default sorting if *neither* need to be pushed to end.
+                return string.Compare(a, b, StringComparison.Ordinal);
+
+            if (ShouldBeSortedToEnd(valA) && !ShouldBeSortedToEnd(valB))
+                return -1; //ValA before ValB
+
+            return 1; //ValB before ValA
         }
 
         internal void ParserPutValue(string key, TomlValue value, int lineNumber)
@@ -197,7 +258,7 @@ namespace Tomlet.Models
 
             return (int) lng.Value;
         }
-        
+
         /// <summary>
         /// Returns the 32-bit floating-point value associated with the provided key, downsized from a double.
         /// </summary>

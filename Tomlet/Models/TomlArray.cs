@@ -21,6 +21,9 @@ namespace Tomlet.Models
         internal TomlArray(List<TomlValue> values)
         {
             ArrayValues = values;
+
+            if (values.All(t => t is TomlTable))
+                IsTableArray = true;
         }
 
         public TomlValue this[int index] => ArrayValues[index];
@@ -48,8 +51,20 @@ namespace Tomlet.Models
         {
             if (!IsTableArray)
                 throw new Exception("Cannot serialize normal arrays using this method. Use the normal TomlValue.SerializedValue property.");
-            
-            throw new NotImplementedException();
+
+            var builder = new StringBuilder();
+
+            foreach (var value in this)
+            {
+                if (value is not TomlTable table)
+                    throw new Exception($"Toml Table-Array contains non-table entry? Value is {value}");
+                
+                builder.Append("[[").Append(key).Append("]]").Append('\n');
+
+                builder.Append(table.SerializeNonInlineTable(null, false)).Append('\n');
+            }
+
+            return builder.ToString();
         }
 
         public IEnumerator<TomlValue> GetEnumerator()
