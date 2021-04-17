@@ -16,5 +16,7 @@
         public bool Value => _value;
 
         public override string StringValue => Value ? bool.TrueString.ToLowerInvariant() : bool.FalseString.ToLowerInvariant();
+        
+        public override string SerializedValue => StringValue;
     }
 }

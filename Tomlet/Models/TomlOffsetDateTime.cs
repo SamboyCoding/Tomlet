@@ -23,5 +23,7 @@ namespace Tomlet.Models
 
             return new TomlOffsetDateTime(dt);
         }
+        
+        public override string SerializedValue => StringValue;
     }
 }

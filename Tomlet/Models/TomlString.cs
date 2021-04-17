@@ -14,5 +14,6 @@
         public string Value => value;
 
         public override string StringValue => Value;
+        public override string SerializedValue => $"\"{StringValue}\"";
     }
 }

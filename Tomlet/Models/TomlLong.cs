@@ -21,5 +21,7 @@
 
         public long Value => _value;
         public override string StringValue => Value.ToString();
+        
+        public override string SerializedValue => StringValue;
     }
 }

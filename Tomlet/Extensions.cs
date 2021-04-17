@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -154,6 +155,12 @@ namespace Tomlet
             }
 
             return false;
+        }
+        
+        public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> pair, out TKey one, out TValue two)
+        {
+            one = pair.Key;
+            two = pair.Value;
         }
     }
 }

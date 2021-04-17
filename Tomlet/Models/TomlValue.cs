@@ -6,5 +6,13 @@
         {
             get;
         }
+
+        /// <summary>
+        /// The value that should be used to represent this instance when it is written to a TOML file.
+        /// </summary>
+        public abstract string SerializedValue
+        {
+            get;
+        }
     }
 }

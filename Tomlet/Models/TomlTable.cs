@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Tomlet.Exceptions;
 
 namespace Tomlet.Models
@@ -13,6 +15,25 @@ namespace Tomlet.Models
         public override string StringValue => $"Table ({Entries.Count} entries)";
 
         public HashSet<string> Keys => new(Entries.Keys);
+        
+        public virtual bool ShouldBeSerializedInline => Entries.Count < 4 && Entries.All(e => e.Value is not TomlTable && !e.Value.SerializedValue.Contains("\n"));
+
+        public override string SerializedValue
+        {
+            get
+            {
+                if (!ShouldBeSerializedInline)
+                    throw new NotImplementedException("Full TOML Table Serialization is not yet implemented");
+                
+                var builder = new StringBuilder("[ ");
+
+                builder.Append(string.Join(", ", Entries.Select(o => o.Key + " = " + o.Value.SerializedValue)));
+
+                builder.Append(" ]");
+
+                return builder.ToString();
+            }
+        }
 
         internal void ParserPutValue(string key, TomlValue value, int lineNumber)
         {

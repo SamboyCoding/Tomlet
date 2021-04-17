@@ -39,5 +39,7 @@ namespace Tomlet
 
             throw new TomlPrimitiveToDocumentException(typeof(T));
         }
+
+        public static string TomlStringFrom<T>(T t) => DocumentFrom(t).SerializedValue;
     }
 }

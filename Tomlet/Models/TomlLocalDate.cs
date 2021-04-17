@@ -23,5 +23,7 @@ namespace Tomlet.Models
 
             return new TomlLocalDate(dt);
         }
+        
+        public override string SerializedValue => StringValue;
     }
 }
