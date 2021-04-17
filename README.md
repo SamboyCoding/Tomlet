@@ -10,11 +10,11 @@ Currently supported features are as follows:
 - [x] Inline Table Reading
 - [x] Array Reading
 - [x] Table-Array Reading
-- [ ] Primitive key-value pair writing
-- [ ] Table Writing
-- [ ] Inline Table Writing
-- [ ] Array Writing
-- [ ] Table-Array Writing
+- [x] Primitive key-value pair writing
+- [x] Table Writing
+- [x] Inline Table Writing
+- [x] Array Writing
+- [x] Table-Array Writing
 - [x] Full Unit Tests for everything supported here.
 
 ## A word on dotted keys
