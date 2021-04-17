@@ -1,4 +1,7 @@
-﻿namespace Tomlet
+﻿using Tomlet.Exceptions;
+using Tomlet.Models;
+
+namespace Tomlet
 {
     public static class Tomlet
     {
@@ -13,6 +16,28 @@
             var deserializer = TomlSerializationMethods.GetDeserializer<T>() ?? TomlSerializationMethods.GetCompositeDeserializer<T>();
 
             return deserializer.Invoke(tomlDocument);
+        }
+
+        public static TomlValue ValueFrom<T>(T t)
+        {
+            var serializer = TomlSerializationMethods.GetSerializer<T>() ?? TomlSerializationMethods.GetCompositeSerializer<T>();
+
+            var tomlValue = serializer.Invoke(t);
+
+            return tomlValue;
+        }
+
+        public static TomlDocument DocumentFrom<T>(T t)
+        {
+            var val = ValueFrom(t);
+
+            if (val is TomlDocument doc)
+                return doc;
+
+            if (val is TomlTable table)
+                return new TomlDocument(table);
+
+            throw new TomlPrimitiveToDocumentException(typeof(T));
         }
     }
 }

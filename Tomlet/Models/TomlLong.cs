@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace Tomlet.Models
+﻿namespace Tomlet.Models
 {
     public class TomlLong : TomlValue
     {

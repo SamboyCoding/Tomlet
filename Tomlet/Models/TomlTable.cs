@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Tomlet.Exceptions;
 
 namespace Tomlet.Models
 {
     public class TomlTable : TomlValue
     {
-        public Dictionary<string, TomlValue> Entries = new();
+        public readonly Dictionary<string, TomlValue> Entries = new();
 
         internal bool Locked;
 
         public override string StringValue => $"Table ({Entries.Count} entries)";
+
+        public HashSet<string> Keys => new(Entries.Keys);
 
         internal void ParserPutValue(string key, TomlValue value, int lineNumber)
         {
@@ -70,7 +71,7 @@ namespace Tomlet.Models
                 }
 
                 //We have a key by this name already. Is it a table?
-                if (!(existingValue is TomlTable existingTable))
+                if (existingValue is not TomlTable existingTable)
                 {
                     //No - throw an exception
                     if (lineNumber.HasValue)
@@ -153,7 +154,7 @@ namespace Tomlet.Models
         {
             var value = GetValue(QuoteKey(key));
 
-            if (!(value is TomlString str))
+            if (value is not TomlString str)
                 throw new TomlTypeMismatchException(typeof(TomlString), value.GetType());
 
             return str.Value;
@@ -170,10 +171,27 @@ namespace Tomlet.Models
         {
             var value = GetValue(QuoteKey(key));
 
-            if (!(value is TomlLong lng))
+            if (value is not TomlLong lng)
                 throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType());
 
             return (int) lng.Value;
+        }
+        
+        /// <summary>
+        /// Returns the 32-bit floating-point value associated with the provided key, downsized from a double.
+        /// </summary>
+        /// <param name="key">The key to look up.</param>
+        /// <returns>The float value associated with the key.</returns>
+        /// <exception cref="TomlTypeMismatchException">If the value associated with this key is not a floating-point type.</exception>
+        /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
+        public float GetFloat(string key)
+        {
+            var value = GetValue(QuoteKey(key));
+
+            if (value is not TomlDouble dbl)
+                throw new TomlTypeMismatchException(typeof(TomlDouble), value.GetType());
+
+            return (float) dbl.Value;
         }
 
         /// <summary>
@@ -187,7 +205,7 @@ namespace Tomlet.Models
         {
             var value = GetValue(QuoteKey(key));
 
-            if (!(value is TomlBoolean b))
+            if (value is not TomlBoolean b)
                 throw new TomlTypeMismatchException(typeof(TomlBoolean), value.GetType());
 
             return b.Value;
@@ -204,7 +222,7 @@ namespace Tomlet.Models
         {
             var value = GetValue(QuoteKey(key));
 
-            if (!(value is TomlArray arr))
+            if (value is not TomlArray arr)
                 throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType());
 
             return arr;
@@ -221,7 +239,7 @@ namespace Tomlet.Models
         {
             var value = GetValue(QuoteKey(key));
 
-            if (!(value is TomlTable tbl))
+            if (value is not TomlTable tbl)
                 throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType());
 
             return tbl;

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Tomlet.Exceptions
+﻿namespace Tomlet.Exceptions
 {
     public class UnterminatedTomlTableNameException : TomlExceptionWithLine
     {
