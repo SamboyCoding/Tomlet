@@ -41,35 +41,58 @@ namespace Tomlet.Models
             if (includeHeader)
                 builder.Append('[').Append(keyName).Append("]").Append('\n');
 
-            var keys = new List<string>(Keys);
-
-            keys.Sort(SortComplexTypesToEnd);
-
-            foreach (var subKey in Keys)
+            //Three passes: Simple key-value pairs including inline arrays and tables, sub-tables, then sub-table-arrays.
+            foreach (var (subKey, value) in Entries)
             {
-                var value = GetValue(subKey);
-                
-                switch (value)
-                {
-                    case TomlArray {IsTableArray: true} subArray:
-                        builder.Append(subArray.SerializeTableArray($"{keyName}.{subKey}")).Append('\n').Append('\n');
-                        break;
-                    case TomlArray subArray:
-                        builder.Append(keyName).Append(" = ").Append(subArray.SerializedValue).Append('\n');
-                        break;
-                    case TomlTable {ShouldBeSerializedInline: true} subTable:
-                        builder.Append(subKey).Append(" = ").Append(subTable.SerializedValue).Append('\n');
-                        break;
-                    case TomlTable subTable:
-                        builder.Append(subTable.SerializeNonInlineTable($"{keyName}.{subKey}")).Append('\n');
-                        break;
-                    default:
-                        builder.Append(subKey).Append(" = ").Append(value.SerializedValue).Append('\n');
-                        break;
-                }
+                if (value is TomlTable {ShouldBeSerializedInline: false} or TomlArray {CanBeSerializedInline: false})
+                    continue;
+
+                WriteValueToStringBuilder(keyName, subKey, builder);
+            }
+
+            foreach (var (subKey, value) in Entries)
+            {
+                if (value is not TomlTable {ShouldBeSerializedInline: false})
+                    continue;
+
+                WriteValueToStringBuilder(keyName, subKey, builder);
+            }
+
+            foreach (var (subKey, value) in Entries)
+            {
+                if (value is not TomlArray {CanBeSerializedInline: false})
+                    continue;
+
+                WriteValueToStringBuilder(keyName, subKey, builder);
             }
 
             return builder.ToString();
+        }
+
+        private void WriteValueToStringBuilder(string? keyName, string subKey, StringBuilder builder)
+        {
+            var value = GetValue(subKey);
+
+            var fullSubKey = keyName == null ? subKey : $"{keyName}.{subKey}";
+
+            switch (value)
+            {
+                case TomlArray {CanBeSerializedInline: false} subArray:
+                    builder.Append(subArray.SerializeTableArray(fullSubKey)).Append('\n').Append('\n');
+                    break;
+                case TomlArray subArray:
+                    builder.Append(subKey).Append(" = ").Append(subArray.SerializedValue).Append('\n');
+                    break;
+                case TomlTable {ShouldBeSerializedInline: true} subTable:
+                    builder.Append(subKey).Append(" = ").Append(subTable.SerializedValue).Append('\n');
+                    break;
+                case TomlTable subTable:
+                    builder.Append(subTable.SerializeNonInlineTable(fullSubKey)).Append('\n');
+                    break;
+                default:
+                    builder.Append(subKey).Append(" = ").Append(value.SerializedValue).Append('\n');
+                    break;
+            }
         }
 
         private bool ShouldBeSortedToEnd(TomlValue val)
@@ -85,8 +108,8 @@ namespace Tomlet.Models
             if (ShouldBeSortedToEnd(valA) && ShouldBeSortedToEnd(valB))
                 //Fall back to default sorting if both need to be pushed to end
                 return string.Compare(a, b, StringComparison.Ordinal);
-            
-            if(!ShouldBeSortedToEnd(valA) && !ShouldBeSortedToEnd(valB))
+
+            if (!ShouldBeSortedToEnd(valA) && !ShouldBeSortedToEnd(valB))
                 //Fall back to default sorting if *neither* need to be pushed to end.
                 return string.Compare(a, b, StringComparison.Ordinal);
 

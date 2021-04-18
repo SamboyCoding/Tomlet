@@ -10,7 +10,7 @@ namespace Tomlet.Models
     public class TomlArray : TomlValue, IEnumerable<TomlValue>
     {
         public readonly List<TomlValue> ArrayValues = new();
-        internal bool IsTableArray = false;
+        internal bool IsTableArray;
         public override string StringValue => $"Toml Array ({ArrayValues.Count} values)";
 
         public TomlArray()
@@ -26,6 +26,9 @@ namespace Tomlet.Models
                 IsTableArray = true;
         }
 
+        public bool CanBeSerializedInline => !IsTableArray || //Simple array
+                                             ArrayValues.All(o => o is TomlTable {ShouldBeSerializedInline: true}) && ArrayValues.Count <= 5; //Table array of inline tables, 5 or fewer of them.
+
         public TomlValue this[int index] => ArrayValues[index];
 
         public int Count => ArrayValues.Count;
@@ -34,7 +37,7 @@ namespace Tomlet.Models
         {
             get
             {
-                if (IsTableArray)
+                if (!CanBeSerializedInline)
                     throw new Exception("Cannot serialize table-arrays using this method. Use TomlArray.SerializeTableArray(key)");
                 
                 var builder = new StringBuilder("[ ");
