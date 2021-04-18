@@ -2,10 +2,15 @@
 
 ## Contents
 
+- [v1.1.1](#111)
 - [v1.1.0](#110)
 - [v1.0.2](#102)
 - [v1.0.1](#101)
 - [v1.0.0](#100)
+
+## 1.1.1
+
+- Fix more API holes by adding non-generic variants of TomletMain.ValueFrom, TomletMain.DocumentFrom, and TomletMain.TomlStringFrom.
 
 ## 1.1.0
 

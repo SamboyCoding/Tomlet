@@ -65,7 +65,7 @@ namespace Tomlet
             return null;
         }
 
-        private static Serialize<object>? GetSerializer(Type t)
+        internal static Serialize<object>? GetSerializer(Type t)
         {
             if (_serializers.TryGetValue(t, out var value))
                 return (Serialize<object>) value;
@@ -191,7 +191,7 @@ namespace Tomlet
             return deserializer;
         }
 
-        private static Serialize<object> GetCompositeSerializer(Type type)
+        internal static Serialize<object> GetCompositeSerializer(Type type)
         {
             Serialize<object> serializer;
 
