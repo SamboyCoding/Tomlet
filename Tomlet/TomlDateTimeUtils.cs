@@ -26,10 +26,10 @@ namespace Tomlet
             var match = DATE_TIME_REGEX.Match(input);
 
             //If year is present, whole date has to be by the regex.
-            var hasYear = !string.IsNullOrWhiteSpace(match.Groups[1].Value);
+            var hasYear = !match.Groups[1].Value.IsNullOrWhiteSpace();
             var hasSeparator = !string.IsNullOrEmpty(match.Groups[4].Value);
-            var hasHour = !string.IsNullOrWhiteSpace(match.Groups[5].Value);
-            var hasTimezone = !string.IsNullOrWhiteSpace(match.Groups[9].Value);
+            var hasHour = !match.Groups[5].Value.IsNullOrWhiteSpace();
+            var hasTimezone = !match.Groups[9].Value.IsNullOrWhiteSpace();
 
             if (hasYear && hasHour && !hasSeparator)
                 throw new TomlDateTimeMissingSeparatorException(lineNumber);

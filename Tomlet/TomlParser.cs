@@ -57,7 +57,7 @@ namespace Tomlet
                     }
 
                     //Read a key-value pair
-                    var (key, value) = ReadKeyValuePair(reader);
+                    ReadKeyValuePair(reader, out var key, out var value);
 
                     if (_currentTable != null)
                         //Insert into current table
@@ -87,10 +87,10 @@ namespace Tomlet
             }
         }
 
-        private (string key, TomlValue value) ReadKeyValuePair(StringReader reader)
+        private void ReadKeyValuePair(StringReader reader, out string key, out TomlValue value)
         {
             //Read the key
-            var key = ReadKey(reader);
+            key = ReadKey(reader);
 
             //Consume the equals sign, potentially with whitespace either side.
             reader.SkipWhitespace();
@@ -105,9 +105,7 @@ namespace Tomlet
             reader.SkipWhitespace();
 
             //Read the value
-            var value = ReadValue(reader);
-
-            return (key, value);
+            value = ReadValue(reader);
         }
 
         private string ReadKey(StringReader reader)
@@ -301,7 +299,7 @@ namespace Tomlet
 
                         fourDigitUnicodeMode = false;
                         eightDigitUnicodeMode = false;
-                        unicodeStringBuilder.Clear();
+                        unicodeStringBuilder = new StringBuilder();
                     }
 
                     continue;
@@ -532,7 +530,7 @@ namespace Tomlet
 
                         fourDigitUnicodeMode = false;
                         eightDigitUnicodeMode = false;
-                        unicodeStringBuilder.Clear();
+                        unicodeStringBuilder = new StringBuilder();
                     }
 
                     continue;
@@ -678,7 +676,7 @@ namespace Tomlet
                 try
                 {
                     //Read a key-value pair
-                    var (key, value) = ReadKeyValuePair(reader);
+                    ReadKeyValuePair(reader, out var key, out var value);
                     //Insert into the table
                     result.ParserPutValue(key, value, _lineNumber);
                 }

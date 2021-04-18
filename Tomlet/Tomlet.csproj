@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFrameworks>netstandard2.0;netstandard2.1;net35;net40;net45;net46;net47;net48</TargetFrameworks>
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
         <PackageId>Samboy063.Tomlet</PackageId>
-        <Version>1.0.1</Version>
+        <Version>1.0.2</Version>
         <Authors>Sam Byass</Authors>
         <Company>N/A</Company>
         <PackageTags>toml</PackageTags>
@@ -21,10 +21,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="jnm2.ReferenceAssemblies.net35" Version="1.0.1">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.0-beta-20204-02">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
     </ItemGroup>
+
+    <PropertyGroup>
+        <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35'">$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client</FrameworkPathOverride>
+    </PropertyGroup>
 
 </Project>

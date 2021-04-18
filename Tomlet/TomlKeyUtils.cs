@@ -7,32 +7,36 @@ namespace Tomlet
     {
         internal static bool IsSimpleKey(string key)
         {
-            return GetTopLevelAndSubKeys(key).restOfKey == "";
+            GetTopLevelAndSubKeys(key, out _, out var restOfKey);
+            return restOfKey == "";
         }
 
         internal static IEnumerable<string> GetKeyComponents(string key)
         {
             while (!string.IsNullOrEmpty(key))
             {
-                var (ourKeyName, restOfKey) = GetTopLevelAndSubKeys(key);
+                GetTopLevelAndSubKeys(key, out var ourKeyName, out var restOfKey);
                 yield return ourKeyName;
 
                 key = restOfKey;
             }
         }
         
-        internal static (string ourKeyName, string restOfKey) GetTopLevelAndSubKeys(string key)
+        internal static void GetTopLevelAndSubKeys(string key, out string ourKeyName, out string restOfKey)
         {
             var wholeKeyIsQuoted = key.StartsWith("\"") && key.EndsWith("\"") || key.StartsWith("'") && key.EndsWith("'");
             var firstPartOfKeyIsQuoted = !wholeKeyIsQuoted && (key.StartsWith("\"") || key.StartsWith("'"));
 
             if (!key.Contains(".") || wholeKeyIsQuoted)
-                return (key, "");
+            {
+                ourKeyName = key;
+                restOfKey = "";
+                return;
+            }
 
             //Unquoted dotted key means we put this in a sub-table.
 
             //First get the name of the key in *this* table.
-            string ourKeyName;
             if (!firstPartOfKeyIsQuoted)
             {
                 var split = key.Split('.');
@@ -49,11 +53,9 @@ namespace Tomlet
             }
 
             //And get the remainder of the key, relative to the sub-table.
-            var restOfKey = key.Substring(ourKeyName.Length + 1);
+            restOfKey = key.Substring(ourKeyName.Length + 1);
 
             ourKeyName = ourKeyName.Trim();
-
-            return (ourKeyName, restOfKey);
         }
     }
 }

@@ -111,7 +111,7 @@ namespace Tomlet
                 //List deserializer.
 
                 //Process base type
-                GetCompositeDeserializer(type.GenericTypeArguments[0]);
+                GetCompositeDeserializer(type.GetGenericArguments()[0]);
 
                 //And now return default list deserializer
                 return GetDeserializer(type)!;
@@ -176,7 +176,7 @@ namespace Tomlet
                 //List deserializer.
 
                 //Process base type
-                GetCompositeSerializer(type.GenericTypeArguments[0]);
+                GetCompositeSerializer(type.GetGenericArguments()[0]);
 
                 //And now return default list serializer
                 return GetSerializer(type)!;

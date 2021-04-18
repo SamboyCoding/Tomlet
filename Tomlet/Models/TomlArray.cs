@@ -42,7 +42,7 @@ namespace Tomlet.Models
                 
                 var builder = new StringBuilder("[ ");
 
-                builder.Append(string.Join(", ", this.Select(o => o.SerializedValue)));
+                builder.Append(string.Join(", ", this.Select(o => o.SerializedValue).ToArray()));
 
                 builder.Append(" ]");
 

@@ -27,7 +27,7 @@ namespace Tomlet.Models
 
                 var builder = new StringBuilder("{ ");
 
-                builder.Append(string.Join(", ", Entries.Select(o => o.Key + " = " + o.Value.SerializedValue)));
+                builder.Append(string.Join(", ", Entries.Select(o => o.Key + " = " + o.Value.SerializedValue).ToArray()));
 
                 builder.Append(" }");
 
@@ -154,7 +154,7 @@ namespace Tomlet.Models
         private void InternalPutValue(string key, TomlValue value, int? lineNumber, bool callParserForm)
         {
             key = key.Trim();
-            var (ourKeyName, restOfKey) = TomlKeyUtils.GetTopLevelAndSubKeys(key);
+            TomlKeyUtils.GetTopLevelAndSubKeys(key, out var ourKeyName, out var restOfKey);
 
             if (!string.IsNullOrEmpty(restOfKey))
             {
@@ -204,7 +204,7 @@ namespace Tomlet.Models
 
         public bool ContainsKey(string key)
         {
-            var (ourKeyName, restOfKey) = TomlKeyUtils.GetTopLevelAndSubKeys(key);
+            TomlKeyUtils.GetTopLevelAndSubKeys(key, out var ourKeyName, out var restOfKey);
 
             if (string.IsNullOrEmpty(restOfKey))
                 //Non-dotted key
@@ -233,7 +233,7 @@ namespace Tomlet.Models
             if (!ContainsKey(key))
                 throw new TomlNoSuchValueException(key);
 
-            var (ourKeyName, restOfKey) = TomlKeyUtils.GetTopLevelAndSubKeys(key);
+            TomlKeyUtils.GetTopLevelAndSubKeys(key, out var ourKeyName, out var restOfKey);
 
             if (string.IsNullOrEmpty(restOfKey))
                 //Non-dotted key

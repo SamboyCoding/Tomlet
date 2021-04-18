@@ -162,5 +162,10 @@ namespace Tomlet
             one = pair.Key;
             two = pair.Value;
         }
+
+        public static bool IsNullOrWhiteSpace(this string s)
+        {
+            return string.IsNullOrEmpty(s) || string.IsNullOrEmpty(s.Trim());
+        }
     }
 }
