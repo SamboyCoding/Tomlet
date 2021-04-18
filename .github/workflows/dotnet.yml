@@ -18,8 +18,8 @@ jobs:
       with:
         dotnet-version: 5.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore /p:TargetFramework=net5
     - name: Build
-      run: dotnet build --no-restore /p:TargetFramework=netstandard2.1
+      run: dotnet build --no-restore /p:TargetFramework=net5
     - name: Test
-      run: dotnet test --no-build --verbosity normal /p:TargetFramework=netstandard2.1
+      run: dotnet test --no-build --verbosity normal /p:TargetFramework=net5
