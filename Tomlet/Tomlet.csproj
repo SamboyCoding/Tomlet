@@ -4,6 +4,17 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
+        <PackageId>Samboy063.Tomlet</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>Sam Byass</Authors>
+        <Company>N/A</Company>
+        <PackageTags>toml</PackageTags>
+        <Description>
+            Tomlet allows consumption and creation of TOML files (often used as configuration files) in .NET applications.
+            It supports serialization and deserialization of objects to and from TOML, and is compliant with version 1.0.0 of the TOML specification.
+        </Description>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
 </Project>

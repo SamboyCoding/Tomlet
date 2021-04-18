@@ -14,9 +14,7 @@ namespace Tomlet
             var parser = new TomlParser();
             var tomlDocument = parser.Parse(tomlString);
 
-            var deserializer = TomlSerializationMethods.GetDeserializer<T>() ?? TomlSerializationMethods.GetCompositeDeserializer<T>();
-
-            return deserializer.Invoke(tomlDocument);
+            return To<T>(tomlDocument);
         }
 
         public static T To<T>(TomlValue value)

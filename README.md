@@ -1,7 +1,7 @@
 # Tomlet
-## A WIP TOML library for .NET
+## A TOML library for .NET
 
-Tomlet is a WIP library for the [TOML](https://toml.io/) configuration file format. It's targeting [TOML v1.0.0](https://toml.io/en/v1.0.0).
+Tomlet is a library for the [TOML](https://toml.io/) configuration file format. It's targeting [TOML v1.0.0](https://toml.io/en/v1.0.0).
 
 Currently supported features are as follows:
 
@@ -32,12 +32,31 @@ However, for a more convenient API, calls to specific typed variants of `GetValu
 
 ## Usage
 
+### Serialize a runtime object to TOML
+
+```c#
+var myClass = new MyClass("hello world", 1, 3);
+TomlDocument tomlDoc = Tomlet.DocumentFrom(myClass); //TOML document representation. Can be serialized using the SerializedValue property.
+string tomlString = Tomlet.TomlStringFrom(myClass); //Formatted TOML string. Equivalent to Tomlet.DocumentFrom(myClass).SerializedValue
+```
+
+### Deserialize TOML to a runtime object
+
+```c#
+string myString = GetTomlStringSomehow(); //Web request, read file, etc.
+var myClass = Tomlet.To<MyClass>(myString); //Requires a public, zero-argument constructor on MyClass.
+Console.WriteLine(myClass.configurationFileVersion); //Or whatever properties you define.
+```
+
 ### Parse a TOML File
 
-`TomlParser.ParseFile` is a utility method to parse an on-disk toml file.
+`TomlParser.ParseFile` is a utility method to parse an on-disk toml file. This just uses File.ReadAllText, so I/O errors will be thrown up to your calling code.
 
 ```c#
 TomlDocument document = TomlParser.ParseFile(@"C:\MyFile.toml");
+
+//You can then convert this document to a runtime object, if you so desire.
+var myClass = Tomlet.To<MyClass>(document);
 ```
 
 ### Parse Arbitrary TOML input
@@ -45,15 +64,6 @@ Useful for parsing e.g. the response of a web request.
 ```c#
 TomlParser parser = new TomlParser();
 TomlDocument document = parser.Parse(myTomlString);
-```
-
-### Mapping a TOML document to an object
-
-```c#
-string tomlString; //From a web API, file, etc.
-
-//Parse TOML string into a document, instantiate a MyModelClass instance, and populate its fields from the document.
-MyModelClass model = Tomlet.To<MyModelClass>(tomlString); 
 ```
 
 ### Creating your own mappers.
@@ -65,14 +75,14 @@ This approach should work for most model classes, but should something more comp
 method of serializing your classes, then you can override this default using code such as this:
 
 ```c#
-// Example: UnityEngine.Color stored as an integer in TOML.
+// Example: UnityEngine.Color stored as an integer in TOML. There is no differentiation between 32-bit and 64-bit integers, so we use TomlLong.
 Tomlet.RegisterMapper<Color>(
         //Serializer (toml value from class) 
         color => new TomlLong(color.a << 24 | color.r << 16 | color.g << 8 | color.b),
         //Deserializler (class from toml value)
         tomlValue => {
             if(!(tomlValue is TomlLong tomlLong)) 
-                throw new TomlTypeMismatchException(typeof(TomlLong), tomlValue.GetType()));
+                throw new TomlTypeMismatchException(typeof(TomlLong), tomlValue.GetType(), typeof(Color))); //Expected type, actual type, context (type being deserialized)
             
             int a = tomlLong.Value >> 24 & 0xFF;
             int r = tomlLong.Value >> 16 & 0xFF;
