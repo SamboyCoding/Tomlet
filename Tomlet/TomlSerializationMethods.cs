@@ -25,28 +25,28 @@ namespace Tomlet
             Register(s => new TomlString(s!), value => (value as TomlString)?.Value ?? value.StringValue);
 
             //Long
-            Register(l => new TomlLong(l), value => (value as TomlLong)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType()));
+            Register(l => new TomlLong(l), value => (value as TomlLong)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType(), typeof(long)));
 
             //Int
-            Register(i => new TomlLong(i), value => (int) ((value as TomlLong)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType())));
+            Register(i => new TomlLong(i), value => (int) ((value as TomlLong)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType(), typeof(int))));
 
             //Bool
-            Register(TomlBoolean.ValueOf, value => (value as TomlBoolean)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlBoolean), value.GetType()));
+            Register(TomlBoolean.ValueOf, value => (value as TomlBoolean)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlBoolean), value.GetType(), typeof(bool)));
 
             //Double
-            Register(d => new TomlDouble(d), value => (value as TomlDouble)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlDouble), value.GetType()));
+            Register(d => new TomlDouble(d), value => (value as TomlDouble)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlDouble), value.GetType(), typeof(double)));
 
             //Float
-            Register(f => new TomlDouble(f), value => (float) ((value as TomlDouble)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlDouble), value.GetType())));
+            Register(f => new TomlDouble(f), value => (float) ((value as TomlDouble)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlDouble), value.GetType(), typeof(float))));
 
             //LocalDate(Time)
-            Register(dt => dt.TimeOfDay == TimeSpan.Zero ? new TomlLocalDate(dt) : new TomlLocalDateTime(dt), value => (value as TomlValueWithDateTime)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlValueWithDateTime), value.GetType()));
+            Register(dt => dt.TimeOfDay == TimeSpan.Zero ? new TomlLocalDate(dt) : new TomlLocalDateTime(dt), value => (value as TomlValueWithDateTime)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlValueWithDateTime), value.GetType(), typeof(DateTime)));
 
             //OffsetDateTime
-            Register(odt => new TomlOffsetDateTime(odt), value => (value as TomlOffsetDateTime)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlOffsetDateTime), value.GetType()));
+            Register(odt => new TomlOffsetDateTime(odt), value => (value as TomlOffsetDateTime)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlOffsetDateTime), value.GetType(), typeof(DateTimeOffset)));
 
             //LocalTime
-            Register(lt => new TomlLocalTime(lt), value => (value as TomlLocalTime)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlLocalTime), value.GetType()));
+            Register(lt => new TomlLocalTime(lt), value => (value as TomlLocalTime)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlLocalTime), value.GetType(), typeof(TimeSpan)));
         }
 
         internal static Serialize<T>? GetSerializer<T>()
@@ -120,7 +120,7 @@ namespace Tomlet
             var deserializer = (Deserialize<object>) (value =>
             {
                 if (value is not TomlTable table)
-                    throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType());
+                    throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType(), type);
 
                 object instance;
                 try
@@ -222,8 +222,8 @@ namespace Tomlet
             if (deserializer != null)
             {
                 RegisterDeserializer(deserializer);
-                RegisterDeserializer<T[]>(value => value is TomlArray arr ? arr.ArrayValues.Select(deserializer.Invoke).ToArray() : throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType()));
-                RegisterDeserializer<List<T>>(value => value is TomlArray arr ? arr.ArrayValues.Select(deserializer.Invoke).ToList() : throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType()));
+                RegisterDeserializer<T[]>(value => value is TomlArray arr ? arr.ArrayValues.Select(deserializer.Invoke).ToArray() : throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), typeof(T[])));
+                RegisterDeserializer<List<T>>(value => value is TomlArray arr ? arr.ArrayValues.Select(deserializer.Invoke).ToList() : throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), typeof(List<T>)));
                 RegisterDictionaryDeserializer(deserializer);
             }
         }
@@ -232,6 +232,7 @@ namespace Tomlet
         {
             if (serializer != null)
             {
+                var listType = typeof(List<>).MakeGenericType(t);
                 RegisterSerializer(serializer);
 
                 RegisterSerializer(t.MakeArrayType(1), arr =>
@@ -247,7 +248,7 @@ namespace Tomlet
 
                     return ret;
                 });
-                RegisterSerializer(typeof(List<>).MakeGenericType(t), arr =>
+                RegisterSerializer(listType, arr =>
                 {
                     var ret = new TomlArray();
                     foreach (var o in (IEnumerable) arr)
@@ -264,14 +265,15 @@ namespace Tomlet
 
             if (deserializer != null)
             {
+                var listType = typeof(List<>).MakeGenericType(t);
                 RegisterDeserializer(deserializer);
-                RegisterDeserializer(t, value => value is TomlArray arr ? arr.ArrayValues.Select(deserializer.Invoke).ToArray() : throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType()));
-                RegisterDeserializer(typeof(List<>).MakeGenericType(t), delegate(TomlValue value)
+                RegisterDeserializer(t.MakeArrayType(1), value => value is TomlArray arr ? arr.ArrayValues.Select(deserializer.Invoke).ToArray() : throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), t.MakeArrayType(1)));
+                RegisterDeserializer(listType, delegate(TomlValue value)
                 {
                     if (value is not TomlArray arr)
-                        throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType());
+                        throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), listType);
 
-                    object o = Activator.CreateInstance(typeof(List<>).MakeGenericType(t));
+                    object o = Activator.CreateInstance(listType);
 
                     foreach (var o1 in arr.ArrayValues.Select(deserializer.Invoke))
                     {
@@ -327,8 +329,8 @@ namespace Tomlet
         {
             RegisterDeserializer<Dictionary<string, T>>(value =>
             {
-                if (!(value is TomlTable table))
-                    throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType());
+                if (value is not TomlTable table)
+                    throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType(), typeof(Dictionary<string, T>));
 
                 return table.Entries
                     .Select(kvp => new KeyValuePair<string, T>(kvp.Key, deserializer.Invoke(kvp.Value)))

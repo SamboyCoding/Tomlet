@@ -237,7 +237,7 @@ namespace Tomlet.Models
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlString str)
-                throw new TomlTypeMismatchException(typeof(TomlString), value.GetType());
+                throw new TomlTypeMismatchException(typeof(TomlString), value.GetType(), typeof(string));
 
             return str.Value;
         }
@@ -254,7 +254,7 @@ namespace Tomlet.Models
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlLong lng)
-                throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType());
+                throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType(), typeof(int));
 
             return (int) lng.Value;
         }
@@ -271,7 +271,7 @@ namespace Tomlet.Models
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlDouble dbl)
-                throw new TomlTypeMismatchException(typeof(TomlDouble), value.GetType());
+                throw new TomlTypeMismatchException(typeof(TomlDouble), value.GetType(), typeof(float));
 
             return (float) dbl.Value;
         }
@@ -288,7 +288,7 @@ namespace Tomlet.Models
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlBoolean b)
-                throw new TomlTypeMismatchException(typeof(TomlBoolean), value.GetType());
+                throw new TomlTypeMismatchException(typeof(TomlBoolean), value.GetType(), typeof(bool));
 
             return b.Value;
         }
@@ -305,7 +305,7 @@ namespace Tomlet.Models
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlArray arr)
-                throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType());
+                throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), typeof(TomlArray));
 
             return arr;
         }
@@ -322,7 +322,7 @@ namespace Tomlet.Models
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlTable tbl)
-                throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType());
+                throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType(), typeof(TomlTable));
 
             return tbl;
         }

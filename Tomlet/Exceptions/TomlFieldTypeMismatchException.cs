@@ -8,13 +8,7 @@ namespace Tomlet.Exceptions
         private readonly Type _typeBeingInstantiated;
         private readonly FieldInfo _fieldBeingDeserialized;
 
-        public TomlFieldTypeMismatchException(Type typeBeingInstantiated, FieldInfo fieldBeingDeserialized, Type foundType) : base(fieldBeingDeserialized.FieldType, foundType)
-        {
-            _typeBeingInstantiated = typeBeingInstantiated;
-            _fieldBeingDeserialized = fieldBeingDeserialized;
-        }
-
-        public TomlFieldTypeMismatchException(Type typeBeingInstantiated, FieldInfo fieldBeingDeserialized, TomlTypeMismatchException cause) : base(fieldBeingDeserialized.FieldType, cause.actualType)
+        public TomlFieldTypeMismatchException(Type typeBeingInstantiated, FieldInfo fieldBeingDeserialized, TomlTypeMismatchException cause) : base(cause.expectedType, cause.actualType, fieldBeingDeserialized.FieldType)
         {
             _typeBeingInstantiated = typeBeingInstantiated;
             _fieldBeingDeserialized = fieldBeingDeserialized;
