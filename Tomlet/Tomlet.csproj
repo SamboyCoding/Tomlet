@@ -5,7 +5,7 @@
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
         <PackageId>Samboy063.Tomlet</PackageId>
-        <Version>1.1.1</Version>
+        <Version>1.1.2</Version>
         <Authors>Sam Byass</Authors>
         <Company>N/A</Company>
         <PackageTags>toml</PackageTags>

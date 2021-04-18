@@ -9,7 +9,7 @@ namespace Tomlet
         public static void RegisterMapper<T>(TomlSerializationMethods.Serialize<T>? serializer, TomlSerializationMethods.Deserialize<T>? deserializer)
             => TomlSerializationMethods.Register(serializer, deserializer);
 
-        public static T To<T>(string tomlString) where T : new()
+        public static T To<T>(string tomlString)
         {
             var parser = new TomlParser();
             var tomlDocument = parser.Parse(tomlString);
@@ -17,7 +17,7 @@ namespace Tomlet
             return To<T>(tomlDocument);
         }
 
-        public static T To<T>(TomlValue value) where T : new()
+        public static T To<T>(TomlValue value)
         {
             var deserializer = TomlSerializationMethods.GetDeserializer<T>() ?? TomlSerializationMethods.GetCompositeDeserializer<T>();
 

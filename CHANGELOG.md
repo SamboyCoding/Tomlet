@@ -2,11 +2,16 @@
 
 ## Contents
 
+- [v1.1.2](#112)
 - [v1.1.1](#111)
 - [v1.1.0](#110)
 - [v1.0.2](#102)
 - [v1.0.1](#101)
 - [v1.0.0](#100)
+
+## 1.1.2
+
+- Fix a regression in the ability to deserialize arrays.
 
 ## 1.1.1
 
