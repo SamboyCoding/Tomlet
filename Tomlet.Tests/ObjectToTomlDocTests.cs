@@ -17,7 +17,7 @@ namespace Tomlet.Tests
                 MyDateTime = new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc)
             };
 
-            var tomlDoc = Tomlet.DocumentFrom(testObject);
+            var tomlDoc = TomletMain.DocumentFrom(testObject);
             
             Assert.Equal(4, tomlDoc.Entries.Count);
             Assert.True(tomlDoc.GetBoolean("MyBool"));

@@ -6,6 +6,8 @@ namespace Tomlet.Models
 {
     public class TomlDocument : TomlTable
     {
+        public static TomlDocument CreateEmpty() => new();
+        
         internal TomlDocument()
         {
             //Non-public ctor.

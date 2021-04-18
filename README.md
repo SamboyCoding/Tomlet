@@ -36,15 +36,15 @@ However, for a more convenient API, calls to specific typed variants of `GetValu
 
 ```c#
 var myClass = new MyClass("hello world", 1, 3);
-TomlDocument tomlDoc = Tomlet.DocumentFrom(myClass); //TOML document representation. Can be serialized using the SerializedValue property.
-string tomlString = Tomlet.TomlStringFrom(myClass); //Formatted TOML string. Equivalent to Tomlet.DocumentFrom(myClass).SerializedValue
+TomlDocument tomlDoc = TomletMain.DocumentFrom(myClass); //TOML document representation. Can be serialized using the SerializedValue property.
+string tomlString = TomletMain.TomlStringFrom(myClass); //Formatted TOML string. Equivalent to TomletMain.DocumentFrom(myClass).SerializedValue
 ```
 
 ### Deserialize TOML to a runtime object
 
 ```c#
 string myString = GetTomlStringSomehow(); //Web request, read file, etc.
-var myClass = Tomlet.To<MyClass>(myString); //Requires a public, zero-argument constructor on MyClass.
+var myClass = TomletMain.To<MyClass>(myString); //Requires a public, zero-argument constructor on MyClass.
 Console.WriteLine(myClass.configurationFileVersion); //Or whatever properties you define.
 ```
 
@@ -56,7 +56,7 @@ Console.WriteLine(myClass.configurationFileVersion); //Or whatever properties yo
 TomlDocument document = TomlParser.ParseFile(@"C:\MyFile.toml");
 
 //You can then convert this document to a runtime object, if you so desire.
-var myClass = Tomlet.To<MyClass>(document);
+var myClass = TomletMain.To<MyClass>(document);
 ```
 
 ### Parse Arbitrary TOML input
@@ -76,7 +76,7 @@ method of serializing your classes, then you can override this default using cod
 
 ```c#
 // Example: UnityEngine.Color stored as an integer in TOML. There is no differentiation between 32-bit and 64-bit integers, so we use TomlLong.
-Tomlet.RegisterMapper<Color>(
+TomletMain.RegisterMapper<Color>(
         //Serializer (toml value from class) 
         color => new TomlLong(color.a << 24 | color.r << 16 | color.g << 8 | color.b),
         //Deserializler (class from toml value)
@@ -94,7 +94,7 @@ Tomlet.RegisterMapper<Color>(
 );
 ```
 
-Calls to `Tomlet.RegisterMapper` can specify either the serializer or deserializer as `null`, in which case the default (de)serializer will be used.
+Calls to `TomletMain.RegisterMapper` can specify either the serializer or deserializer as `null`, in which case the default (de)serializer will be used.
 
 ### Retrieve data from a TomlDocument
 
@@ -161,6 +161,7 @@ The full list of exceptions follows, in alphabetical order:
 | `TomlDateTimeUnnecessarySeparatorException`| A date/time separator (`T`, `t`, or a space) was found in a Local Date or Local Time string, where it has nothing to separate. This is not allowed. | Remove the separator.|
 | `TomlDottedKeyException` | An attempt was made to programmatically insert a value into a `TomlTable` using a dotted key, which implied that an intermediary key was a table, when it is in fact not. The exception message provides the intermediary key. | Fix the code which inserted the value into the TomlTable |
 | `TomlDottedKeyParserException` | Similar to the above, except the dotted key was in the TOML document being parsed. The exception message provides the line number and intermediary key. | Check the TOML document to ensure you are using the correct key.|
+| `TomlEnumParseException` | An attempt was made to deserialize an enum type, and the value present in the TOML document could not be resolved to any entry in the enum. | Check that the enum contains all the possible values, and check the document for typos.|
 | `TomlEOFException` | The end of a file was reached while attempting to parse a key/value pair. | Restore the truncated data from the end of the file |
 | `TomlFieldTypeMismatchException` | While deserializing an object, the mapper found a field for which the type did not match the type of data in the document. The exception message provides the type and field being deserialized, the type of the field, and the type of data in the document. | Ensure the field declaration in your model class matches the type of the data in the document. | 
 | `TomlInlineTableSeparatorException` | The parser was expecting a comma (`,`) or closing brace (`}`) after a key-value pair, while parsing an inline table, but found something else. The exception message provides the line number and offending character. | Fix the syntax error in the inline table.|
@@ -172,7 +173,7 @@ The full list of exceptions follows, in alphabetical order:
 | `TomlMissingNewlineException` | The Parser found the beginning of another key-value pair on the same line as one it has previously parsed. All key-value pairs must be on their own line. The exception message provides the line number and first character of the second key-value pair. | Insert a newline character between the key-value pairs.|
 | `TomlNonTableArrayUsedAsTableArrayException`| The Parser found a table-array declaration (`[[TableArrayName]]`) which is re-using the name of a previous array. The exception message provides the line number and array name. | Remove the conflicting array declaration, or rename the table-array. |
 | `TomlNoSuchValueException` | Thrown when a call to `TomlTable.GetXXXX` is made with a key which wasn't present in the TOML document | Check the call to `GetXXXX`, or check if the key is present first using `ContainsKey` |
-| `TomlPrimitiveToDocumentException` | Thrown when a call to `Tomlet.DocumentFrom` is made with a primitive value. Primitive values cannot be made into documents (what do you put as the key name?), so this is not supported. | Use `Tomlet.ValueFrom` if you just want to convert a primitive to its equivalent TOML value. | 
+| `TomlPrimitiveToDocumentException` | Thrown when a call to `TomletMain.DocumentFrom` is made with a primitive value. Primitive values cannot be made into documents (what do you put as the key name?), so this is not supported. | Use `TomletMain.ValueFrom` if you just want to convert a primitive to its equivalent TOML value. | 
 | `TomlStringException` | The parser found a string which starts with two of the same quote (single or double) and then has a non-quote, non-whitespace, non-comment character. The exception message provides the line number. | Correct the string literal.|
 | `TomlTableArrayAlreadyExistsAsNonArrayException`| A Table-Array declaration was found which overwrites a non-array value. The exception message provides the line number and array name. | Remove the conflicting value, or rename the table-array |
 | `TomlTableArrayIntermediateNonTableException`| A Table-Array declaration was found which references an intermediate value which is an array, but the values contained within that array aren't tables. The exception message provides the line number and offending array name. | Fix the table-array name to refer to the correct intermediate array.|

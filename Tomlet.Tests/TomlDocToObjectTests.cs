@@ -10,7 +10,7 @@ namespace Tomlet.Tests
         [Fact]
         public void DictionaryDeserializationWorks()
         {
-            var dict = Tomlet.To<Dictionary<string, string>>(TestResources.SimplePrimitiveDeserializationTestInput);
+            var dict = TomletMain.To<Dictionary<string, string>>(TestResources.SimplePrimitiveDeserializationTestInput);
             
             Assert.Equal(4, dict.Count);
             Assert.Equal("Hello, world!", dict["MyString"]);
@@ -22,7 +22,7 @@ namespace Tomlet.Tests
         [Fact]
         public void SimpleCompositeDeserializationWorks()
         {
-            var type = Tomlet.To<SimplePrimitiveTestClass>(TestResources.SimplePrimitiveDeserializationTestInput);
+            var type = TomletMain.To<SimplePrimitiveTestClass>(TestResources.SimplePrimitiveDeserializationTestInput);
             
             Assert.Equal("Hello, world!", type.MyString);
             Assert.True(Math.Abs(690.42 - type.MyFloat) < 0.01);

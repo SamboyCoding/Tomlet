@@ -97,62 +97,93 @@ namespace Tomlet
 
         internal static Deserialize<object> GetCompositeDeserializer(Type type)
         {
-            //Get all instance fields
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-            //Ignore NonSerialized fields.
-            fields = fields.Where(f => !f.IsNotSerialized).ToArray();
-
-            if (fields.Length == 0)
-                return _ => Activator.CreateInstance(type);
-
-            if (type.Namespace + "." + type.Name == "System.Collections.Generic.List`1")
+            Deserialize<object> deserializer;
+            if (type.IsEnum)
             {
-                //List deserializer.
-
-                //Process base type
-                GetCompositeDeserializer(type.GetGenericArguments()[0]);
-
-                //And now return default list deserializer
-                return GetDeserializer(type)!;
-            }
-
-            var deserializer = (Deserialize<object>) (value =>
-            {
-                if (value is not TomlTable table)
-                    throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType(), type);
-
-                object instance;
-                try
+                var stringDeserializer = GetDeserializer<string>()!;
+                deserializer = value =>
                 {
-                    instance = Activator.CreateInstance(type)!;
-                }
-                catch (MissingMethodException)
-                {
-                    throw new TomlInstantiationException(type);
-                }
+                    var enumName = stringDeserializer.Invoke(value);
 
-                foreach (var field in fields)
-                {
                     try
                     {
-                        if (!table.ContainsKey(field.Name))
-                            continue; //TODO: Do we want to make this configurable? As in, throw exception if data is missing?
-
-                        var entry = table.GetValue(field.Name);
-                        var fieldDeserializer = GetDeserializer(field.FieldType) ?? GetCompositeDeserializer(field.FieldType);
-                        var fieldValue = fieldDeserializer.Invoke(entry);
-
-                        field.SetValue(instance, fieldValue);
+                        return Enum.Parse(type, enumName, true);
                     }
-                    catch (TomlTypeMismatchException e)
+                    catch (Exception)
                     {
-                        throw new TomlFieldTypeMismatchException(type, field, e);
+                        throw new TomlEnumParseException(enumName, type);
                     }
+                };
+            }
+            else
+            {
+                //Get all instance fields
+                var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+                //Ignore NonSerialized fields.
+                fields = fields.Where(f => !f.IsNotSerialized).ToArray();
+
+                if (fields.Length == 0)
+                    return _ => Activator.CreateInstance(type);
+
+                if (type.Namespace + "." + type.Name == "System.Collections.Generic.List`1")
+                {
+                    //List deserializer.
+
+                    //Process base type
+                    GetCompositeDeserializer(type.GetGenericArguments()[0]);
+
+                    //And now return default list deserializer
+                    return GetDeserializer(type)!;
+                }
+                
+                if (type.IsArray)
+                {
+                    //Process base type
+                    GetCompositeDeserializer(type.GetElementType()!);
+                    
+                    //And return default array deserializer
+                    return GetDeserializer(type)!;
                 }
 
-                return instance;
-            });
+
+                deserializer = value =>
+                {
+                    if (value is not TomlTable table)
+                        throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType(), type);
+
+                    object instance;
+                    try
+                    {
+                        instance = Activator.CreateInstance(type)!;
+                    }
+                    catch (MissingMethodException)
+                    {
+                        throw new TomlInstantiationException(type);
+                    }
+
+                    foreach (var field in fields)
+                    {
+                        try
+                        {
+                            if (!table.ContainsKey(field.Name))
+                                continue; //TODO: Do we want to make this configurable? As in, throw exception if data is missing?
+
+                            var entry = table.GetValue(field.Name);
+                            var fieldDeserializer = GetDeserializer(field.FieldType) ?? GetCompositeDeserializer(field.FieldType);
+                            var fieldValue = fieldDeserializer.Invoke(entry);
+
+                            field.SetValue(instance, fieldValue);
+                        }
+                        catch (TomlTypeMismatchException e)
+                        {
+                            throw new TomlFieldTypeMismatchException(type, field, e);
+                        }
+                    }
+
+                    return instance;
+                };
+            }
 
             //Cache composite deserializer.
             Register(type, null, deserializer);
@@ -162,45 +193,65 @@ namespace Tomlet
 
         private static Serialize<object> GetCompositeSerializer(Type type)
         {
-            //Get all instance fields
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            Serialize<object> serializer;
 
-            //Ignore NonSerialized fields.
-            fields = fields.Where(f => !f.IsNotSerialized).ToArray();
-
-            if (fields.Length == 0)
-                return _ => new TomlTable();
-
-            if (type.Namespace + "." + type.Name == "System.Collections.Generic.List`1")
+            if (type.IsEnum)
             {
-                //List deserializer.
-
-                //Process base type
-                GetCompositeSerializer(type.GetGenericArguments()[0]);
-
-                //And now return default list serializer
-                return GetSerializer(type)!;
+                var stringSerializer = GetSerializer<string>()!;
+                serializer = o => stringSerializer.Invoke(Enum.GetName(type, o) ?? throw new ArgumentException($"Tomlet: Cannot serialize {o} as an enum of type {type} because the enum type does not declare a name for that value"));
             }
-
-            var serializer = (Serialize<object>) (instance =>
+            else
             {
-                var resultTable = new TomlTable();
 
-                foreach (var field in fields)
+                //Get all instance fields
+                var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+                //Ignore NonSerialized fields.
+                fields = fields.Where(f => !f.IsNotSerialized).ToArray();
+
+                if (fields.Length == 0)
+                    return _ => new TomlTable();
+
+                if (type.Namespace + "." + type.Name == "System.Collections.Generic.List`1")
                 {
-                    var fieldValue = field.GetValue(instance);
+                    //List deserializer.
 
-                    if (fieldValue == null)
-                        continue; //Skip nulls - TOML doesn't support them.
+                    //Process base type
+                    GetCompositeSerializer(type.GetGenericArguments()[0]);
 
-                    var fieldSerializer = GetSerializer(field.FieldType) ?? GetCompositeSerializer(field.FieldType);
-                    var tomlValue = fieldSerializer.Invoke(fieldValue);
-
-                    resultTable.PutValue(field.Name, tomlValue);
+                    //And now return default list serializer
+                    return GetSerializer(type)!;
                 }
 
-                return resultTable;
-            });
+                if (type.IsArray)
+                {
+                    //Process base type
+                    GetCompositeSerializer(type.GetElementType()!);
+                    
+                    //And return default array serializer
+                    return GetSerializer(type)!;
+                }
+
+                serializer = instance =>
+                {
+                    var resultTable = new TomlTable();
+
+                    foreach (var field in fields)
+                    {
+                        var fieldValue = field.GetValue(instance);
+
+                        if (fieldValue == null)
+                            continue; //Skip nulls - TOML doesn't support them.
+
+                        var fieldSerializer = GetSerializer(field.FieldType) ?? GetCompositeSerializer(field.FieldType);
+                        var tomlValue = fieldSerializer.Invoke(fieldValue);
+
+                        resultTable.PutValue(field.Name, tomlValue);
+                    }
+
+                    return resultTable;
+                };
+            }
 
             //Cache composite deserializer.
             Register(type, serializer, null);
@@ -255,7 +306,7 @@ namespace Tomlet
                     {
                         ret.ArrayValues.Add(serializer.Invoke(o));
                     }
-                    
+
                     if (ret.ArrayValues.All(o => o is TomlTable))
                         ret.IsTableArray = true;
 
@@ -277,7 +328,7 @@ namespace Tomlet
 
                     foreach (var o1 in arr.ArrayValues.Select(deserializer.Invoke))
                     {
-                        o.GetType().GetMethod(nameof(List<object>.Add)).Invoke(o, new []{o1});
+                        o.GetType().GetMethod(nameof(List<object>.Add)).Invoke(o, new[] {o1});
                     }
 
                     return o;

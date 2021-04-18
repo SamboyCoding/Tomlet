@@ -4,7 +4,7 @@ using Tomlet.Models;
 
 namespace Tomlet
 {
-    public static class Tomlet
+    public static class TomletMain
     {
         public static void RegisterMapper<T>(TomlSerializationMethods.Serialize<T>? serializer, TomlSerializationMethods.Deserialize<T>? deserializer)
             => TomlSerializationMethods.Register(serializer, deserializer);

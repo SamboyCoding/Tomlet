@@ -17,7 +17,7 @@ namespace Tomlet.Tests
                 MyDateTime = new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc)
             };
 
-            var serializedForm = Tomlet.TomlStringFrom(testObject);
+            var serializedForm = TomletMain.TomlStringFrom(testObject);
 
             Assert.Equal("MyString = \"Hello, world!\"\nMyFloat = 420.69000244140625\nMyBool = true\nMyDateTime = 1970-01-01T07:00:00", serializedForm.Trim());
         }
@@ -33,9 +33,9 @@ namespace Tomlet.Tests
                 MyDateTime = new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc)
             };
             
-            var serializedForm = Tomlet.TomlStringFrom(testObject);
+            var serializedForm = TomletMain.TomlStringFrom(testObject);
 
-            var deserializedAgain = Tomlet.To<SimplePrimitiveTestClass>(serializedForm);
+            var deserializedAgain = TomletMain.To<SimplePrimitiveTestClass>(serializedForm);
 
             Assert.Equal(testObject, deserializedAgain);
         }

@@ -37,11 +37,11 @@ namespace Tomlet.Tests
                 }
             };
 
-            var tomlString = Tomlet.TomlStringFrom(testClass);
+            var tomlString = TomletMain.TomlStringFrom(testClass);
             
             _testOutputHelper.WriteLine("Got TOML string:\n" + tomlString);
             
-            var deserializedAgain = Tomlet.To<ComplexTestClass>(tomlString);
+            var deserializedAgain = TomletMain.To<ComplexTestClass>(tomlString);
             
             Assert.Equal(testClass, deserializedAgain);
         }
