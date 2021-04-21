@@ -15,9 +15,9 @@ namespace Tomlet.Models
 
         public TomlArray()
         {
-            
+
         }
-        
+
         internal TomlArray(List<TomlValue> values)
         {
             ArrayValues = values;
@@ -26,28 +26,45 @@ namespace Tomlet.Models
                 IsTableArray = true;
         }
 
+        public void Add<T>(T t) where T: new() {
+            ArrayValues.Add(TomletMain.ValueFrom(t));
+        }
+
         public bool CanBeSerializedInline => !IsTableArray || //Simple array
-                                             ArrayValues.All(o => o is TomlTable {ShouldBeSerializedInline: true}) && ArrayValues.Count <= 5; //Table array of inline tables, 5 or fewer of them.
+                                             ArrayValues.All(o => o is TomlTable { ShouldBeSerializedInline: true }) && ArrayValues.Count <= 5; //Table array of inline tables, 5 or fewer of them.
+
+        public bool IsSimpleArray => !IsTableArray && !ArrayValues.Any(o => o is TomlArray || o is TomlTable); //Not table-array and not any sub-arrays or tables.
 
         public TomlValue this[int index] => ArrayValues[index];
 
         public int Count => ArrayValues.Count;
 
-        public override string SerializedValue
+        public override string SerializedValue => SerializeInline(!IsSimpleArray); //If non-simple, put newlines after commas.
+
+        public string SerializeInline(bool multiline)
         {
-            get
-            {
-                if (!CanBeSerializedInline)
-                    throw new Exception("Cannot serialize table-arrays using this method. Use TomlArray.SerializeTableArray(key)");
-                
-                var builder = new StringBuilder("[ ");
+            if (!CanBeSerializedInline)
+                throw new Exception("Cannot serialize table-arrays using this method. Use TomlArray.SerializeTableArray(key)");
 
-                builder.Append(string.Join(", ", this.Select(o => o.SerializedValue).ToArray()));
+            var builder = new StringBuilder("[");
 
-                builder.Append(" ]");
+            if(multiline)
+                builder.Append("\n\t");
+            else
+                builder.Append(' ');
 
-                return builder.ToString();
-            }
+            var sep = multiline ? ",\n\t" : ", ";
+
+            builder.Append(string.Join(sep, this.Select(o => o.SerializedValue).ToArray()));
+
+            if(multiline)
+                builder.Append('\n');
+            else
+                builder.Append(' ');
+
+            builder.Append(']');
+
+            return builder.ToString();
         }
 
         public string SerializeTableArray(string key)
@@ -61,7 +78,7 @@ namespace Tomlet.Models
             {
                 if (value is not TomlTable table)
                     throw new Exception($"Toml Table-Array contains non-table entry? Value is {value}");
-                
+
                 builder.Append("[[").Append(key).Append("]]").Append('\n');
 
                 builder.Append(table.SerializeNonInlineTable(null, false)).Append('\n');

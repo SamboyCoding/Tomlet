@@ -2,12 +2,23 @@
 
 ## Contents
 
-- [v1.1.2](#112)
-- [v1.1.1](#111)
-- [v1.1.0](#110)
-- [v1.0.2](#102)
-- [v1.0.1](#101)
-- [v1.0.0](#100)
+- [Tomlet Changelog](#tomlet-changelog)
+  - [Contents](#contents)
+  - [1.2.0](#120)
+  - [1.1.2](#112)
+  - [1.1.1](#111)
+  - [1.1.0](#110)
+  - [1.0.2](#102)
+  - [1.0.1](#101)
+  - [1.0.0](#100)
+
+## 1.2.0
+
+- Adds `TomlArray.Add<T>` and `TomlTable.Put<T>`
+- Serializes arrays as multi-line if they're complicated.
+- Make serialization to floats and doubles accept long or int values in the TOML file.
+- Fixed an issue with serializing table-arrays.
+- Fixes support for newline characters or quotes in key names.
 
 ## 1.1.2
 

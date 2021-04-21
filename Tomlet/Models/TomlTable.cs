@@ -16,7 +16,7 @@ namespace Tomlet.Models
 
         public HashSet<string> Keys => new(Entries.Keys);
 
-        public virtual bool ShouldBeSerializedInline => Entries.Count < 4 && Entries.All(e => e.Value is not TomlTable && !e.Value.SerializedValue.Contains("\n"));
+        public virtual bool ShouldBeSerializedInline => Entries.Count < 4 && Entries.All(e => e.Value is not TomlTable && e.Value is TomlArray {IsSimpleArray: true} && e.Value.SerializedValue.Contains("\n"));
 
         public override string SerializedValue
         {
@@ -73,6 +73,11 @@ namespace Tomlet.Models
         {
             var value = GetValue(subKey);
 
+            subKey = EscapeKeyIfNeeded(subKey);
+
+            if(keyName != null)
+                keyName = EscapeKeyIfNeeded(keyName);
+
             var fullSubKey = keyName == null ? subKey : $"{keyName}.{subKey}";
 
             switch (value)
@@ -95,28 +100,14 @@ namespace Tomlet.Models
             }
         }
 
-        private bool ShouldBeSortedToEnd(TomlValue val)
-        {
-            return val is TomlArray {IsTableArray: true} or TomlTable {ShouldBeSerializedInline: false};
-        }
+        private string EscapeKeyIfNeeded(string key) {
 
-        protected int SortComplexTypesToEnd(string a, string b)
-        {
-            var valA = GetValue(a);
-            var valB = GetValue(b);
+            if(key.Contains("\"") || key.Contains("'"))
+                key = QuoteKey(key);
 
-            if (ShouldBeSortedToEnd(valA) && ShouldBeSortedToEnd(valB))
-                //Fall back to default sorting if both need to be pushed to end
-                return string.Compare(a, b, StringComparison.Ordinal);
-
-            if (!ShouldBeSortedToEnd(valA) && !ShouldBeSortedToEnd(valB))
-                //Fall back to default sorting if *neither* need to be pushed to end.
-                return string.Compare(a, b, StringComparison.Ordinal);
-
-            if (ShouldBeSortedToEnd(valA) && !ShouldBeSortedToEnd(valB))
-                return -1; //ValA before ValB
-
-            return 1; //ValB before ValA
+            return key.Replace(@"\", @"\\")
+                    .Replace("\n", @"\n")
+                    .Replace("\r", "");
         }
 
         internal void ParserPutValue(string key, TomlValue value, int lineNumber)
@@ -129,18 +120,26 @@ namespace Tomlet.Models
 
         public void PutValue(string key, TomlValue value, bool quote = false)
         {
+            if(key == null)
+                throw new ArgumentNullException("key");
+
+            if(value == null)
+                throw new ArgumentNullException("value");
+
             if (quote)
                 key = QuoteKey(key);
             InternalPutValue(key, value, null, false);
         }
 
-        private string DequoteKey(string key)
+        public void Put<T>(string key, T t, bool quote = false) => PutValue(key, TomletMain.ValueFrom(t), quote);
+
+        public string DequoteKey(string key)
         {
             var wholeKeyIsQuoted = key.StartsWith("\"") && key.EndsWith("\"") || key.StartsWith("'") && key.EndsWith("'");
             return !wholeKeyIsQuoted ? key : key.Substring(1, key.Length - 2);
         }
 
-        private static string QuoteKey(string key)
+        public static string QuoteKey(string key)
         {
             if (key.Contains("'") && key.Contains("\""))
                 throw new InvalidTomlKeyException(key);
@@ -204,6 +203,9 @@ namespace Tomlet.Models
 
         public bool ContainsKey(string key)
         {
+            if(key == null)
+                throw new ArgumentNullException("key");
+
             TomlKeyUtils.GetTopLevelAndSubKeys(key, out var ourKeyName, out var restOfKey);
 
             if (string.IsNullOrEmpty(restOfKey))
@@ -230,6 +232,9 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public TomlValue GetValue(string key)
         {
+            if(key == null)
+                throw new ArgumentNullException("key");
+
             if (!ContainsKey(key))
                 throw new TomlNoSuchValueException(key);
 
@@ -257,6 +262,9 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public string GetString(string key)
         {
+            if(key == null)
+                throw new ArgumentNullException("key");
+
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlString str)
@@ -274,6 +282,9 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public int GetInteger(string key)
         {
+            if(key == null)
+                throw new ArgumentNullException("key");
+
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlLong lng)
@@ -291,6 +302,9 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public float GetFloat(string key)
         {
+            if(key == null)
+                throw new ArgumentNullException("key");
+
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlDouble dbl)
@@ -308,6 +322,9 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public bool GetBoolean(string key)
         {
+            if(key == null)
+                throw new ArgumentNullException("key");
+
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlBoolean b)
@@ -325,6 +342,9 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public TomlArray GetArray(string key)
         {
+            if(key == null)
+                throw new ArgumentNullException("key");
+
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlArray arr)
@@ -342,6 +362,9 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public TomlTable GetSubTable(string key)
         {
+            if(key == null)
+                throw new ArgumentNullException("key");
+
             var value = GetValue(QuoteKey(key));
 
             if (value is not TomlTable tbl)
