@@ -81,7 +81,7 @@ namespace Tomlet.Models
 
                 builder.Append("[[").Append(key).Append("]]").Append('\n');
 
-                builder.Append(table.SerializeNonInlineTable(null, false)).Append('\n');
+                builder.Append(table.SerializeNonInlineTable(key, false)).Append('\n');
             }
 
             return builder.ToString();
