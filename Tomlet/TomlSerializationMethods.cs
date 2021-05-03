@@ -12,7 +12,7 @@ namespace Tomlet
     {
         public delegate T Deserialize<out T>(TomlValue value);
 
-        public delegate TomlValue Serialize<in T>(T t);
+        public delegate TomlValue Serialize<in T>(T? t);
 
         private static readonly Dictionary<Type, Delegate> _deserializers = new();
         private static readonly Dictionary<Type, Delegate> _serializers = new();
@@ -252,6 +252,9 @@ namespace Tomlet
 
                 serializer = instance =>
                 {
+                    if (instance == null)
+                        throw new ArgumentNullException(nameof(instance), "Object being serialized is null. TOML does not support null values.");
+                    
                     var resultTable = new TomlTable();
 
                     foreach (var field in fields)
