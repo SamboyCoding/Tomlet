@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [1.3.0](#130)
   - [1.2.0](#120)
   - [1.1.2](#112)
   - [1.1.1](#111)
@@ -11,6 +12,11 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+  
+## 1.3.0
+
+- Fixed key names for sub-tables in table arrays
+- Add default serializers for bytes and shorts, and unsigned variants of all number types.
 
 ## 1.2.0
 
