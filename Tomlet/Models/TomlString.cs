@@ -14,6 +14,6 @@
         public string Value => value;
 
         public override string StringValue => Value;
-        public override string SerializedValue => $"\"{StringValue}\"";
+        public override string SerializedValue => TomlUtils.AddCorrectQuotes(TomlUtils.EscapeStringValue(StringValue));
     }
 }

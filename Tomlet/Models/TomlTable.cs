@@ -100,14 +100,21 @@ namespace Tomlet.Models
             }
         }
 
-        private string EscapeKeyIfNeeded(string key) {
+        private string EscapeKeyIfNeeded(string key)
+        {
+            var didEscape = false;
+            if (key.Contains("\"") || key.Contains("'"))
+            {
+                key = TomlUtils.AddCorrectQuotes(key);
+                didEscape = true;
+            }
 
-            if(key.Contains("\"") || key.Contains("'"))
-                key = QuoteKey(key);
+            var escaped = TomlUtils.EscapeStringValue(key);
 
-            return key.Replace(@"\", @"\\")
-                    .Replace("\n", @"\n")
-                    .Replace("\r", "");
+            if (escaped.Contains(" ") || escaped.Contains("\\") && !didEscape)
+                escaped = TomlUtils.AddCorrectQuotes(escaped);
+
+            return escaped;
         }
 
         internal void ParserPutValue(string key, TomlValue value, int lineNumber)
@@ -127,27 +134,16 @@ namespace Tomlet.Models
                 throw new ArgumentNullException("value");
 
             if (quote)
-                key = QuoteKey(key);
+                key = TomlUtils.AddCorrectQuotes(key);
             InternalPutValue(key, value, null, false);
         }
 
         public void Put<T>(string key, T t, bool quote = false) => PutValue(key, TomletMain.ValueFrom(t), quote);
 
-        public string DequoteKey(string key)
+        public string DeQuoteKey(string key)
         {
             var wholeKeyIsQuoted = key.StartsWith("\"") && key.EndsWith("\"") || key.StartsWith("'") && key.EndsWith("'");
             return !wholeKeyIsQuoted ? key : key.Substring(1, key.Length - 2);
-        }
-
-        public static string QuoteKey(string key)
-        {
-            if (key.Contains("'") && key.Contains("\""))
-                throw new InvalidTomlKeyException(key);
-
-            if (key.Contains("\""))
-                return $"'{key}'";
-
-            return $"\"{key}\"";
         }
 
         private void InternalPutValue(string key, TomlValue value, int? lineNumber, bool callParserForm)
@@ -157,7 +153,7 @@ namespace Tomlet.Models
 
             if (!string.IsNullOrEmpty(restOfKey))
             {
-                if (!Entries.TryGetValue(DequoteKey(ourKeyName), out var existingValue))
+                if (!Entries.TryGetValue(DeQuoteKey(ourKeyName), out var existingValue))
                 {
                     //We don't have a sub-table with this name defined. That's fine, make one.
                     var subtable = new TomlTable();
@@ -193,7 +189,7 @@ namespace Tomlet.Models
             }
 
             //Non-dotted keys land here.
-            key = DequoteKey(key);
+            key = DeQuoteKey(key);
 
             if (Entries.ContainsKey(key) && lineNumber.HasValue)
                 throw new TomlKeyRedefinitionException(lineNumber.Value, key);
@@ -210,7 +206,7 @@ namespace Tomlet.Models
 
             if (string.IsNullOrEmpty(restOfKey))
                 //Non-dotted key
-                return Entries.ContainsKey(DequoteKey(key));
+                return Entries.ContainsKey(DeQuoteKey(key));
 
             if (!Entries.TryGetValue(ourKeyName, out var existingKey))
                 return false;
@@ -242,7 +238,7 @@ namespace Tomlet.Models
 
             if (string.IsNullOrEmpty(restOfKey))
                 //Non-dotted key
-                return Entries[DequoteKey(key)];
+                return Entries[DeQuoteKey(key)];
 
             if (!Entries.TryGetValue(ourKeyName, out var existingKey))
                 throw new TomlNoSuchValueException(key); //Should already be handled by ContainsKey test
@@ -265,7 +261,7 @@ namespace Tomlet.Models
             if(key == null)
                 throw new ArgumentNullException("key");
 
-            var value = GetValue(QuoteKey(key));
+            var value = GetValue(TomlUtils.AddCorrectQuotes(key));
 
             if (value is not TomlString str)
                 throw new TomlTypeMismatchException(typeof(TomlString), value.GetType(), typeof(string));
@@ -285,7 +281,7 @@ namespace Tomlet.Models
             if(key == null)
                 throw new ArgumentNullException("key");
 
-            var value = GetValue(QuoteKey(key));
+            var value = GetValue(TomlUtils.AddCorrectQuotes(key));
 
             if (value is not TomlLong lng)
                 throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType(), typeof(int));
@@ -305,7 +301,7 @@ namespace Tomlet.Models
             if(key == null)
                 throw new ArgumentNullException("key");
 
-            var value = GetValue(QuoteKey(key));
+            var value = GetValue(TomlUtils.AddCorrectQuotes(key));
 
             if (value is not TomlDouble dbl)
                 throw new TomlTypeMismatchException(typeof(TomlDouble), value.GetType(), typeof(float));
@@ -325,7 +321,7 @@ namespace Tomlet.Models
             if(key == null)
                 throw new ArgumentNullException("key");
 
-            var value = GetValue(QuoteKey(key));
+            var value = GetValue(TomlUtils.AddCorrectQuotes(key));
 
             if (value is not TomlBoolean b)
                 throw new TomlTypeMismatchException(typeof(TomlBoolean), value.GetType(), typeof(bool));
@@ -345,7 +341,7 @@ namespace Tomlet.Models
             if(key == null)
                 throw new ArgumentNullException("key");
 
-            var value = GetValue(QuoteKey(key));
+            var value = GetValue(TomlUtils.AddCorrectQuotes(key));
 
             if (value is not TomlArray arr)
                 throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), typeof(TomlArray));
@@ -365,7 +361,7 @@ namespace Tomlet.Models
             if(key == null)
                 throw new ArgumentNullException("key");
 
-            var value = GetValue(QuoteKey(key));
+            var value = GetValue(TomlUtils.AddCorrectQuotes(key));
 
             if (value is not TomlTable tbl)
                 throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType(), typeof(TomlTable));

@@ -143,6 +143,9 @@ namespace Tomlet
                 //Read unquoted key
                 key = reader.ReadWhile(keyChar => !keyChar.IsEquals() && !keyChar.IsHashSign());
 
+            key = key.Replace("\\n", "\n")
+                .Replace("\\t", "\t");
+
             return key;
         }
 
