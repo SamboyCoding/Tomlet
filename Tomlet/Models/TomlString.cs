@@ -1,14 +1,16 @@
-﻿namespace Tomlet.Models
+﻿using System;
+
+namespace Tomlet.Models
 {
     public class TomlString : TomlValue
     {
         public static readonly TomlString EMPTY = new("");
         
-        private string value;
+        private readonly string value;
 
-        public TomlString(string value)
+        public TomlString(string? value)
         {
-            this.value = value;
+            this.value = value ?? throw new ArgumentNullException(nameof(value), "TomlString's value cannot be null");
         }
         
         public string Value => value;
