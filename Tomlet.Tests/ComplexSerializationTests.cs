@@ -45,5 +45,36 @@ namespace Tomlet.Tests
             
             Assert.Equal(testClass, deserializedAgain);
         }
+
+        [Fact]
+        public void SerializingNullFieldsExcludesThem()
+        {
+            var testClass = new ComplexTestClass
+            {
+                TestString = null,
+                ClassOnes =
+                {
+                    new ComplexTestClass.SubClassOne {SubKeyOne = "Hello"},
+                    new ComplexTestClass.SubClassOne {SubKeyOne = "World"},
+                    new ComplexTestClass.SubClassOne {SubKeyOne = "How"},
+                    new ComplexTestClass.SubClassOne {SubKeyOne = "Are"},
+                    new ComplexTestClass.SubClassOne {SubKeyOne = "You"},
+                },
+                SC2 = null
+            };
+
+            var tomlString = TomletMain.TomlStringFrom(testClass);
+            
+            _testOutputHelper.WriteLine("Got TOML string:\n" + tomlString);
+
+            var doc = new TomlParser().Parse(tomlString);
+            
+            Assert.False(doc.ContainsKey("SC2"));
+            Assert.False(doc.ContainsKey("TestString"));
+            
+            var deserializedAgain = TomletMain.To<ComplexTestClass>(tomlString);
+            
+            Assert.Equal(testClass, deserializedAgain);
+        }
     }
 }
