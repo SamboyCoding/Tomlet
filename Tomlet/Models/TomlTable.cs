@@ -103,6 +103,15 @@ namespace Tomlet.Models
         private string EscapeKeyIfNeeded(string key)
         {
             var didEscape = false;
+
+            if (key.StartsWith("\"") && key.EndsWith("\"") && key.Count(c => c == '"') == 2)
+                //Already double quoted
+                return key;
+            
+            if (key.StartsWith("'") && key.EndsWith("'") && key.Count(c => c == '\'') == 2)
+                //Already single quoted
+                return key;
+            
             if (key.Contains("\"") || key.Contains("'"))
             {
                 key = TomlUtils.AddCorrectQuotes(key);

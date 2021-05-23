@@ -33,7 +33,21 @@ namespace Tomlet.Tests
         }
 
         [Fact]
-        public void TablesCanHaveDottedAndQuotedDottedNames()
+        public void TablesCanHaveQuotedKeyNames()
+        {
+            var inputString = "[\"Table Name With Spaces\"]\nkey = \"value\"";
+            var document = GetDocument(inputString);
+            
+            Assert.Single(document.Keys, "Table Name With Spaces");
+            Assert.Single(document.GetSubTable("Table Name With Spaces").Keys, "key");
+            Assert.Equal("value", document.GetSubTable("Table Name With Spaces").GetString("key"));
+
+            var tomlString = document.SerializedValue.Trim();
+            Assert.Equal(inputString, tomlString);
+        }
+
+        [Fact]
+        public void TablesCanHaveQuotedDottedNames()
         {
             var document = GetDocument(TestResources.TableWithQuotedDottedStringTestInput);
             

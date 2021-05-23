@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [1.3.2](#132)
   - [1.3.1](#131)
   - [1.3.0](#130)
   - [1.2.0](#120)
@@ -13,7 +14,11 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
-  
+
+## 1.3.2
+
+- Fix inability to serialize non-inline tables with spaces in their name.
+
 ## 1.3.1
 
 - Bugfix for strings with newlines.
