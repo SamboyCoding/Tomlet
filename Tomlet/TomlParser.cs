@@ -670,6 +670,10 @@ namespace Tomlet
                 if (!reader.TryPeek(out var nextChar))
                     throw new TomlEOFException(_lineNumber);
 
+				//Note that this is only needed when we first enter the loop, in case of an empty inline table
+				if (nextChar.IsEndOfInlineObjectChar())
+					break;
+
                 //Newlines are not permitted
                 if (nextChar.IsNewline())
                     throw new NewLineInTomlInlineTableException(_lineNumber);
