@@ -201,6 +201,7 @@ fruit . flavor = "banana"   # same as fruit.flavor</value>
     </data>
     <data name="BasicInlineTableTestInput" xml:space="preserve">
         <value>name = { first = "Tom", last = "Preston-Werner" }
+empty = {   }
 point = { x = 1, y = 2 }
 animal = { type.name = "pug" }</value>
     </data>

@@ -17,9 +17,10 @@ namespace Tomlet.Tests
         {
             var document = GetDocument(TestResources.BasicInlineTableTestInput);
             
-            Assert.Equal(3, document.Entries.Count);
+            Assert.Equal(4, document.Entries.Count);
             
             Assert.NotNull(document.GetSubTable("name"));
+            Assert.NotNull(document.GetSubTable("empty"));
             Assert.NotNull(document.GetSubTable("point"));
             Assert.NotNull(document.GetSubTable("animal"));
         }
