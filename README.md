@@ -1,6 +1,10 @@
 # Tomlet
 ## A TOML library for .NET
 
+[![NuGet](https://img.shields.io/nuget/v/Samboy063.Tomlet)](https://www.nuget.org/packages/Samboy063.Tomlet/)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/SamboyCoding/Tomlet/.NET)
+![Toml Version](https://img.shields.io/badge/TOML%20Version-1.0.0-blue)
+
 Tomlet is a library for the [TOML](https://toml.io/) configuration file format. It's targeting [TOML v1.0.0](https://toml.io/en/v1.0.0).
 
 Currently supported features are as follows:
