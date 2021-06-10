@@ -18,7 +18,7 @@
 
 ## 1.3.3
 
-- Fix deserialization of empty inline tables (#5). Thanks to @ITR13 for the PR!
+- Fix deserialization of empty inline tables (https://github.com/SamboyCoding/Tomlet/pull/5). Thanks to https://github.com/ITR13 for the PR!
 
 ## 1.3.2
 
