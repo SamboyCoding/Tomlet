@@ -22,7 +22,7 @@ namespace Tomlet.Models
         }
 
         public double Value => _value;
-        public override string StringValue => Value.ToString(CultureInfo.CurrentCulture);
+        public override string StringValue => Value.ToString(CultureInfo.InvariantCulture);
         
         public override string SerializedValue => StringValue;
     }
