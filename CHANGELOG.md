@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [1.3.4](#134)
   - [1.3.3](#133)
   - [1.3.2](#132)
   - [1.3.1](#131)
@@ -15,6 +16,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 1.3.4
+
+- Fix serialization of floats and doubles in cultures which use ',' as the decimal separator (much of Western Europe, at least) (#6)
 
 ## 1.3.3
 
