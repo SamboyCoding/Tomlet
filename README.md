@@ -38,6 +38,8 @@ However, for a more convenient API, calls to specific typed variants of `GetValu
 
 ### Serialize a runtime object to TOML
 
+Note: Like deserialization, only Fields will be serialized, not Properties.
+
 ```c#
 var myClass = new MyClass("hello world", 1, 3);
 TomlDocument tomlDoc = TomletMain.DocumentFrom(myClass); //TOML document representation. Can be serialized using the SerializedValue property.
@@ -45,6 +47,9 @@ string tomlString = TomletMain.TomlStringFrom(myClass); //Formatted TOML string.
 ```
 
 ### Deserialize TOML to a runtime object
+
+Note: This does not support deserialization of Properties, only Fields. If you're having issues, make sure your data class has a public, zero-argument
+constructor, and that any data you want to deserialize is represented using public non-static fields.
 
 ```c#
 string myString = GetTomlStringSomehow(); //Web request, read file, etc.
