@@ -266,6 +266,12 @@ namespace Tomlet
 
                         var fieldSerializer = GetSerializer(field.FieldType) ?? GetCompositeSerializer(field.FieldType);
                         var tomlValue = fieldSerializer.Invoke(fieldValue);
+                        
+                        if(resultTable.ContainsKey(field.Name))
+                            //Do not overwrite fields if they have the same name as something already in the table
+                            //This fixes serializing types which re-declare a field using the `new` keyword, overwriting a field of the same name
+                            //in its supertype. 
+                            continue;
 
                         resultTable.PutValue(field.Name, tomlValue);
                     }

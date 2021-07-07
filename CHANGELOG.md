@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [1.3.5](#135)
   - [1.3.4](#134)
   - [1.3.3](#133)
   - [1.3.2](#132)
@@ -16,6 +17,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 1.3.5
+
+- Respect `new`-annotated fields. That is to say, use the most-subclass value, not any parent value, when serializing.
 
 ## 1.3.4
 
