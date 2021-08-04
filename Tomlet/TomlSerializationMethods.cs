@@ -136,7 +136,7 @@ namespace Tomlet
             else
             {
                 //Get all instance fields
-                var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty);
+                var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
                 //Ignore NonSerialized fields.
                 fields = fields.Where(f => !f.IsNotSerialized).ToArray();
@@ -227,7 +227,7 @@ namespace Tomlet
             {
 
                 //Get all instance fields
-                var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetProperty);
+                var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
                 //Ignore NonSerialized fields.
                 fields = fields.Where(f => !f.IsNotSerialized).ToArray();
