@@ -76,5 +76,49 @@ namespace Tomlet.Tests
             
             Assert.Equal(testClass, deserializedAgain);
         }
+
+        [Fact]
+        public void SerializingNullPropertiesExcludesThem()
+        {
+            var testClass = new SimplePropertyTestClass
+            {
+                MyString = null,
+                MyBool = true,
+            };
+
+            var tomlString = TomletMain.TomlStringFrom(testClass);
+
+            _testOutputHelper.WriteLine("Got TOML string:\n" + tomlString);
+
+            var doc = new TomlParser().Parse(tomlString);
+
+            Assert.False(doc.ContainsKey("MyString"));
+
+            var deserializedAgain = TomletMain.To<SimplePropertyTestClass>(tomlString);
+
+            Assert.Equal(testClass, deserializedAgain);
+        }
+
+        [Fact]
+        public void ComplexRecordSerializationWorks()
+        {
+            var testRecord = new ComplexTestRecord
+            {
+                MyString = "Test",
+                MyWidget = new Widget
+                {
+                    MyInt = 1,
+                },
+            };
+
+            var tomlString = TomletMain.TomlStringFrom(testRecord);
+
+            _testOutputHelper.WriteLine("Got TOML string:\n" + tomlString);
+
+            var deserializedAgain = TomletMain.To<ComplexTestRecord>(tomlString);
+
+            Assert.Equal(testRecord, deserializedAgain);
+        }
+
     }
 }

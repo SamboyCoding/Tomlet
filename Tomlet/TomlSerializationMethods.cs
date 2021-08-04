@@ -184,10 +184,15 @@ namespace Tomlet
                     {
                         try
                         {
-                            if (!table.ContainsKey(field.Name))
+                            var name = field.Name;
+                            var m = System.Text.RegularExpressions.Regex.Match(field.Name, "<(.*)>k__BackingField");
+                            if (m.Success)
+                                name = m.Groups[1].Value; 
+
+                            if (!table.ContainsKey(name))
                                 continue; //TODO: Do we want to make this configurable? As in, throw exception if data is missing?
 
-                            var entry = table.GetValue(field.Name);
+                            var entry = table.GetValue(name);
                             var fieldDeserializer = GetDeserializer(field.FieldType) ?? GetCompositeDeserializer(field.FieldType);
                             var fieldValue = fieldDeserializer.Invoke(entry);
 
@@ -266,14 +271,19 @@ namespace Tomlet
 
                         var fieldSerializer = GetSerializer(field.FieldType) ?? GetCompositeSerializer(field.FieldType);
                         var tomlValue = fieldSerializer.Invoke(fieldValue);
-                        
-                        if(resultTable.ContainsKey(field.Name))
+
+                        var name = field.Name;
+                        var m = System.Text.RegularExpressions.Regex.Match(field.Name, "<(.*)>k__BackingField");
+                        if (m.Success)
+                            name = m.Groups[1].Value;
+
+                        if (resultTable.ContainsKey(name))
                             //Do not overwrite fields if they have the same name as something already in the table
                             //This fixes serializing types which re-declare a field using the `new` keyword, overwriting a field of the same name
                             //in its supertype. 
                             continue;
 
-                        resultTable.PutValue(field.Name, tomlValue);
+                        resultTable.PutValue(name, tomlValue);
                     }
 
                     return resultTable;
