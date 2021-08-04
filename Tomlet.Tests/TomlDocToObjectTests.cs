@@ -29,5 +29,27 @@ namespace Tomlet.Tests
             Assert.True(type.MyBool);
             Assert.Equal(new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc), type.MyDateTime);
         }
+
+        [Fact]
+        public void SimplePropertyDeserializationWorks()
+        {
+            var type = TomletMain.To<SimplePropertyTestClass>(TestResources.SimplePrimitiveDeserializationTestInput);
+
+            Assert.Equal("Hello, world!", type.MyString);
+            Assert.True(Math.Abs(690.42 - type.MyFloat) < 0.01);
+            Assert.True(type.MyBool);
+            Assert.Equal(new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc), type.MyDateTime);
+        }
+
+        [Fact]
+        public void SimpleRecordDeserializationWorks()
+        {
+            var type = TomletMain.To<SimpleTestRecord>(TestResources.SimplePrimitiveDeserializationTestInput);
+
+            Assert.Equal("Hello, world!", type.MyString);
+            Assert.True(Math.Abs(690.42 - type.MyFloat) < 0.01);
+            Assert.True(type.MyBool);
+            Assert.Equal(new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc), type.MyDateTime);
+        }
     }
 }
