@@ -61,6 +61,15 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to array =[&quot;&quot;,&quot;&quot;,&quot;&quot;,&quot;&quot;,&quot;&quot;].
+        /// </summary>
+        internal static string ArrayOfEmptyStringTestInput {
+            get {
+                return ResourceManager.GetString("ArrayOfEmptyStringTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to integers3 = [
         ///  1,
         ///  2, # this is ok
@@ -94,6 +103,7 @@ namespace Tomlet.Tests {
         
         /// <summary>
         ///   Looks up a localized string similar to name = { first = &quot;Tom&quot;, last = &quot;Preston-Werner&quot; }
+        ///empty = {   }
         ///point = { x = 1, y = 2 }
         ///animal = { type.name = &quot;pug&quot; }.
         /// </summary>

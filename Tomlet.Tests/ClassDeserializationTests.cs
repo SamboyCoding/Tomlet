@@ -51,5 +51,15 @@ namespace Tomlet.Tests
             Assert.True(type.MyBool);
             Assert.Equal(new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc), type.MyDateTime);
         }
+
+        [Fact]
+        public void AnArrayOfEmptyStringsCanBeDeserialized()
+        {
+            var wrapper = TomletMain.To<StringArrayWrapper>(TestResources.ArrayOfEmptyStringTestInput);
+            var array = wrapper.array;
+            
+            Assert.Equal(5, array.Length);
+            Assert.All(array, s => Assert.Equal(string.Empty, s));
+        }
     }
 }

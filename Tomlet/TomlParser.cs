@@ -177,7 +177,7 @@ namespace Tomlet
                     {
                         reader.Read(); //Consume second char
 
-                        //Check the third char. If it's another quote, we have a multiline string. If it's whitespace, a newline, or a #, we have an empty string.
+                        //Check the third char. If it's another quote, we have a multiline string. If it's whitespace, a newline, part of an inline array, or a #, we have an empty string.
                         //Anything else is an error.
                         var maybeThirdQuote = reader.Peek();
                         if (maybeThirdQuote == startQuote)
@@ -185,7 +185,7 @@ namespace Tomlet
                             reader.Read(); //Consume the third opening quote, for simplicity's sake.
                             value = startQuote.IsSingleQuote() ? ReadMultiLineLiteralString(reader) : ReadMultiLineBasicString(reader);
                         }
-                        else if (maybeThirdQuote.IsWhitespace() || maybeThirdQuote.IsNewline() || maybeThirdQuote.IsHashSign() || maybeThirdQuote == -1)
+                        else if (maybeThirdQuote.IsWhitespace() || maybeThirdQuote.IsNewline() || maybeThirdQuote.IsHashSign() || maybeThirdQuote.IsComma() || maybeThirdQuote.IsEndOfArrayChar() || maybeThirdQuote == -1)
                         {
                             value = TomlString.EMPTY;
                         }
