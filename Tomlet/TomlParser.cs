@@ -46,7 +46,7 @@ namespace Tomlet
 
                         //Table or table-array?
                         if (!reader.TryPeek(out var potentialSecondBracket))
-                            throw new TomlEOFException(_lineNumber);
+                            throw new TomlEndOfFileException(_lineNumber);
 
                         if (potentialSecondBracket != '[')
                             ReadTableStatement(reader, document);
@@ -71,7 +71,7 @@ namespace Tomlet
                     reader.SkipAnyComment();
 
                     //Ensure we have a newline
-                    reader.SkipPotentialCR();
+                    reader.SkipPotentialCarriageReturn();
                     if (!reader.ExpectAndConsume('\n') && reader.TryPeek(out var shouldHaveBeenLf))
                         //Not EOF and found a non-newline char
                         throw new TomlMissingNewlineException(_lineNumber, (char) shouldHaveBeenLf);
@@ -99,7 +99,7 @@ namespace Tomlet
                 if (reader.TryPeek(out var shouldHaveBeenEquals))
                     throw new TomlMissingEqualsException(_lineNumber, (char) shouldHaveBeenEquals);
 
-                throw new TomlEOFException(_lineNumber);
+                throw new TomlEndOfFileException(_lineNumber);
             }
 
             reader.SkipWhitespace();
@@ -163,7 +163,7 @@ namespace Tomlet
         private TomlValue ReadValue(StringReader reader)
         {
             if (!reader.TryPeek(out var startOfValue))
-                throw new TomlEOFException(_lineNumber);
+                throw new TomlEndOfFileException(_lineNumber);
 
             TomlValue value;
             switch (startOfValue)
@@ -198,7 +198,7 @@ namespace Tomlet
                         }
                         else if (maybeThirdQuote.IsWhitespace() || maybeThirdQuote.IsNewline() || maybeThirdQuote.IsHashSign() || maybeThirdQuote.IsComma() || maybeThirdQuote.IsEndOfArrayChar() || maybeThirdQuote == -1)
                         {
-                            value = TomlString.EMPTY;
+                            value = TomlString.Empty;
                         }
                         else
                         {
@@ -246,7 +246,7 @@ namespace Tomlet
                     if (!TrueChars.SequenceEqual(charsRead))
                         throw new TomlInvalidValueException(_lineNumber, (char) startOfValue);
 
-                    value = TomlBoolean.TRUE;
+                    value = TomlBoolean.True;
                     break;
                 }
                 case 'f':
@@ -257,7 +257,7 @@ namespace Tomlet
                     if (!FalseChars.SequenceEqual(charsRead))
                         throw new TomlInvalidValueException(_lineNumber, (char) startOfValue);
 
-                    value = TomlBoolean.FALSE;
+                    value = TomlBoolean.False;
                     break;
                 }
                 default:
@@ -402,7 +402,7 @@ namespace Tomlet
 
             if (!reader.TryPeek(out var terminatingChar))
                 //Unexpected EOF
-                throw new TomlEOFException(_lineNumber);
+                throw new TomlEndOfFileException(_lineNumber);
 
             if (!terminatingChar.IsSingleQuote())
                 throw new UnterminatedTomlStringException(_lineNumber);
@@ -632,7 +632,7 @@ namespace Tomlet
                 _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
 
                 if (!reader.TryPeek(out var nextChar))
-                    throw new TomlEOFException(_lineNumber);
+                    throw new TomlEndOfFileException(_lineNumber);
 
                 //Check for end of array here (helps with trailing commas, which are legal)
                 if (nextChar.IsEndOfArrayChar())
@@ -645,7 +645,7 @@ namespace Tomlet
                 _lineNumber += reader.SkipAnyNewlineOrWhitespace();
 
                 if (!reader.TryPeek(out var postValueChar))
-                    throw new TomlEOFException(_lineNumber);
+                    throw new TomlEndOfFileException(_lineNumber);
 
                 if (postValueChar.IsEndOfArrayChar())
                     break; //end of array
@@ -679,7 +679,7 @@ namespace Tomlet
                 reader.SkipWhitespace();
 
                 if (!reader.TryPeek(out var nextChar))
-                    throw new TomlEOFException(_lineNumber);
+                    throw new TomlEndOfFileException(_lineNumber);
 
                 //Note that this is only needed when we first enter the loop, in case of an empty inline table
                 if (nextChar.IsEndOfInlineObjectChar())
@@ -705,7 +705,7 @@ namespace Tomlet
                 }
 
                 if (!reader.TryPeek(out var postValueChar))
-                    throw new TomlEOFException(_lineNumber);
+                    throw new TomlEndOfFileException(_lineNumber);
 
                 if (reader.ExpectAndConsume(','))
                     continue; //Comma, we have more.
@@ -714,7 +714,7 @@ namespace Tomlet
                 reader.SkipWhitespace();
 
                 if (!reader.TryPeek(out postValueChar))
-                    throw new TomlEOFException(_lineNumber);
+                    throw new TomlEndOfFileException(_lineNumber);
 
                 if (postValueChar.IsEndOfInlineObjectChar())
                     break; //end of table
@@ -769,21 +769,21 @@ namespace Tomlet
                 //Re-throw with correct line number and exception type.
                 //To be clear - here we're re-defining a NON-TABLE key as a table, so this is a key redefinition exception
                 //while the one above is a TableRedefinition exception because it's re-defining a key which is already a table.
-                throw new TomlKeyRedefinitionException(_lineNumber, e._key, e);
+                throw new TomlKeyRedefinitionException(_lineNumber, e.Key, e);
             }
 
             if (!reader.TryPeek(out _))
-                throw new TomlEOFException(_lineNumber);
+                throw new TomlEndOfFileException(_lineNumber);
 
             if (!reader.ExpectAndConsume(']'))
                 throw new UnterminatedTomlTableNameException(_lineNumber);
 
             reader.SkipWhitespace();
             reader.SkipAnyComment();
-            reader.SkipPotentialCR();
+            reader.SkipPotentialCarriageReturn();
 
             if (!reader.TryPeek(out var shouldBeNewline))
-                throw new TomlEOFException(_lineNumber);
+                throw new TomlEndOfFileException(_lineNumber);
 
             if (!shouldBeNewline.IsNewline())
                 throw new TomlMissingNewlineException(_lineNumber, (char) shouldBeNewline);
@@ -839,14 +839,14 @@ namespace Tomlet
                 //Simple key so looking up via document.ContainsKey is fine.
                 if (!document.ContainsKey(arrayName))
                     //make a new one if it doesn't exist
-                    tableArray = new TomlArray {IsTableArray = true};
+                    tableArray = new TomlArray {IsLockedToBeTableArray = true};
                 else if (document.Entries.TryGetValue(arrayName, out var hopefullyArray) && hopefullyArray is TomlArray arr)
                     //already exists, use it
                     tableArray = arr;
                 else
                     throw new TomlTableArrayAlreadyExistsAsNonArrayException(_lineNumber, arrayName);
 
-                if (!tableArray.IsTableArray)
+                if (!tableArray.IsLockedToBeTableArray)
                     throw new TomlNonTableArrayUsedAsTableArrayException(_lineNumber, arrayName);
 
                 tableArray.ArrayValues.Add(_currentTable);
@@ -894,7 +894,7 @@ namespace Tomlet
                 if (!(parentTable.GetValue(lastComponent) is TomlArray array))
                     throw new TomlTableArrayAlreadyExistsAsNonArrayException(_lineNumber, lastComponent);
 
-                if (!array.IsTableArray)
+                if (!array.IsLockedToBeTableArray)
                     throw new TomlNonTableArrayUsedAsTableArrayException(_lineNumber, arrayName);
 
                 _currentTable = new TomlTable();
@@ -904,7 +904,7 @@ namespace Tomlet
             }
             else
             {
-                var array = new TomlArray {IsTableArray = true};
+                var array = new TomlArray {IsLockedToBeTableArray = true};
                 _currentTable = new TomlTable();
                 array.ArrayValues.Add(_currentTable);
 

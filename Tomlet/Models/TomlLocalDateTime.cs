@@ -4,7 +4,7 @@ using System.Xml;
 
 namespace Tomlet.Models
 {
-    public class TomlLocalDateTime : TomlValue, TomlValueWithDateTime
+    public class TomlLocalDateTime : TomlValue, ITomlValueWithDateTime
     {
         private readonly DateTime _value;
 

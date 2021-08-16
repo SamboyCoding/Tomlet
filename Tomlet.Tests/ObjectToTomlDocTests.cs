@@ -1,18 +1,11 @@
 ﻿using System;
 using Tomlet.Tests.TestModelClasses;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Tomlet.Tests
 {
     public class ObjectToTomlDocTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public ObjectToTomlDocTests(ITestOutputHelper testOutputHelper)
-        {
-            _testOutputHelper = testOutputHelper;
-        }
         
         [Fact]
         public void SimpleObjectToTomlDocWorks()

@@ -6,7 +6,7 @@ namespace Tomlet
 {
     internal static class TomlDateTimeUtils
     {
-        private static readonly Regex DATE_TIME_REGEX = new(
+        private static readonly Regex DateTimeRegex = new(
             @"^(?:(\d+)-(0[1-9]|1[012])-(0[1-9]|[12]\d|3[01]))?([\sTt])?(?:([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60)(\.\d+)?((?:[Zz])|(?:[\+|\-](?:[01]\d|2[0-3])(?::[0-6][0-9])?(?::[0-6][0-9])?))?)?$",
             RegexOptions.Compiled
         );
@@ -23,7 +23,7 @@ namespace Tomlet
             //Group 7 - Second
             //Group 8 - Milliseconds
             //Group 9 - Time zone - if not present, this is a local (date)time. If present without a date or without a time, syntax error.
-            var match = DATE_TIME_REGEX.Match(input);
+            var match = DateTimeRegex.Match(input);
 
             //If year is present, whole date has to be by the regex.
             var hasYear = !match.Groups[1].Value.IsNullOrWhiteSpace();

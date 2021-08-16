@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Tomlet.Models
+﻿namespace Tomlet.Models
 {
     public class TomlDocument : TomlTable
     {

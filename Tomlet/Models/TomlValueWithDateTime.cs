@@ -2,8 +2,8 @@
 
 namespace Tomlet.Models
 {
-    public interface TomlValueWithDateTime
+    public interface ITomlValueWithDateTime
     {
-        public abstract DateTime Value { get; }
+        public DateTime Value { get; }
     }
 }

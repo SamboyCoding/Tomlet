@@ -29,7 +29,7 @@ namespace Tomlet.Tests
                     new ComplexTestClass.SubClassOne {SubKeyOne = "Are"},
                     new ComplexTestClass.SubClassOne {SubKeyOne = "You"},
                 },
-                SC2 = new ComplexTestClass.SubClassTwo {
+                SubClass2 = new ComplexTestClass.SubClassTwo {
                     SubKeyOne = "Hello world, how are you?",
                     SubKeyTwo = DateTimeOffset.Now,
                     SubKeyThree = 17,
@@ -60,7 +60,7 @@ namespace Tomlet.Tests
                     new ComplexTestClass.SubClassOne {SubKeyOne = "Are"},
                     new ComplexTestClass.SubClassOne {SubKeyOne = "You"},
                 },
-                SC2 = null
+                SubClass2 = null
             };
 
             var tomlString = TomletMain.TomlStringFrom(testClass);

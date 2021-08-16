@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
+
+//Class defines Equals but not GetHashCode 
+#pragma warning disable 659 
 
 namespace Tomlet.Tests.TestModelClasses
 {
@@ -13,6 +13,7 @@ namespace Tomlet.Tests.TestModelClasses
         public bool MyBool { get; set; }
         public DateTime MyDateTime { get; set; }
 
+        [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
         public override bool Equals(object obj)
         {
             return obj is SimplePropertyTestClass @class &&

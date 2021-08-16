@@ -31,7 +31,13 @@ namespace Tomlet
             return deserializer.Invoke(value);
         }
 
-        public static TomlValue ValueFrom<T>(T t) => ValueFrom(typeof(T), t);
+        public static TomlValue ValueFrom<T>(T t)
+        {
+            if (t == null) 
+                throw new ArgumentNullException(nameof(t));
+            
+            return ValueFrom(typeof(T), t);
+        }
 
         public static TomlValue ValueFrom(Type type, object t)
         {
@@ -42,7 +48,13 @@ namespace Tomlet
             return tomlValue;
         }
 
-        public static TomlDocument DocumentFrom<T>(T t) => DocumentFrom(typeof(T), t);
+        public static TomlDocument DocumentFrom<T>(T t)
+        {
+            if (t == null) 
+                throw new ArgumentNullException(nameof(t));
+            
+            return DocumentFrom(typeof(T), t);
+        }
 
         public static TomlDocument DocumentFrom(Type type, object t)
         {

@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [2.0.0](#200)
   - [1.3.5](#135)
   - [1.3.4](#134)
   - [1.3.3](#133)
@@ -17,6 +18,19 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 2.0.0
+
+- Fix deserialization of empty strings in inline arrays (#9)
+- Fix deserialization of escape sequences in double-quoted keys (#10)
+- Updated TomlArray to serialize Table Arrays more intelligently, and update the exception message to be more useful to developers using Tomlet.
+- Internal cleanup to remove compiler warnings, resulting in some breaking changes where member names did not meet the standard (hence the bump to 2.0):
+  - `TomlEOFException` is now `TomlEndOfFileException`
+  - `TomlBoolean.TRUE` and `TomlBoolean.FALSE` are now `TomlBoolean.True` and `TomlBoolean.False` 
+  - `TomlString.EMPTY` is now `TomlString.Empty`
+  - `TomlValueWithDateTime` is now `ITomlValueWithDateTime`
+  - `TomletMain.ValueFrom<T>` and `TomletMain.DocumentFrom<T>` will now explicitly throw an `ArgumentNullException` if their argument is null.
+  - `TomlNumberStyle` is now internal. This shouldn't matter because all its fields were internal anyway, but for completeness it is included here.
 
 ## 1.3.5
 

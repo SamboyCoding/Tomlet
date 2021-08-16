@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 
+//Class defines Equals but not GetHashCode 
+#pragma warning disable 659 
+
 namespace Tomlet.Tests.TestModelClasses
 {
     public class ComplexTestClass
     {
         public string TestString;
-        public SubClassTwo SC2;
+        public SubClassTwo SubClass2;
         public List<SubClassOne> ClassOnes = new();
 
         public class SubClassOne
@@ -51,7 +54,7 @@ namespace Tomlet.Tests.TestModelClasses
 
         protected bool Equals(ComplexTestClass other)
         {
-            return TestString == other.TestString && Equals(SC2, other.SC2) && ClassOnes.SequenceEqual(other.ClassOnes);
+            return TestString == other.TestString && Equals(SubClass2, other.SubClass2) && ClassOnes.SequenceEqual(other.ClassOnes);
         }
 
         public override bool Equals(object obj)

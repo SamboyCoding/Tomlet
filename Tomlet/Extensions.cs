@@ -84,7 +84,7 @@ namespace Tomlet
                 reader.Read(); //Consume this char.
         }
 
-        internal static void SkipPotentialCR(this TextReader reader)
+        internal static void SkipPotentialCarriageReturn(this TextReader reader)
         {
             if (reader.TryPeek(out var nextChar) && nextChar == '\r')
                 reader.Read();

@@ -1,8 +1,8 @@
 ﻿namespace Tomlet.Exceptions
 {
-    public class TomlEOFException : TomlExceptionWithLine
+    public class TomlEndOfFileException : TomlExceptionWithLine
     {
-        public TomlEOFException(int lineNumber) : base(lineNumber)
+        public TomlEndOfFileException(int lineNumber) : base(lineNumber)
         {
         }
 

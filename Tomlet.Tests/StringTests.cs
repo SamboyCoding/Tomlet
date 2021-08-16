@@ -2,19 +2,12 @@
 using System.Linq;
 using Tomlet.Models;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Tomlet.Tests
 {
     public class StringTests
     {
-        private static readonly string newline = OperatingSystem.IsWindows() ? "\r\n" : "\n";
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public StringTests(ITestOutputHelper testOutputHelper)
-        {
-            _testOutputHelper = testOutputHelper;
-        }
+        private static readonly string Newline = OperatingSystem.IsWindows() ? "\r\n" : "\n";
 
         private TomlDocument GetDocument(string resource)
         {
@@ -39,7 +32,7 @@ namespace Tomlet.Tests
 
             Assert.Single(document.Entries);
             Assert.Equal("str1", document.Entries.Keys.First());
-            Assert.Equal($"Roses are red{newline}Violets are blue", Assert.IsType<TomlString>(document.Entries.Values.First()).Value);
+            Assert.Equal($"Roses are red{Newline}Violets are blue", Assert.IsType<TomlString>(document.Entries.Values.First()).Value);
         }
 
         [Fact]
@@ -134,7 +127,7 @@ namespace Tomlet.Tests
             //Check values
             Assert.Collection(document.Entries.Values,
                 entry => Assert.Equal(@"I [dw]on't need \d{2} apples", Assert.IsType<TomlString>(entry).Value),
-                entry => Assert.Equal($"The first newline is{newline}trimmed in raw strings.{newline}   All other whitespace{newline}   is preserved.{newline}", Assert.IsType<TomlString>(entry).Value)
+                entry => Assert.Equal($"The first newline is{Newline}trimmed in raw strings.{Newline}   All other whitespace{Newline}   is preserved.{Newline}", Assert.IsType<TomlString>(entry).Value)
             );
         }
         

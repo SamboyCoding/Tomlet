@@ -3,14 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Tomlet.Exceptions;
 
 namespace Tomlet.Models
 {
     public class TomlArray : TomlValue, IEnumerable<TomlValue>
     {
         public readonly List<TomlValue> ArrayValues = new();
-        internal bool IsTableArray;
+        internal bool IsLockedToBeTableArray;
         public override string StringValue => $"Toml Array ({ArrayValues.Count} values)";
 
         public TomlArray()
@@ -23,17 +22,19 @@ namespace Tomlet.Models
             ArrayValues = values;
 
             if (values.All(t => t is TomlTable))
-                IsTableArray = true;
+                IsLockedToBeTableArray = true;
         }
 
         public void Add<T>(T t) where T: new() {
             ArrayValues.Add(TomletMain.ValueFrom(t));
         }
 
+        public bool IsTableArray => IsLockedToBeTableArray || ArrayValues.All(t => t is TomlTable);
+
         public bool CanBeSerializedInline => !IsTableArray || //Simple array
                                              ArrayValues.All(o => o is TomlTable { ShouldBeSerializedInline: true }) && ArrayValues.Count <= 5; //Table array of inline tables, 5 or fewer of them.
 
-        public bool IsSimpleArray => !IsTableArray && !ArrayValues.Any(o => o is TomlArray || o is TomlTable); //Not table-array and not any sub-arrays or tables.
+        public bool IsSimpleArray => !IsLockedToBeTableArray && !ArrayValues.Any(o => o is TomlArray || o is TomlTable); //Not table-array and not any sub-arrays or tables.
 
         public TomlValue this[int index] => ArrayValues[index];
 
@@ -44,7 +45,9 @@ namespace Tomlet.Models
         public string SerializeInline(bool multiline)
         {
             if (!CanBeSerializedInline)
-                throw new Exception("Cannot serialize table-arrays using this method. Use TomlArray.SerializeTableArray(key)");
+                throw new Exception("Complex Toml Tables cannot be serialized into a TomlArray if the TomlArray is not a Table Array. " +
+                                    "This means that the TOML array cannot contain anything other than tables. If you are manually accessing SerializedValue on the TomlArray, you should probably be calling SerializeTableArray here. " +
+                                    "(Check the CanBeSerializedInline property and call that method if it is false)");
 
             var builder = new StringBuilder("[");
 
