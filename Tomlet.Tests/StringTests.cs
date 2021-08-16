@@ -159,5 +159,13 @@ namespace Tomlet.Tests
                 entry => Assert.Equal("'That,' she said, 'is still pointless.'", Assert.IsType<TomlString>(entry).Value)
             );
         }
+
+        [Fact]
+        public void EscapedQuotesInAKeyAreValid()
+        {
+            var document = GetDocument(TestResources.KeyWithEscapedQuotesTestInput);
+            
+            Assert.Equal("hello", document.GetString("\"a.b\""));
+        }
     }
 }

@@ -314,4 +314,7 @@ MyDateTime = 1970-01-01T07:00:00</value>
     <data name="ArrayOfEmptyStringTestInput" xml:space="preserve">
         <value>array =["","","","",""]</value>
     </data>
+    <data name="KeyWithEscapedQuotesTestInput" xml:space="preserve">
+        <value>"\"a.b\"" = "hello"</value>
+    </data>
 </root>

@@ -72,9 +72,9 @@ namespace Tomlet
 
                     //Ensure we have a newline
                     reader.SkipPotentialCR();
-                    if (!reader.ExpectAndConsume('\n') && reader.TryPeek(out var shouldHaveBeenLF))
+                    if (!reader.ExpectAndConsume('\n') && reader.TryPeek(out var shouldHaveBeenLf))
                         //Not EOF and found a non-newline char
-                        throw new TomlMissingNewlineException(_lineNumber, (char) shouldHaveBeenLF);
+                        throw new TomlMissingNewlineException(_lineNumber, (char) shouldHaveBeenLf);
 
                     _lineNumber++; //We've consumed a newline, move to the next line number.
                 }
@@ -124,11 +124,22 @@ namespace Tomlet
             string key;
             if (nextChar.IsDoubleQuote())
             {
-                reader.Read(); //Consume opening quote
                 //Read double-quoted key
-                key = '"' + reader.ReadWhile(keyChar => !keyChar.IsNewline() && !keyChar.IsDoubleQuote()) + '"';
-                if (!reader.ExpectAndConsume('"'))
-                    throw new UnterminatedTomlKeyException(_lineNumber);
+                reader.Read();
+                if (reader.TryPeek(out var maybeSecondDoubleQuote) && maybeSecondDoubleQuote.IsDoubleQuote())
+                {
+                    reader.Read(); //Consume second double quote.
+                    
+                    //Check for third quote => invalid key
+                    //Else => empty key
+                    if (reader.TryPeek(out var maybeThirdDoubleQuote) && maybeThirdDoubleQuote.IsDoubleQuote())
+                        throw new TomlTripleQuotedKeyException(_lineNumber);
+                    
+                    return string.Empty;
+                }
+                
+                //We delegate to the dedicated string reading function here because a double-quoted key can contain everything a double-quoted string can. 
+                key = '"' + ReadSingleLineBasicString(reader).StringValue + '"';
             }
             else if (nextChar.IsSingleQuote())
             {
@@ -811,7 +822,7 @@ namespace Tomlet
                 newArray.ArrayValues.Add(_currentTable);
 
                 //Insert into parent table
-                parentTable!.ParserPutValue(relativeKey, newArray, _lineNumber);
+                parentTable.ParserPutValue(relativeKey, newArray, _lineNumber);
 
                 //Save variables
                 _lastTableArrayName = arrayName;
