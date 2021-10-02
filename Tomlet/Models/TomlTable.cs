@@ -11,6 +11,7 @@ namespace Tomlet.Models
         public readonly Dictionary<string, TomlValue> Entries = new();
 
         internal bool Locked;
+        internal bool Defined;
 
         public override string StringValue => $"Table ({Entries.Count} entries)";
 

@@ -16,7 +16,7 @@ namespace Tomlet
 
         private int _lineNumber = 1;
 
-        private List<string> _tableNameStack = new List<string>();
+        private string[] _tableNames = new string[0];
         private TomlTable? _currentTable;
 
         public static TomlDocument ParseFile(string filePath)
@@ -672,7 +672,7 @@ namespace Tomlet
             //Move to the first key
             _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
 
-            var result = new TomlTable();
+            var result = new TomlTable { Defined = true };
 
             while (reader.TryPeek(out _))
             {
@@ -737,36 +737,9 @@ namespace Tomlet
 
             var parent = (TomlTable) document;
             var relativeKey = currentTableKey;
+            FindParentAndRelativeKey(ref parent, ref relativeKey);
 
-            // Run in reverse since we want the last matching table
-            for (var index = _tableNameStack.Count - 1; index >= 0; index--)
-            {
-                var lastTableName = _tableNameStack[index];
-                if (currentTableKey.StartsWith(lastTableName + "."))
-                {
-                    var value = document.GetValue(lastTableName);
-                    if (value is TomlTable subTable)
-                    {
-                        parent = subTable;
-                    }
-                    else if (value is TomlArray array)
-                    {
-                        parent = (TomlTable)array.Last();
-                    }
-                    else
-                    {
-                        // Note: Expects either TomlArray or TomlTable
-                        throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), typeof(TomlArray));
-                    }
-                    relativeKey = relativeKey.Replace(lastTableName + ".", "");
-                    break;
-                }
-                else
-                {
-                    _tableNameStack.RemoveAt(index);
-                }
-            }
-
+            TomlTable table;
             try
             {
                 if (parent.ContainsKey(relativeKey))
@@ -776,16 +749,25 @@ namespace Tomlet
                         // this is an intentional variable, resharper.
 
                         // ReSharper disable once UnusedVariable
-                        var table = (TomlTable) parent.GetValue(relativeKey);
+                        table = (TomlTable) parent.GetValue(relativeKey);
 
-                        //The cast succeeded - we are redefining an existing table
-                        throw new TomlTableRedefinitionException(_lineNumber, currentTableKey);
+                        //The cast succeeded - we are defining an existing table
+                        if (table.Defined)
+                        {
+                            // The table was not one created automatically
+                            throw new TomlTableRedefinitionException(_lineNumber, currentTableKey);
+                        }
                     }
                     catch (InvalidCastException)
                     {
                         //The cast failed, we are re-defining a non-table.
                         throw new TomlKeyRedefinitionException(_lineNumber, currentTableKey);
                     }
+                }
+                else
+                {
+                    table = new TomlTable { Defined = true };
+                    parent.ParserPutValue(relativeKey, table, _lineNumber);
                 }
             }
             catch (TomlContainsDottedKeyNonTableException e)
@@ -812,9 +794,10 @@ namespace Tomlet
             if (!shouldBeNewline.IsNewline())
                 throw new TomlMissingNewlineException(_lineNumber, (char) shouldBeNewline);
 
-            _currentTable = new TomlTable();
-            _tableNameStack.Add(currentTableKey);
-            parent.ParserPutValue(relativeKey, _currentTable, _lineNumber);
+            _currentTable = table;
+
+            //Save table names
+            _tableNames = currentTableKey.Split('.');
         }
 
         private void ReadTableArrayStatement(StringReader reader, TomlDocument document)
@@ -831,36 +814,7 @@ namespace Tomlet
 
             TomlTable parentTable = document;
             var relativeKey = arrayName;
-
-            // Run in reverse since we want the last matching table
-            for (var index = _tableNameStack.Count - 1; index >= 0; index--)
-            {
-                var lastTableName = _tableNameStack[index];
-                if (arrayName.StartsWith(lastTableName + "."))
-                {
-                    var value = document.GetValue(lastTableName);
-                    if (value is TomlTable subTable)
-                    {
-                        parentTable = subTable;
-                    }
-                    else if (value is TomlArray parentArray)
-                    {
-                        parentTable = (TomlTable)parentArray.Last();
-                    }
-                    else
-                    {
-                        // Note: Expects either TomlArray or TomlTable
-                        throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), typeof(TomlArray));
-                    }
-                    
-                    relativeKey = arrayName.Replace(lastTableName + ".", "");
-                    break;
-                }
-                else
-                {
-                    _tableNameStack.RemoveAt(index);
-                }
-            }
+            FindParentAndRelativeKey(ref parentTable, ref relativeKey);
 
             //Find existing array or make new one
             TomlArray array;
@@ -880,11 +834,40 @@ namespace Tomlet
             }
 
             // Create new table and add it to the array
-            _currentTable = new TomlTable();
+            _currentTable = new TomlTable { Defined = true };
             array.ArrayValues.Add(_currentTable);
 
-            //Save variables
-            _tableNameStack.Add(arrayName);
+            //Save table names
+            _tableNames = arrayName.Split('.');
+        }
+
+        private void FindParentAndRelativeKey(ref TomlTable parent, ref string relativeName)
+        {
+            for (var index = 0; index < _tableNames.Length; index++)
+            {
+                var rootTableName = _tableNames[index];
+                if (!relativeName.StartsWith(rootTableName + "."))
+                {
+                    break;
+                }
+
+                var value = parent.GetValue(rootTableName);
+                if (value is TomlTable subTable)
+                {
+                    parent = subTable;
+                }
+                else if (value is TomlArray array)
+                {
+                    parent = (TomlTable)array.Last();
+                }
+                else
+                {
+                    // Note: Expects either TomlArray or TomlTable
+                    throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), typeof(TomlArray));
+                }
+
+                relativeName = relativeName.Substring(rootTableName.Length + 1);
+            }
         }
     }
 }
