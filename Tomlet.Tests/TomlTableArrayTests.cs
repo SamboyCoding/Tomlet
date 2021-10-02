@@ -49,13 +49,17 @@ namespace Tomlet.Tests
             //Apple
             var firstFruit = Assert.IsType<TomlTable>(document.GetArray("fruits")[0]);
             Assert.Equal("apple", firstFruit.GetString("name"));
-            
+
             var physical = Assert.IsType<TomlTable>(firstFruit.GetValue("physical"));
+            var jam = Assert.IsType<TomlTable>(firstFruit.GetValue("jam"));
             var varieties = Assert.IsType<TomlArray>(firstFruit.GetValue("varieties"));
             
             Assert.Equal("red", physical.GetString("color"));
             Assert.Equal("round", physical.GetString("shape"));
-            
+
+            Assert.Equal("yellow", jam.GetString("color"));
+            Assert.Equal("sticky", jam.GetString("feel"));
+
             Assert.Equal(2, varieties.Count);
             Assert.Equal("red delicious", Assert.IsType<TomlTable>(varieties[0]).GetString("name"));
             Assert.Equal("granny smith", Assert.IsType<TomlTable>(varieties[1]).GetString("name"));
