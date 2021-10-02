@@ -244,6 +244,10 @@ name = "apple"
 color = "red"
 shape = "round"
 
+[fruits.jam] # second subtable
+color = "yellow"
+feel = "sticky"
+
 [[fruits.varieties]]  # nested array of tables
 name = "red delicious"
 
