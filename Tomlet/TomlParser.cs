@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace Tomlet
 
         private int _lineNumber = 1;
 
-        private string? _lastTableArrayName;
+        private List<string> _tableNameStack = new List<string>();
         private TomlTable? _currentTable;
 
         public static TomlDocument ParseFile(string filePath)
@@ -737,10 +738,33 @@ namespace Tomlet
             var parent = (TomlTable) document;
             var relativeKey = currentTableKey;
 
-            if (_lastTableArrayName != null && currentTableKey.StartsWith(_lastTableArrayName + "."))
+            // Run in reverse since we want the last matching table
+            for (var index = _tableNameStack.Count - 1; index >= 0; index--)
             {
-                parent = (TomlTable) document.GetArray(_lastTableArrayName).Last();
-                relativeKey = relativeKey.Replace(_lastTableArrayName + ".", "");
+                var lastTableName = _tableNameStack[index];
+                if (currentTableKey.StartsWith(lastTableName + "."))
+                {
+                    var value = document.GetValue(lastTableName);
+                    if (value is TomlTable subTable)
+                    {
+                        parent = subTable;
+                    }
+                    else if (value is TomlArray array)
+                    {
+                        parent = (TomlTable)array.Last();
+                    }
+                    else
+                    {
+                        // Note: Expects either TomlArray or TomlTable
+                        throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), typeof(TomlArray));
+                    }
+                    relativeKey = relativeKey.Replace(lastTableName + ".", "");
+                    break;
+                }
+                else
+                {
+                    _tableNameStack.RemoveAt(index);
+                }
             }
 
             try
@@ -789,7 +813,7 @@ namespace Tomlet
                 throw new TomlMissingNewlineException(_lineNumber, (char) shouldBeNewline);
 
             _currentTable = new TomlTable();
-            _lastTableArrayName = null;
+            _tableNameStack.Add(currentTableKey);
             parent.ParserPutValue(relativeKey, _currentTable, _lineNumber);
         }
 
@@ -805,113 +829,62 @@ namespace Tomlet
             if (!reader.ExpectAndConsume(']') || !reader.ExpectAndConsume(']'))
                 throw new UnterminatedTomlTableArrayException(_lineNumber);
 
-            TomlTable parentTable;
-            if (_lastTableArrayName != null && arrayName.StartsWith(_lastTableArrayName + "."))
+            TomlTable parentTable = document;
+            var relativeKey = arrayName;
+
+            // Run in reverse since we want the last matching table
+            for (var index = _tableNameStack.Count - 1; index >= 0; index--)
             {
-                //nested array of tables directly relative to parent - we can cheat
-
-                //Save parent table
-                parentTable = _currentTable!;
-
-                //Work out relative key
-                var relativeKey = arrayName.Replace(_lastTableArrayName + ".", "");
-
-                //Make new array and table
-                var newArray = new TomlArray();
-                _currentTable = new TomlTable();
-                newArray.ArrayValues.Add(_currentTable);
-
-                //Insert into parent table
-                parentTable.ParserPutValue(relativeKey, newArray, _lineNumber);
-
-                //Save variables
-                _lastTableArrayName = arrayName;
-                return;
-            }
-
-            if (TomlKeyUtils.IsSimpleKey(arrayName))
-            {
-                //Not present - create and populate with one table.
-                _currentTable = new TomlTable();
-
-                TomlArray tableArray;
-
-                //Simple key so looking up via document.ContainsKey is fine.
-                if (!document.ContainsKey(arrayName))
-                    //make a new one if it doesn't exist
-                    tableArray = new TomlArray {IsLockedToBeTableArray = true};
-                else if (document.Entries.TryGetValue(arrayName, out var hopefullyArray) && hopefullyArray is TomlArray arr)
-                    //already exists, use it
-                    tableArray = arr;
-                else
-                    throw new TomlTableArrayAlreadyExistsAsNonArrayException(_lineNumber, arrayName);
-
-                if (!tableArray.IsLockedToBeTableArray)
-                    throw new TomlNonTableArrayUsedAsTableArrayException(_lineNumber, arrayName);
-
-                tableArray.ArrayValues.Add(_currentTable);
-
-                if (!document.ContainsKey(arrayName))
-                    //Insert into the document
-                    document.ParserPutValue(arrayName, tableArray, _lineNumber);
-
-                //Save variables
-                _lastTableArrayName = arrayName;
-                return;
-            }
-
-            //Need to add to a complex-keyed table array, so may be behind one or more table arrays.
-
-            parentTable = document;
-            var components = TomlKeyUtils.GetKeyComponents(arrayName).ToList();
-
-            //Don't check last component
-            for (var index = 0; index < components.Count - 1; index++)
-            {
-                var pathComponent = components[index];
-
-                if (!parentTable.ContainsKey(pathComponent))
-                    throw new MissingIntermediateInTomlTableArraySpecException(_lineNumber, pathComponent);
-
-                var value = parentTable.GetValue(pathComponent);
-
-                if (value is TomlArray intermediateArray)
+                var lastTableName = _tableNameStack[index];
+                if (arrayName.StartsWith(lastTableName + "."))
                 {
-                    if (intermediateArray.Last() is TomlTable table)
-                        parentTable = table;
+                    var value = document.GetValue(lastTableName);
+                    if (value is TomlTable subTable)
+                    {
+                        parentTable = subTable;
+                    }
+                    else if (value is TomlArray parentArray)
+                    {
+                        parentTable = (TomlTable)parentArray.Last();
+                    }
                     else
-                        throw new TomlTableArrayIntermediateNonTableException(_lineNumber, arrayName);
+                    {
+                        // Note: Expects either TomlArray or TomlTable
+                        throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), typeof(TomlArray));
+                    }
+                    
+                    relativeKey = arrayName.Replace(lastTableName + ".", "");
+                    break;
                 }
-                else if (value is TomlTable table)
-                    parentTable = table;
                 else
-                    throw new TomlKeyRedefinitionException(_lineNumber, pathComponent);
+                {
+                    _tableNameStack.RemoveAt(index);
+                }
             }
 
-            var lastComponent = components.Last();
-            if (parentTable.ContainsKey(lastComponent))
+            //Find existing array or make new one
+            TomlArray array;
+            if (parentTable.ContainsKey(relativeKey))
             {
-                if (!(parentTable.GetValue(lastComponent) is TomlArray array))
-                    throw new TomlTableArrayAlreadyExistsAsNonArrayException(_lineNumber, lastComponent);
-
+                array = parentTable.GetArray(relativeKey);
                 if (!array.IsLockedToBeTableArray)
+                {
                     throw new TomlNonTableArrayUsedAsTableArrayException(_lineNumber, arrayName);
-
-                _currentTable = new TomlTable();
-                array.ArrayValues.Add(_currentTable);
-
-                _lastTableArrayName = arrayName;
+                }
             }
             else
             {
-                var array = new TomlArray {IsLockedToBeTableArray = true};
-                _currentTable = new TomlTable();
-                array.ArrayValues.Add(_currentTable);
-
-                parentTable.PutValue(lastComponent, array);
-
-                _lastTableArrayName = arrayName;
+                array = new TomlArray { IsLockedToBeTableArray = true };
+                //Insert into parent table
+                parentTable.ParserPutValue(relativeKey, array, _lineNumber);
             }
+
+            // Create new table and add it to the array
+            _currentTable = new TomlTable();
+            array.ArrayValues.Add(_currentTable);
+
+            //Save variables
+            _tableNameStack.Add(arrayName);
         }
     }
 }
