@@ -201,6 +201,12 @@ namespace Tomlet.Tests {
         ///[[fruits]]
         ///name = &quot;banana&quot;
         ///
+        ///[fruits.physical.newtonian]
+        ///weight = 118 
+        ///
+        ///[fruits.physical]
+        ///color = &quot;yellow&quot;
+        ///
         ///[[fruits.varieties]]
         ///name = &quot;plantain&quot;.
         /// </summary>

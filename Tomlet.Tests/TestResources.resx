@@ -258,6 +258,12 @@ name = "granny smith"
 [[fruits]]
 name = "banana"
 
+[fruits.physical.newtonian]
+weight = 118 
+
+[fruits.physical]
+color = "yellow"
+
 [[fruits.varieties]]
 name = "plantain"</value>
     </data>
