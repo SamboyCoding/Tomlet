@@ -76,7 +76,7 @@ namespace Tomlet.Tests
         [Fact]
         public void DefiningATableArrayWithTheSameNameAsATableThrowsAnException()
         {
-            Assert.Throws<TomlTableArrayAlreadyExistsAsNonArrayException>(() => GetDocument(TestResources.DefiningAsArrayWhenAlreadyTableTestInput));
+            Assert.Throws<TomlTypeMismatchException>(() => GetDocument(TestResources.DefiningAsArrayWhenAlreadyTableTestInput));
         }
 
         [Fact]
