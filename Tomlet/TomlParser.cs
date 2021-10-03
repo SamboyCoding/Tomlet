@@ -819,7 +819,12 @@ namespace Tomlet
             TomlArray array;
             if (parentTable.ContainsKey(relativeKey))
             {
-                array = parentTable.GetArray(relativeKey);
+                var value = parentTable.GetValue(relativeKey);
+                if (value is TomlArray arr)
+                    array = arr;
+                else
+                    throw new TomlTableArrayAlreadyExistsAsNonArrayException(_lineNumber, arrayName);
+
                 if (!array.IsLockedToBeTableArray)
                 {
                     throw new TomlNonTableArrayUsedAsTableArrayException(_lineNumber, arrayName);
