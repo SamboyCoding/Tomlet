@@ -5,6 +5,8 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/SamboyCoding/Tomlet/.NET)
 ![Toml Version](https://img.shields.io/badge/TOML%20Version-1.0.0-blue)
 
+### I have a [discord server](https://discord.gg/CfPSP5GMMv) for support
+
 Tomlet is a library for the [TOML](https://toml.io/) configuration file format. It's targeting [TOML v1.0.0](https://toml.io/en/v1.0.0).
 
 Currently supported features are as follows:
