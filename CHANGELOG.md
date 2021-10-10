@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [2.0.1](#201)
   - [2.0.0](#200)
   - [1.3.5](#135)
   - [1.3.4](#134)
@@ -18,6 +19,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 2.0.1
+
+- Fixed support for multiple subtables. Thanks to [ITR13](https://github.com/ITR13) for the PR!
 
 ## 2.0.0
 
