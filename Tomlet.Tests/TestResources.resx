@@ -327,4 +327,7 @@ MyDateTime = 1970-01-01T07:00:00</value>
     <data name="KeyWithEscapedQuotesTestInput" xml:space="preserve">
         <value>"\"a.b\"" = "hello"</value>
     </data>
+    <data name="LiteralQuotedPathWithBackslashesTestInput" xml:space="preserve">
+        <value>Args = '"C:\\Something"'</value>
+    </data>
 </root>

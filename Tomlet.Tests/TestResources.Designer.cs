@@ -344,6 +344,15 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Args = &apos;&quot;C:\\Something&quot;&apos;.
+        /// </summary>
+        internal static string LiteralQuotedPathWithBackslashesTestInput {
+            get {
+                return ResourceManager.GetString("LiteralQuotedPathWithBackslashesTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to winpath  = &apos;C:\Users\nodejs\templates&apos;
         ///winpath2 = &apos;\\ServerX\admin$\system32\&apos;
         ///quoted   = &apos;Tom &quot;Dubs&quot; Preston-Werner&apos;

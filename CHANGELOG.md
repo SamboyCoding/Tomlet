@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [2.0.2](#202)
   - [2.0.1](#201)
   - [2.0.0](#200)
   - [1.3.5](#135)
@@ -19,6 +20,12 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 2.0.2
+
+- Fixed string serializing still escaping characters when the string serializes to a literal (single-quoted) string.
+- Added the ability for strings to serialize to multiline literals for readability under certain circumstances.
+- Thanks to [ITR13](https://github.com/ITR13) for reporting the issues on my discord.
 
 ## 2.0.1
 

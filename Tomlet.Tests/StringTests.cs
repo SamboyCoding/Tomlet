@@ -160,5 +160,16 @@ namespace Tomlet.Tests
             
             Assert.Equal("hello", document.GetString("\"a.b\""));
         }
+
+        [Fact]
+        public void EscapedStringsCanBeSerializedAndDeserializedToTheSameValue()
+        {
+            //Args = '"C:\\Something"'
+            var document = GetDocument(TestResources.LiteralQuotedPathWithBackslashesTestInput);
+            
+            Assert.Equal(@"""C:\\Something""", document.GetString("Args"));
+
+            Assert.Equal(TestResources.LiteralQuotedPathWithBackslashesTestInput, document.SerializedValue.Trim());
+        }
     }
 }
