@@ -187,8 +187,10 @@ namespace Tomlet
                             var name = field.Name;
                             var m = System.Text.RegularExpressions.Regex.Match(field.Name, "<(.*)>k__BackingField");
                             if (m.Success)
-                                name = m.Groups[1].Value; 
+                                name = m.Groups[1].Value;
 
+                            var name1 = name;
+                            name = type.GetProperties().First(p => p.Name == name1).GetCustomAttribute<TomlPropertyAttribute>()?.GetMappedString() ?? name;
                             if (!table.ContainsKey(name))
                                 continue; //TODO: Do we want to make this configurable? As in, throw exception if data is missing?
 
