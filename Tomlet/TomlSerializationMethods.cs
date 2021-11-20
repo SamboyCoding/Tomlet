@@ -190,7 +190,7 @@ namespace Tomlet
                                 name = m.Groups[1].Value;
 
                             var name1 = name;
-                            name = type.GetProperties().First(p => p.Name == name1).GetCustomAttribute<TomlPropertyAttribute>()?.GetMappedString() ?? name;
+                            name = type.GetProperties().FirstOrDefault(p => p.Name == name1)?.GetCustomAttribute<TomlPropertyAttribute>()?.GetMappedString() ?? name;
                             if (!table.ContainsKey(name))
                                 continue; //TODO: Do we want to make this configurable? As in, throw exception if data is missing?
 
