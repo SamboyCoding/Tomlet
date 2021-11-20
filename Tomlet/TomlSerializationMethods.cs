@@ -279,6 +279,9 @@ namespace Tomlet
                         if (m.Success)
                             name = m.Groups[1].Value;
 
+                        var name1 = name;
+                        name = type.GetProperties().FirstOrDefault(p => p.Name == name1)?.GetCustomAttribute<TomlPropertyAttribute>()?.GetMappedString() ?? name;
+                        
                         if (resultTable.ContainsKey(name))
                             //Do not overwrite fields if they have the same name as something already in the table
                             //This fixes serializing types which re-declare a field using the `new` keyword, overwriting a field of the same name
