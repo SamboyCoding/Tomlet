@@ -40,8 +40,6 @@ However, for a more convenient API, calls to specific typed variants of `GetValu
 
 ### Serialize a runtime object to TOML
 
-Note: Like deserialization, only Fields will be serialized, not Properties.
-
 ```c#
 var myClass = new MyClass("hello world", 1, 3);
 TomlDocument tomlDoc = TomletMain.DocumentFrom(myClass); //TOML document representation. Can be serialized using the SerializedValue property.
@@ -50,13 +48,23 @@ string tomlString = TomletMain.TomlStringFrom(myClass); //Formatted TOML string.
 
 ### Deserialize TOML to a runtime object
 
-Note: This does not support deserialization of Properties, only Fields. If you're having issues, make sure your data class has a public, zero-argument
-constructor, and that any data you want to deserialize is represented using public non-static fields.
-
 ```c#
 string myString = GetTomlStringSomehow(); //Web request, read file, etc.
 var myClass = TomletMain.To<MyClass>(myString); //Requires a public, zero-argument constructor on MyClass.
 Console.WriteLine(myClass.configurationFileVersion); //Or whatever properties you define.
+```
+
+### Change what name Tomlet uses to de/serialize a field
+
+Given that you had the above setup and were serializing a class using `TomletMain.TomlStringFrom(myClass)`, you could override TOML key names like so:
+
+```c#
+class MyClass {
+    [TomlProperty("name")] //Tell Tomlet to use "name" as the key, instead of "Username", when serializing and deserializing this type.
+    public string Username { get; set; }
+    [TomlProperty("password")] //Tell tomlet to use the lowercase "password" rather than "Password"
+    public string Password { get; set; }
+}
 ```
 
 ### Parse a TOML File

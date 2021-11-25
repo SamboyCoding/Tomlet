@@ -4,7 +4,7 @@
         <LangVersion>10</LangVersion>
         <Nullable>enable</Nullable>
         <PackageId>Samboy063.Tomlet</PackageId>
-        <Version>2.0.2</Version>
+        <Version>2.1.0</Version>
         <Authors>Sam Byass</Authors>
         <Company>N/A</Company>
         <PackageTags>toml</PackageTags>
@@ -17,7 +17,7 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/SamboyCoding/Tomlet.git</RepositoryUrl>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <Configurations>Debug;Release;net6Debug</Configurations>
+        <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
         <TargetFrameworks>netstandard2.0;netframework3.5</TargetFrameworks>
     </PropertyGroup>
@@ -27,14 +27,10 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.0-beta-20204-02">
+      <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
     </ItemGroup>
-
-<!--    <PropertyGroup>-->
-<!--        <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35'">$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client</FrameworkPathOverride>-->
-<!--    </PropertyGroup>-->
 
 </Project>

@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [2.1.0](#210)
   - [2.0.2](#202)
   - [2.0.1](#201)
   - [2.0.0](#200)
@@ -20,6 +21,12 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 2.1.0
+
+- Added the ability to use `[TomlProperty("keyName")]` to override the name Tomlet uses to de/serialize a field to and from a Toml document.
+  - Thanks to [Wulfheart](https://github.com/Wulfheart) for contributing this in [#13](https://github.com/SamboyCoding/Tomlet/pull/13)!
+- Rewrote some of how class de/serialization works, so that `List<T>` and arrays of classes are better supported. Thank you to `@Violite` on discord for reporting this.
 
 ## 2.0.2
 
