@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Tomlet.Exceptions;
 using Tomlet.Models;
 
 namespace Tomlet
 {
+    //Api class, these are supposed to be exposed
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public static class TomletMain
     {
         public static void RegisterMapper<T>(TomlSerializationMethods.Serialize<T>? serializer, TomlSerializationMethods.Deserialize<T>? deserializer)
@@ -19,14 +23,14 @@ namespace Tomlet
 
         public static T To<T>(TomlValue value)
         {
-            var deserializer = TomlSerializationMethods.GetDeserializer<T>() ?? TomlSerializationMethods.GetCompositeDeserializer<T>();
+            var deserializer = TomlSerializationMethods.GetDeserializer<T>();
 
             return deserializer.Invoke(value);
         }
 
         public static object To(Type what, TomlValue value)
         {
-            var deserializer = TomlSerializationMethods.GetDeserializer(what) ?? TomlSerializationMethods.GetCompositeDeserializer(what);
+            var deserializer = TomlSerializationMethods.GetDeserializer(what);
 
             return deserializer.Invoke(value);
         }
@@ -36,12 +40,12 @@ namespace Tomlet
             if (t == null) 
                 throw new ArgumentNullException(nameof(t));
             
-            return ValueFrom(typeof(T), t);
+            return ValueFrom(t.GetType(), t);
         }
 
         public static TomlValue ValueFrom(Type type, object t)
         {
-            var serializer = TomlSerializationMethods.GetSerializer(type) ?? TomlSerializationMethods.GetCompositeSerializer(type);
+            var serializer = TomlSerializationMethods.GetSerializer(type);
 
             var tomlValue = serializer.Invoke(t);
 
@@ -53,7 +57,7 @@ namespace Tomlet
             if (t == null) 
                 throw new ArgumentNullException(nameof(t));
             
-            return DocumentFrom(typeof(T), t);
+            return DocumentFrom(t.GetType(), t);
         }
 
         public static TomlDocument DocumentFrom(Type type, object t)

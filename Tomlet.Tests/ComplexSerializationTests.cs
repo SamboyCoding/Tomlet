@@ -120,5 +120,22 @@ namespace Tomlet.Tests
             Assert.Equal(testRecord, deserializedAgain);
         }
 
+        [Fact]
+        public void DeserializingArraysWorks()
+        {
+            //Test string taken from a query on discord, that's where the unusual email addresses come from
+            var deserialized = TomletMain.To<ExampleMailboxConfigClass>(TestResources.ExampleMailboxConfigurationTestInput);
+            
+            Assert.Equal("whatev@gmail.com", deserialized.mailbox);
+            Assert.Equal("no", deserialized.username);
+            Assert.Equal("secret", deserialized.password);
+            
+            Assert.Equal(2, deserialized.rules.Length);
+            
+            Assert.Equal(2, deserialized.rules[0].allowed.Length);
+            Assert.Equal("yeet@gmail.com", deserialized.rules[0].address);
+            
+            Assert.Equal("urmum@gmail.com", deserialized.rules[1].address);
+        } 
     }
 }

@@ -336,4 +336,19 @@ MyDateTime = 1970-01-01T07:00:00</value>
 my_int = 42
 </value>
     </data>
+    <data name="ExampleMailboxConfigurationTestInput" xml:space="preserve">
+        <value>mailbox = "whatev@gmail.com"
+username = "no"
+password = "secret"
+
+[[rules]]
+address = "yeet@gmail.com"
+blocked = [ "block this pantsgrab" ]
+allowed = [ "yeet", "yeet harder" ]
+
+[[rules]]
+address = "urmum@gmail.com"
+blocked = [ "block this grabpants" ]
+allowed = [ "woot", "woot harder" ]</value>
+    </data>
 </root>

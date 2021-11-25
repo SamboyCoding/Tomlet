@@ -326,5 +326,11 @@ namespace Tomlet.Tests {
                 return ResourceManager.GetString("ComplexTestRecordForAttributeMapping", resourceCulture);
             }
         }
+        
+        internal static string ExampleMailboxConfigurationTestInput {
+            get {
+                return ResourceManager.GetString("ExampleMailboxConfigurationTestInput", resourceCulture);
+            }
+        }
     }
 }
