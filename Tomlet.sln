@@ -9,6 +9,7 @@ ProjectSection(SolutionItems) = preProject
 	.gitignore = .gitignore
 	CHANGELOG.md = CHANGELOG.md
 	README.md = README.md
+	.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 EndProjectSection
 EndProject
 Global
@@ -17,10 +18,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CA953A71-F496-4666-9418-CB57A589D42D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CA953A71-F496-4666-9418-CB57A589D42D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA953A71-F496-4666-9418-CB57A589D42D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA953A71-F496-4666-9418-CB57A589D42D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA953A71-F496-4666-9418-CB57A589D42D}.Debug|Any CPU.ActiveCfg = net6Debug|Any CPU
+		{CA953A71-F496-4666-9418-CB57A589D42D}.Debug|Any CPU.Build.0 = net6Debug|Any CPU
 		{5252C673-A239-47DD-A804-FD0003811A21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5252C673-A239-47DD-A804-FD0003811A21}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5252C673-A239-47DD-A804-FD0003811A21}.Release|Any CPU.ActiveCfg = Release|Any CPU

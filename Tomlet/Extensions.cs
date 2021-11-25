@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Tomlet
@@ -167,5 +168,7 @@ namespace Tomlet
         {
             return string.IsNullOrEmpty(s) || string.IsNullOrEmpty(s.Trim());
         }
+
+        internal static T? GetCustomAttribute<T>(this MemberInfo info) where T : Attribute => info.GetCustomAttributes(false).Where(a => a is T).Cast<T>().FirstOrDefault();
     }
 }

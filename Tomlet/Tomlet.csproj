@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>netstandard2.0;netstandard2.1;net35;net40;net45;net46;net47;net48;net5.0</TargetFrameworks>
-        <LangVersion>9</LangVersion>
+        <LangVersion>10</LangVersion>
         <Nullable>enable</Nullable>
         <PackageId>Samboy063.Tomlet</PackageId>
         <Version>2.0.2</Version>
@@ -18,6 +17,9 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/SamboyCoding/Tomlet.git</RepositoryUrl>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <Configurations>Debug;Release;net6Debug</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <TargetFrameworks>netstandard2.0;netframework3.5</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -31,8 +33,8 @@
       </PackageReference>
     </ItemGroup>
 
-    <PropertyGroup>
-        <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35'">$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client</FrameworkPathOverride>
-    </PropertyGroup>
+<!--    <PropertyGroup>-->
+<!--        <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35'">$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client</FrameworkPathOverride>-->
+<!--    </PropertyGroup>-->
 
 </Project>
