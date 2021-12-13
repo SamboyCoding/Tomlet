@@ -230,7 +230,7 @@ namespace Tomlet
 
                     if (stringValue.Contains(':') || stringValue.Contains('t') || stringValue.Contains(' ') || stringValue.Contains('z'))
                         value = TomlDateTimeUtils.ParseDateString(stringValue, _lineNumber) ?? throw new InvalidTomlDateTimeException(_lineNumber, stringValue);
-                    else if (stringValue.Contains('.') || stringValue.Contains('e') || stringValue.Contains('n') || stringValue.Contains('i'))
+                    else if (stringValue.Contains('.') || (stringValue.Contains('e') && !stringValue.StartsWith("0x")) || stringValue.Contains('n') || stringValue.Contains('i'))
                         //Try parse as a double, then fall back to a date/time.
                         value = TomlDouble.Parse(stringValue) ?? TomlDateTimeUtils.ParseDateString(stringValue, _lineNumber) ?? throw new InvalidTomlNumberException(_lineNumber, stringValue);
                     else
