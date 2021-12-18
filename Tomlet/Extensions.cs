@@ -51,6 +51,11 @@ namespace Tomlet
         {
             return val == ',';
         }
+        
+        internal static bool IsPeriod(this int val)
+        {
+            return val == '.';
+        }
 
         internal static bool IsEndOfArrayChar(this int val)
         {
@@ -73,37 +78,36 @@ namespace Tomlet
             return upper >= 'A' && upper <= 'F';
         }
 
-        internal static bool TryPeek(this TextReader reader, out int nextChar)
+        internal static bool TryPeek(this TomletStringReader reader, out int nextChar)
         {
             nextChar = reader.Peek();
             return nextChar != -1;
         }
         
-        internal static void SkipWhitespace(this TextReader reader)
+        internal static int SkipWhitespace(this TomletStringReader reader)
         {
-            while (reader.TryPeek(out var nextChar) && nextChar.IsWhitespace())
-                reader.Read(); //Consume this char.
+            return reader.ReadWhile(c => c.IsWhitespace()).Length;
         }
 
-        internal static void SkipPotentialCarriageReturn(this TextReader reader)
+        internal static void SkipPotentialCarriageReturn(this TomletStringReader reader)
         {
             if (reader.TryPeek(out var nextChar) && nextChar == '\r')
                 reader.Read();
         }
 
-        internal static void SkipAnyComment(this TextReader reader)
+        internal static void SkipAnyComment(this TomletStringReader reader)
         {
             //Skip anything up until the \r or \n if we start with a hash.
             if (reader.TryPeek(out var maybeHash) && maybeHash.IsHashSign())
                 reader.ReadWhile(commentChar => !commentChar.IsNewline());
         }
 
-        internal static int SkipAnyNewlineOrWhitespace(this TextReader reader)
+        internal static int SkipAnyNewlineOrWhitespace(this TomletStringReader reader)
         {
             return reader.ReadWhile(c => c.IsNewline() || c.IsWhitespace()).Count(c => c == '\n');
         }
 
-        internal static int SkipAnyCommentNewlineWhitespaceEtc(this TextReader reader)
+        internal static int SkipAnyCommentNewlineWhitespaceEtc(this TomletStringReader reader)
         {
             var countRead = 0;
             while (reader.TryPeek(out var nextChar))
@@ -119,12 +123,12 @@ namespace Tomlet
             return countRead;
         }
         
-        internal static int SkipAnyNewline(this TextReader reader)
+        internal static int SkipAnyNewline(this TomletStringReader reader)
         {
             return reader.ReadWhile(c => c.IsNewline()).Count(c => c == '\n');
         }
 
-        internal static char[] ReadChars(this TextReader reader, int count)
+        internal static char[] ReadChars(this TomletStringReader reader, int count)
         {
             char[] result = new char[count];
             reader.ReadBlock(result, 0, count);
@@ -132,7 +136,7 @@ namespace Tomlet
             return result;
         }
 
-        internal static string ReadWhile(this TextReader reader, Predicate<int> predicate)
+        internal static string ReadWhile(this TomletStringReader reader, Predicate<int> predicate)
         {
             var ret = new StringBuilder();
             //Read up until whitespace or an equals
@@ -144,7 +148,7 @@ namespace Tomlet
             return ret.ToString();
         }
 
-        internal static bool ExpectAndConsume(this TextReader reader, char expectWhat)
+        internal static bool ExpectAndConsume(this TomletStringReader reader, char expectWhat)
         {
             if (!reader.TryPeek(out var nextChar))
                 return false;

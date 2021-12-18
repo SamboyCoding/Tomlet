@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [2.2.0](#220)
   - [2.1.0](#210)
   - [2.0.2](#202)
   - [2.0.1](#201)
@@ -21,6 +22,15 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 2.2.0
+
+- Wrote some tests to test behavior around invalid input. As a result of this, some behavior has changed to bring it in line with the TOML spec. Notably:
+  - Floating-point values with a decimal point followed immediately by an exponent (e.g. `3.e20`) are now correctly identified as invalid as per the TOML spec.
+  - Handling around keys with whitespace has been clarified, with a new `TomlWhitespaceInKeyException`.
+- Fixed a bug where hexadecimal integers containing an `e` were parsed as if the `e` indicated an exponent. Thanks to [packnslash](https://github.com/packnslash) for contributing this in [#15](https://github.com/SamboyCoding/Tomlet/pull/15)!
+- Rewrote the way the parser parses keys in a TOML document to properly handle whitespace in dotted keys. I've tested this on a variety of TOML documents and it seems to work well, and all the unit tests pass, but it's possible some issues may occur.
+- Added `GetLong` to `TomlTable` (and thus this is also available on `TomlDocument`).
 
 ## 2.1.0
 

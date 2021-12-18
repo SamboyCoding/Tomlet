@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace Tomlet
             try
             {
                 var document = new TomlDocument();
-                using var reader = new StringReader(input);
+                using var reader = new TomletStringReader(input);
 
                 while (reader.TryPeek(out _))
                 {
@@ -87,7 +88,7 @@ namespace Tomlet
             }
         }
 
-        private void ReadKeyValuePair(StringReader reader, out string key, out TomlValue value)
+        private void ReadKeyValuePair(TomletStringReader reader, out string key, out TomlValue value)
         {
             //Read the key
             key = ReadKey(reader);
@@ -108,7 +109,7 @@ namespace Tomlet
             value = ReadValue(reader);
         }
 
-        private string ReadKey(StringReader reader)
+        private string ReadKey(TomletStringReader reader)
         {
             reader.SkipWhitespace();
 
@@ -139,20 +140,23 @@ namespace Tomlet
                 }
                 
                 //We delegate to the dedicated string reading function here because a double-quoted key can contain everything a double-quoted string can. 
-                key = '"' + ReadSingleLineBasicString(reader).StringValue + '"';
+                key = '"' + ReadSingleLineBasicString(reader, false).StringValue + '"';
+                
+                if (!reader.ExpectAndConsume('"'))
+                    throw new UnterminatedTomlKeyException(_lineNumber);
             }
             else if (nextChar.IsSingleQuote())
             {
                 reader.Read(); //Consume opening quote.
 
                 //Read single-quoted key
-                key = "'" + reader.ReadWhile(keyChar => !keyChar.IsNewline() && !keyChar.IsSingleQuote()) + "'";
+                key = "'" + ReadSingleLineLiteralString(reader, false).StringValue + "'";
                 if (!reader.ExpectAndConsume('\''))
                     throw new UnterminatedTomlKeyException(_lineNumber);
             }
             else
                 //Read unquoted key
-                key = reader.ReadWhile(keyChar => !keyChar.IsEquals() && !keyChar.IsHashSign());
+                key = ReadKeyInternal(reader, keyChar => keyChar.IsEquals() || keyChar.IsHashSign() || keyChar.IsWhitespace());
 
             key = key.Replace("\\n", "\n")
                 .Replace("\\t", "\t");
@@ -160,7 +164,59 @@ namespace Tomlet
             return key;
         }
 
-        private TomlValue ReadValue(StringReader reader)
+        private string ReadKeyInternal(TomletStringReader reader, Func<int, bool> charSignalsEndOfKey)
+        {
+            var parts = new List<string>();
+            
+            //Parts loop
+            while (reader.TryPeek(out var nextChar))
+            {
+                if (charSignalsEndOfKey(nextChar))
+                    return string.Join(".", parts.ToArray());
+
+                if (nextChar.IsPeriod())
+                    throw new TomlDoubleDottedKeyException(_lineNumber);
+
+                var thisPart = new StringBuilder();
+                //Part loop
+                while (reader.TryPeek(out nextChar))
+                {
+                    
+                    var numLeadingWhitespace = reader.SkipWhitespace();
+                    reader.TryPeek(out var maybePeriod);
+                    if (maybePeriod.IsPeriod())
+                    {
+                        //Whitespace is permitted in keys only around periods
+                        parts.Add(thisPart.ToString()); //Add this part
+                        
+                        //Consume period and any trailing whitespace
+                        reader.ExpectAndConsume('.');
+                        reader.SkipWhitespace();
+                        break; //End of part, move to next
+                    }
+
+                    //Un-skip the whitespace
+                    reader.Backtrack(numLeadingWhitespace);
+
+                    if(charSignalsEndOfKey(nextChar)) {
+                        //Add this part to the list of parts and break out of the loop, without consuming the char (it'll be picked up by the outer loop)
+                        parts.Add(thisPart.ToString());
+                        break;
+                    }
+                    
+                    if(numLeadingWhitespace > 0)
+                        //Whitespace is not allowed outside of the area immediately around a period in a dotted key
+                        throw new TomlWhitespaceInKeyException(_lineNumber);
+
+                    //Append this char to the part
+                    thisPart.Append((char) reader.Read());
+                }
+            }
+
+            throw new TomlEndOfFileException(_lineNumber);
+        }
+
+        private TomlValue ReadValue(TomletStringReader reader)
         {
             if (!reader.TryPeek(out var startOfValue))
                 throw new TomlEndOfFileException(_lineNumber);
@@ -226,7 +282,8 @@ namespace Tomlet
                     //i and n indicate special floating point values (inf and nan).
 
                     //Read a string, stopping if we hit an equals, whitespace, newline, or comment.
-                    var stringValue = reader.ReadWhile(valueChar => !valueChar.IsEquals() && !valueChar.IsNewline() && !valueChar.IsHashSign() && !valueChar.IsComma() && !valueChar.IsEndOfArrayChar() && !valueChar.IsEndOfInlineObjectChar()).ToLowerInvariant().Trim();
+                    var stringValue = reader.ReadWhile(valueChar => !valueChar.IsEquals() && !valueChar.IsNewline() && !valueChar.IsHashSign() && !valueChar.IsComma() && !valueChar.IsEndOfArrayChar() && !valueChar.IsEndOfInlineObjectChar())
+                        .ToLowerInvariant().Trim();
 
                     if (stringValue.Contains(':') || stringValue.Contains('t') || stringValue.Contains(' ') || stringValue.Contains('z'))
                         value = TomlDateTimeUtils.ParseDateString(stringValue, _lineNumber) ?? throw new InvalidTomlDateTimeException(_lineNumber, stringValue);
@@ -267,7 +324,7 @@ namespace Tomlet
             return value;
         }
 
-        private TomlValue ReadSingleLineBasicString(StringReader reader)
+        private TomlValue ReadSingleLineBasicString(TomletStringReader reader, bool consumeClosingQuote = true)
         {
             //No simple read here, we have to accomodate escaped double quotes.
             var content = new StringBuilder();
@@ -277,12 +334,12 @@ namespace Tomlet
             var eightDigitUnicodeMode = false;
 
             var unicodeStringBuilder = new StringBuilder();
-            while (reader.TryPeek(out _))
+            while (reader.TryPeek(out var nextChar))
             {
-                var nextChar = reader.Read();
-
                 if (nextChar == '"' && !escapeMode)
                     break;
+
+                reader.Read(); //Consume the next char
 
                 if (nextChar == '\\' && !escapeMode)
                 {
@@ -324,6 +381,15 @@ namespace Tomlet
 
                 content.Append((char) nextChar);
             }
+
+            if (consumeClosingQuote)
+            {
+                if (!reader.ExpectAndConsume('"'))
+                    throw new UnterminatedTomlStringException(_lineNumber);
+            }
+            else if (!reader.TryPeek(out _))
+                //We didn't want to consume the quote, but there wasn't one anyway
+                throw new UnterminatedTomlStringException(_lineNumber);
 
             return new TomlString(content.ToString());
         }
@@ -395,7 +461,7 @@ namespace Tomlet
             return toAppend;
         }
 
-        private TomlValue ReadSingleLineLiteralString(StringReader reader)
+        private TomlValue ReadSingleLineLiteralString(TomletStringReader reader, bool consumeClosingQuote = true)
         {
             //Literally (hah) just read until a single-quote
             var stringContent = reader.ReadWhile(valueChar => !valueChar.IsSingleQuote() && !valueChar.IsNewline());
@@ -407,12 +473,13 @@ namespace Tomlet
             if (!terminatingChar.IsSingleQuote())
                 throw new UnterminatedTomlStringException(_lineNumber);
 
-            reader.Read(); //Consume terminating quote.
+            if(consumeClosingQuote)
+                reader.Read(); //Consume terminating quote.
 
             return new TomlString(stringContent);
         }
 
-        private TomlValue ReadMultiLineLiteralString(StringReader reader)
+        private TomlValue ReadMultiLineLiteralString(TomletStringReader reader)
         {
             var content = new StringBuilder();
             //Ignore any first-line newlines
@@ -485,7 +552,7 @@ namespace Tomlet
             return new TomlString(content.ToString());
         }
 
-        private TomlValue ReadMultiLineBasicString(StringReader reader)
+        private TomlValue ReadMultiLineBasicString(TomletStringReader reader)
         {
             var content = new StringBuilder();
 
@@ -615,7 +682,7 @@ namespace Tomlet
             return new TomlString(content.ToString());
         }
 
-        private TomlArray ReadArray(StringReader reader)
+        private TomlArray ReadArray(TomletStringReader reader)
         {
             //Consume the opening bracket
             if (!reader.ExpectAndConsume('['))
@@ -662,7 +729,7 @@ namespace Tomlet
             return result;
         }
 
-        private TomlTable ReadInlineTable(StringReader reader)
+        private TomlTable ReadInlineTable(TomletStringReader reader)
         {
             //Consume the opening brace
             if (!reader.ExpectAndConsume('{'))
@@ -729,7 +796,7 @@ namespace Tomlet
             return result;
         }
 
-        private void ReadTableStatement(StringReader reader, TomlDocument document)
+        private void ReadTableStatement(TomletStringReader reader, TomlDocument document)
         {
             //Table name
             var currentTableKey = reader.ReadWhile(c => !c.IsEndOfArrayChar() && !c.IsNewline());
@@ -799,7 +866,7 @@ namespace Tomlet
             _tableNames = currentTableKey.Split('.');
         }
 
-        private void ReadTableArrayStatement(StringReader reader, TomlDocument document)
+        private void ReadTableArrayStatement(TomletStringReader reader, TomlDocument document)
         {
             //Consume the (second) opening bracket
             if (!reader.ExpectAndConsume('['))

@@ -7,7 +7,7 @@
 
 ### I have a [discord server](https://discord.gg/CfPSP5GMMv) for support
 
-Tomlet is a library for the [TOML](https://toml.io/) configuration file format. It's targeting [TOML v1.0.0](https://toml.io/en/v1.0.0).
+Tomlet is a zero-dependency library for the [TOML](https://toml.io/) configuration file format. It's targeting [TOML v1.0.0](https://toml.io/en/v1.0.0).
 
 Currently supported features are as follows:
 

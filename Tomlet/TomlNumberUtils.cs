@@ -52,7 +52,7 @@ namespace Tomlet
         {
             var skippingFirst = input.Substring(1);
 
-            if (input == "nan" || input == "inf" || skippingFirst == "nan" || skippingFirst == "inf")
+            if (input is "nan" or "inf" || skippingFirst is "nan" or "inf")
             {
                 //Special value
                 if (input == "nan" || skippingFirst == "nan")
@@ -75,6 +75,18 @@ namespace Tomlet
                 return null;
 
             input = input.Replace("_", "");
+            
+            //We have to do one manual check here because TOML states that decimal points must have a value on the right
+            //So something like 1.e20 is valid according to the runtime but not according to TOML
+            if (input.Contains("e"))
+            {
+                var parts = input.Split('e');
+                if (parts.Length != 2)
+                    return null;
+
+                if (parts[0].EndsWith("."))
+                    return null;
+            }
 
             //Theoretically we can have hex/octal/binary numbers with floating-point parts. I'm not implementing that.
             //None of the examples use it.

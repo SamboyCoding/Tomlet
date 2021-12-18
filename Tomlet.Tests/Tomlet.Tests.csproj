@@ -24,6 +24,10 @@
         <Generator>ResXFileCodeGenerator</Generator>
         <LastGenOutput>TestResources.Designer.cs</LastGenOutput>
       </EmbeddedResource>
+      <EmbeddedResource Update="DeliberatelyIncorrectTestResources.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>DeliberatelyIncorrectTestResources.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
@@ -36,6 +40,11 @@
         <AutoGen>True</AutoGen>
         <DependentUpon>TestResources.resx</DependentUpon>
         <DesignTime>True</DesignTime>
+      </Compile>
+      <Compile Update="DeliberatelyIncorrectTestResources.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>DeliberatelyIncorrectTestResources.resx</DependentUpon>
       </Compile>
     </ItemGroup>
 
