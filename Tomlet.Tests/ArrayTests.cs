@@ -56,5 +56,16 @@ namespace Tomlet.Tests
             Assert.Single(document.Entries.Values,
                 value => Assert.IsType<TomlArray>(value).Count == 2);
         }
+
+        [Fact]
+        public void SimpleArraysSerializeInline()
+        {
+            var intArray = new[] {1, 2, 3};
+            var toSerialize = new {array = intArray};
+
+            var tomlString = TomletMain.TomlStringFrom(toSerialize);
+            
+            Assert.Equal("<array>i__Field = [ 1, 2, 3 ]", tomlString.Trim());
+        }
     }
 }
