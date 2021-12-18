@@ -136,6 +136,19 @@ namespace Tomlet.Tests
             Assert.Equal("yeet@gmail.com", deserialized.rules[0].address);
             
             Assert.Equal("urmum@gmail.com", deserialized.rules[1].address);
-        } 
+        }
+
+        [Fact]
+        public void SerializationChoosesInlineTablesForSimpleObjects()
+        {
+            var anObject = new {value = 1, str = "hello"};
+
+            var anObjectWithTheObject = new {obj = anObject};
+
+            var tomlString = TomletMain.TomlStringFrom(anObjectWithTheObject);
+            
+            Assert.Equal("<obj>i__Field = { <value>i__Field = 1, <str>i__Field = \"hello\" }", tomlString.Trim());
+            
+        }
     }
 }

@@ -35,7 +35,8 @@ namespace Tomlet.Tests
         [Fact]
         public void TablesCanHaveQuotedKeyNames()
         {
-            var inputString = "[\"Table Name With Spaces\"]\nkey = \"value\"";
+            //Ensure we have enough entries to make sure the table is not re-serialized inline
+            var inputString = "[\"Table Name With Spaces\"]\nkey = \"value\"\nkey2 = 1\nkey3 = 2\nkey4 = 3\nkey5 = 4";
             var document = GetDocument(inputString);
             
             Assert.Single(document.Keys, "Table Name With Spaces");

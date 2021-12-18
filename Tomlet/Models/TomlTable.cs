@@ -17,7 +17,7 @@ namespace Tomlet.Models
 
         public HashSet<string> Keys => new(Entries.Keys);
 
-        public virtual bool ShouldBeSerializedInline => Entries.Count < 4 && Entries.All(e => e.Value is not TomlTable && e.Value is TomlArray {IsSimpleArray: true} && e.Value.SerializedValue.Contains("\n"));
+        public virtual bool ShouldBeSerializedInline => Entries.Count < 4 && Entries.All(e => e.Value is TomlArray arr ? arr.IsSimpleArray : e.Value is not TomlTable);
 
         public override string SerializedValue
         {

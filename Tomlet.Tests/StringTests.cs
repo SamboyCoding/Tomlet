@@ -7,8 +7,6 @@ namespace Tomlet.Tests
 {
     public class StringTests
     {
-        private static readonly string Newline = OperatingSystem.IsWindows() ? "\r\n" : "\n";
-
         private TomlDocument GetDocument(string resource)
         {
             var parser = new TomlParser();
@@ -32,7 +30,7 @@ namespace Tomlet.Tests
 
             Assert.Single(document.Entries);
             Assert.Equal("str1", document.Entries.Keys.First());
-            Assert.Equal($"Roses are red{Newline}Violets are blue", Assert.IsType<TomlString>(document.Entries.Values.First()).Value);
+            Assert.Equal($"Roses are red\nViolets are blue", Assert.IsType<TomlString>(document.Entries.Values.First()).Value);
         }
 
         [Fact]
@@ -127,7 +125,7 @@ namespace Tomlet.Tests
             //Check values
             Assert.Collection(document.Entries.Values,
                 entry => Assert.Equal(@"I [dw]on't need \d{2} apples", Assert.IsType<TomlString>(entry).Value),
-                entry => Assert.Equal($"The first newline is{Newline}trimmed in raw strings.{Newline}   All other whitespace{Newline}   is preserved.{Newline}", Assert.IsType<TomlString>(entry).Value)
+                entry => Assert.Equal($"The first newline is\ntrimmed in raw strings.\n   All other whitespace\n   is preserved.\n", Assert.IsType<TomlString>(entry).Value)
             );
         }
         
