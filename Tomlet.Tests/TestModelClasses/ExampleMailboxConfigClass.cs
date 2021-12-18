@@ -1,5 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Tomlet.Tests.TestModelClasses;
 
+[SuppressMessage("ReSharper", "UnassignedField.Global")]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+[SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
 public class ExampleMailboxConfigClass
 {
     public string mailbox;

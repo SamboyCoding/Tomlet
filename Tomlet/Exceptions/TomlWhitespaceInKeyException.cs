@@ -1,5 +1,3 @@
-using System;
-
 namespace Tomlet.Exceptions;
 
 public class TomlWhitespaceInKeyException : TomlExceptionWithLine

@@ -111,7 +111,7 @@ namespace Tomlet.Tests
             var array = new[] {aComplexObject, aComplexObject};
             
             var documentRoot = new {
-                array = array
+                array
             };
             
             var tomlString = TomletMain.TomlStringFrom(documentRoot)

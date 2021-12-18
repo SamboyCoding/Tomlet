@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Tomlet.Exceptions;
 using Tomlet.Models;
 
@@ -162,9 +161,8 @@ namespace Tomlet
                 var ret = Activator.CreateInstance(listType);
                 var deserializer = GetDeserializer(elementType);
 
-                for (var index = 0; index < tomlArray.ArrayValues.Count; index++)
+                foreach (var arrayValue in tomlArray.ArrayValues)
                 {
-                    var arrayValue = tomlArray.ArrayValues[index];
                     relevantAddMethod.Invoke(ret, new[] {deserializer(arrayValue)});
                 }
 

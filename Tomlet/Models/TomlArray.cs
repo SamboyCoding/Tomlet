@@ -12,19 +12,6 @@ namespace Tomlet.Models
         internal bool IsLockedToBeTableArray;
         public override string StringValue => $"Toml Array ({ArrayValues.Count} values)";
 
-        public TomlArray()
-        {
-
-        }
-
-        internal TomlArray(List<TomlValue> values)
-        {
-            ArrayValues = values;
-
-            if (values.All(t => t is TomlTable))
-                IsLockedToBeTableArray = true;
-        }
-
         public void Add<T>(T t) where T: new() {
             ArrayValues.Add(TomletMain.ValueFrom(t));
         }
@@ -60,10 +47,7 @@ namespace Tomlet.Models
 
             builder.Append(string.Join(sep, this.Select(o => o.SerializedValue).ToArray()));
 
-            if(multiline)
-                builder.Append('\n');
-            else
-                builder.Append(' ');
+            builder.Append(multiline ? '\n' : ' ');
 
             builder.Append(']');
 
