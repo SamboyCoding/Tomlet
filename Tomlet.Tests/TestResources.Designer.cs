@@ -332,5 +332,11 @@ namespace Tomlet.Tests {
                 return ResourceManager.GetString("ExampleMailboxConfigurationTestInput", resourceCulture);
             }
         }
+        
+        internal static string HexadecimalTestInput {
+            get {
+                return ResourceManager.GetString("HexadecimalTestInput", resourceCulture);
+            }
+        }
     }
 }

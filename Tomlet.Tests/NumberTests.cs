@@ -124,5 +124,19 @@ namespace Tomlet.Tests
                 entry => Assert.Equal(double.NaN, Assert.IsType<TomlDouble>(entry).Value)
             );
         }
+
+        [Fact]
+        public void HexadecimalNumbersWorkAsIntended()
+        {
+            var document = GetDocument(TestResources.HexadecimalTestInput);
+            
+            Assert.Equal(2, document.Entries.Count);
+
+            //Test for pure hex-strings including an e which could be mistaken for an exponent
+            Assert.Equal(0xdeadbeef, document.GetLong("key"));
+            
+            //Test for long hex strings that don't fit in an int, even unsigned
+            Assert.Equal(0x1234567890FD, document.GetLong("key2"));
+        }
     }
 }

@@ -298,6 +298,26 @@ namespace Tomlet.Models
 
             return (int) lng.Value;
         }
+        
+        /// <summary>
+        /// Returns the long (64-bit int) value associated with the provided key.
+        /// </summary>
+        /// <param name="key">The key to look up.</param>
+        /// <returns>The long/64-bit integer value associated with the key.</returns>
+        /// <exception cref="TomlTypeMismatchException">If the value associated with this key is not an integer type.</exception>
+        /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
+        public long GetLong(string key)
+        {
+            if(key == null)
+                throw new ArgumentNullException("key");
+
+            var value = GetValue(TomlUtils.AddCorrectQuotes(key));
+
+            if (value is not TomlLong lng)
+                throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType(), typeof(int));
+
+            return lng.Value;
+        }
 
         /// <summary>
         /// Returns the 32-bit floating-point value associated with the provided key, downsized from a double.

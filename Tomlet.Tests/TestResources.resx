@@ -351,4 +351,8 @@ address = "urmum@gmail.com"
 blocked = [ "block this grabpants" ]
 allowed = [ "woot", "woot harder" ]</value>
     </data>
+    <data name="HexadecimalTestInput" xml:space="preserve">
+        <value>key = 0xdeadbeef
+key2 = 0x1234567890FD</value>
+    </data>
 </root>
