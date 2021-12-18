@@ -95,5 +95,40 @@ namespace Tomlet.Tests
         {
             Assert.Throws<TomlKeyRedefinitionException>(() => GetDocument(TestResources.ReDefiningSubTableAsSubTableArrayTestInput));
         }
+
+        [Fact]
+        public void TableArraySerializationWorks()
+        {
+            //In order for table-array serialization to trigger, at least one of the tables has to be complicated (>= 5 entries or a nested one)
+            var aComplexObject = new {
+                name = "a",
+                value = new {
+                    a = "b",
+                    c = "d"
+                }
+            };
+
+            var array = new[] {aComplexObject, aComplexObject};
+            
+            var documentRoot = new {
+                array = array
+            };
+            
+            var tomlString = TomletMain.TomlStringFrom(documentRoot)
+                .Replace("i__Field", "") //For my sanity
+                .Trim();
+
+            var expectedResult = @"
+[[<array>]]
+<name> = ""a""
+<value> = { <a> = ""b"", <c> = ""d"" }
+
+[[<array>]]
+<name> = ""a""
+<value> = { <a> = ""b"", <c> = ""d"" }
+".Trim();
+            
+            Assert.Equal(expectedResult, tomlString);
+        }
     }
 }

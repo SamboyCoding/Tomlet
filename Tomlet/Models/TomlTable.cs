@@ -84,7 +84,7 @@ namespace Tomlet.Models
             switch (value)
             {
                 case TomlArray {CanBeSerializedInline: false} subArray:
-                    builder.Append(subArray.SerializeTableArray(fullSubKey)).Append('\n').Append('\n');
+                    builder.Append(subArray.SerializeTableArray(fullSubKey)); //No need to append newline as SerializeTableArray always ensure it ends with 2
                     break;
                 case TomlArray subArray:
                     builder.Append(subKey).Append(" = ").Append(subArray.SerializedValue).Append('\n');
