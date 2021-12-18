@@ -19,6 +19,7 @@ namespace Tomlet
         private string[] _tableNames = new string[0];
         private TomlTable? _currentTable;
 
+        // ReSharper disable once UnusedMember.Global
         public static TomlDocument ParseFile(string filePath)
         {
             var fileContent = File.ReadAllText(filePath);

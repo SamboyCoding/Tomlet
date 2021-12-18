@@ -28,26 +28,6 @@ internal static class TomlCompositeSerializer
             if (fields.Length == 0)
                 return _ => new TomlTable();
 
-            if (type.Namespace + "." + type.Name == "System.Collections.Generic.List`1")
-            {
-                //List deserializer.
-
-                //Process base type
-                For(type.GetGenericArguments()[0]);
-
-                //And now return default list serializer
-                return TomlSerializationMethods.GetSerializer(type);
-            }
-
-            if (type.IsArray)
-            {
-                //Process base type
-                For(type.GetElementType()!);
-                    
-                //And return default array serializer
-                return TomlSerializationMethods.GetSerializer(type);
-            }
-
             serializer = instance =>
             {
                 if (instance == null)

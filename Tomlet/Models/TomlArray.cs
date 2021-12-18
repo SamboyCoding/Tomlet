@@ -23,6 +23,7 @@ namespace Tomlet.Models
 
         public bool IsSimpleArray => !IsLockedToBeTableArray && !ArrayValues.Any(o => o is TomlArray || o is TomlTable); //Not table-array and not any sub-arrays or tables.
 
+        // ReSharper disable once UnusedMember.Global
         public TomlValue this[int index] => ArrayValues[index];
 
         public int Count => ArrayValues.Count;

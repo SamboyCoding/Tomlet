@@ -1,27 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Tomlet
 {
     internal static class TomlKeyUtils
     {
-        internal static bool IsSimpleKey(string key)
-        {
-            GetTopLevelAndSubKeys(key, out _, out var restOfKey);
-            return restOfKey == "";
-        }
-
-        internal static IEnumerable<string> GetKeyComponents(string key)
-        {
-            while (!string.IsNullOrEmpty(key))
-            {
-                GetTopLevelAndSubKeys(key, out var ourKeyName, out var restOfKey);
-                yield return ourKeyName;
-
-                key = restOfKey;
-            }
-        }
-        
         internal static void GetTopLevelAndSubKeys(string key, out string ourKeyName, out string restOfKey)
         {
             var wholeKeyIsQuoted = key.StartsWith("\"") && key.EndsWith("\"") || key.StartsWith("'") && key.EndsWith("'");

@@ -39,27 +39,6 @@ internal static class TomlCompositeDeserializer
             if (fields.Length == 0)
                 return _ => Activator.CreateInstance(type)!;
 
-            if (type.Namespace + "." + type.Name == "System.Collections.Generic.List`1")
-            {
-                //List deserializer.
-
-                //Process base type
-                For(type.GetGenericArguments()[0]);
-
-                //And now return default list deserializer
-                return TomlSerializationMethods.GetDeserializer(type);
-            }
-                
-            if (type.IsArray)
-            {
-                //Process base type
-                For(type.GetElementType()!);
-                    
-                //And return default array deserializer
-                return TomlSerializationMethods.GetDeserializer(type);
-            }
-
-
             deserializer = value =>
             {
                 if (value is not TomlTable table)

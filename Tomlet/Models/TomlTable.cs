@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Tomlet.Exceptions;
 
 namespace Tomlet.Models
 {
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class TomlTable : TomlValue
     {
         public readonly Dictionary<string, TomlValue> Entries = new();

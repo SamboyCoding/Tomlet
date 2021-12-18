@@ -2,6 +2,7 @@
 {
     public class TomlDocument : TomlTable
     {
+        // ReSharper disable once UnusedMember.Global
         public static TomlDocument CreateEmpty() => new();
         
         internal TomlDocument()
