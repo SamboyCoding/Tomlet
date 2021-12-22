@@ -76,8 +76,8 @@ public class ExceptionTests
         //A key with both quotes
         AssertThrows<InvalidTomlKeyException>(() => doc.GetLong("\"hello'"));
     }
-    
-    public void AssertThrows<T>(Action what) where T: Exception
+
+    private static void AssertThrows<T>(Action what) where T: Exception
     {
         Assert.Throws<T>(() =>
         {
@@ -93,7 +93,7 @@ public class ExceptionTests
         });
     }
 
-    public void AssertThrows<T>(Func<object> what) where T: Exception
+    private static void AssertThrows<T>(Func<object> what) where T: Exception
     {
         Assert.Throws<T>(() =>
         {
