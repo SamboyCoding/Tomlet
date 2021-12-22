@@ -33,4 +33,31 @@
     <data name="TomlTruncatedFileExample" xml:space="preserve">
         <value>string =</value>
     </data>
+    <data name="TomlTableArrayWithMissingIntermediateExample" xml:space="preserve">
+        <value>[[numbers.one]]
+value = 1</value>
+    </data>
+    <data name="TomlMissingKeyExample" xml:space="preserve">
+        <value>= "a"</value>
+    </data>
+    <data name="TomlLocalTimeWithOffsetExample" xml:space="preserve">
+        <value>badTime = 07:00:00Z</value>
+    </data>
+    <data name="TomlBadArrayExample" xml:space="preserve">
+        <value>myArr = [1, 2, 3}</value>
+    </data>
+    <data name="TomlDateTimeWithNoSeparatorExample" xml:space="preserve">
+        <value>badDate = 2021-05-0512:00:00</value>
+    </data>
+    <data name="TomlUnnecessaryDateTimeSeparatorExample" xml:space="preserve">
+        <value>badDate = 2021-05-05T</value>
+    </data>
+    <data name="TomlBadDottedKeyExample" xml:space="preserve">
+        <value>array = [1,2,3]
+[array.a]
+value = 1</value>
+    </data>
+    <data name="TomlBadEnumExample" xml:space="preserve">
+        <value>Enum = "QUX"</value>
+    </data>
 </root>

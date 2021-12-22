@@ -840,9 +840,9 @@ namespace Tomlet
             catch (TomlContainsDottedKeyNonTableException e)
             {
                 //Re-throw with correct line number and exception type.
-                //To be clear - here we're re-defining a NON-TABLE key as a table, so this is a key redefinition exception
+                //To be clear - here we're re-defining a NON-TABLE key as a table, so this is a dotted key exception
                 //while the one above is a TableRedefinition exception because it's re-defining a key which is already a table.
-                throw new TomlKeyRedefinitionException(_lineNumber, e.Key, e);
+                throw new TomlDottedKeyParserException(_lineNumber, e.Key);
             }
 
             if (!reader.TryPeek(out _))
@@ -882,6 +882,12 @@ namespace Tomlet
             TomlTable parentTable = document;
             var relativeKey = arrayName;
             FindParentAndRelativeKey(ref parentTable, ref relativeKey);
+
+            if (parentTable == document)
+            {
+                if(relativeKey.Contains('.'))
+                    throw new MissingIntermediateInTomlTableArraySpecException(_lineNumber, relativeKey);
+            }
 
             //Find existing array or make new one
             TomlArray array;
