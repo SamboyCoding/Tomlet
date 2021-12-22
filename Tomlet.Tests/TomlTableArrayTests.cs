@@ -79,24 +79,6 @@ namespace Tomlet.Tests
         }
 
         [Fact]
-        public void DefiningATableArrayWithTheSameNameAsATableThrowsAnException()
-        {
-            Assert.Throws<TomlTableArrayAlreadyExistsAsNonArrayException>(() => GetDocument(TestResources.DefiningAsArrayWhenAlreadyTableTestInput));
-        }
-
-        [Fact]
-        public void ReDefiningAnArrayAsATableArrayThrowsAnException()
-        {
-            Assert.Throws<TomlNonTableArrayUsedAsTableArrayException>(() => GetDocument(TestResources.ReDefiningAnArrayAsATableArrayIsAnErrorTestInput));
-        }
-
-        [Fact]
-        public void ReDefiningASubTableAsASubTableArrayThrowsAnException()
-        {
-            Assert.Throws<TomlKeyRedefinitionException>(() => GetDocument(TestResources.ReDefiningSubTableAsSubTableArrayTestInput));
-        }
-
-        [Fact]
         public void TableArraySerializationWorks()
         {
             //In order for table-array serialization to trigger, at least one of the tables has to be complicated (>= 5 entries or a nested one)

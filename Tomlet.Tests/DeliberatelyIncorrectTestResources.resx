@@ -60,4 +60,46 @@ value = 1</value>
     <data name="TomlBadEnumExample" xml:space="preserve">
         <value>Enum = "QUX"</value>
     </data>
+    <data name="ReDefiningAnArrayAsATableArrayIsAnErrorTestInput" xml:space="preserve">
+        <value># INVALID TOML DOC
+fruits = []
+
+[[fruits]] # Not allowed</value>
+    </data>
+    <data name="DefiningAsArrayWhenAlreadyTableTestInput" xml:space="preserve">
+        <value>[fruit.physical]  # subtable, but to which parent element should it belong?
+color = "red"
+shape = "round"
+
+[[fruit]]  # parser must throw an error upon discovering that "fruit" is
+           # an array rather than a table
+name = "apple"</value>
+    </data>
+    <data name="KeyRedefinitionViaTableTestInput" xml:space="preserve">
+        <value>[fruit]
+apple = "red"
+
+[fruit.apple]
+texture = "smooth"</value>
+    </data>
+    <data name="ReDefiningSubTableAsSubTableArrayTestInput" xml:space="preserve">
+        <value># INVALID TOML DOC
+[[fruits]]
+name = "apple"
+
+[[fruits.varieties]]
+name = "red delicious"
+
+# INVALID: This table conflicts with the previous array of tables
+[fruits.varieties]
+name = "granny smith"
+
+[fruits.physical]
+color = "red"
+shape = "round"
+
+# INVALID: This array of tables conflicts with the previous table
+[[fruits.physical]]
+color = "green"</value>
+    </data>
 </root>

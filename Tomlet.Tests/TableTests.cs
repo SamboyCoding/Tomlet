@@ -62,11 +62,5 @@ namespace Tomlet.Tests
         {
             Assert.Throws<TomlTableRedefinitionException>(() => GetDocument(TestResources.TableRedefinitionTestInput));
         }
-
-        [Fact]
-        public void RedefiningAKeyAsATableNameThrowsAnException()
-        {
-            Assert.Throws<TomlKeyRedefinitionException>(() => GetDocument(TestResources.KeyRedefinitionViaTableTestInput));
-        }
     }
 }

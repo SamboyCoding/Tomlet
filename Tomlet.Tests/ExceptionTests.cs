@@ -69,6 +69,22 @@ public class ExceptionTests
         AssertThrows<TomlEnumParseException>(() => TomletMain.To<TomlTestClassWithEnum>(DeliberatelyIncorrectTestResources.TomlBadEnumExample));
 
     [Fact]
+    public void ReDefiningASubTableAsASubTableArrayThrowsAnException() => 
+        AssertThrows<TomlKeyRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.ReDefiningSubTableAsSubTableArrayTestInput));
+
+    [Fact]
+    public void RedefiningAKeyAsATableNameThrowsAnException() => 
+        AssertThrows<TomlKeyRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.KeyRedefinitionViaTableTestInput));
+    
+    [Fact]
+    public void DefiningATableArrayWithTheSameNameAsATableThrowsAnException() => 
+        AssertThrows<TomlTableArrayAlreadyExistsAsNonArrayException>(() => GetDocument(DeliberatelyIncorrectTestResources.DefiningAsArrayWhenAlreadyTableTestInput));
+
+    [Fact]
+    public void ReDefiningAnArrayAsATableArrayThrowsAnException() => 
+        AssertThrows<TomlNonTableArrayUsedAsTableArrayException>(() => GetDocument(DeliberatelyIncorrectTestResources.ReDefiningAnArrayAsATableArrayIsAnErrorTestInput));
+
+    [Fact]
     public void BadKeysThrow()
     {
         var doc = GetDocument("");

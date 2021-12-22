@@ -61,6 +61,72 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [fruit.physical]  # subtable, but to which parent element should it belong?
+        ///color = &quot;red&quot;
+        ///shape = &quot;round&quot;
+        ///
+        ///[[fruit]]  # parser must throw an error upon discovering that &quot;fruit&quot; is
+        ///           # an array rather than a table
+        ///name = &quot;apple&quot;.
+        /// </summary>
+        internal static string DefiningAsArrayWhenAlreadyTableTestInput {
+            get {
+                return ResourceManager.GetString("DefiningAsArrayWhenAlreadyTableTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [fruit]
+        ///apple = &quot;red&quot;
+        ///
+        ///[fruit.apple]
+        ///texture = &quot;smooth&quot;.
+        /// </summary>
+        internal static string KeyRedefinitionViaTableTestInput {
+            get {
+                return ResourceManager.GetString("KeyRedefinitionViaTableTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # INVALID TOML DOC
+        ///fruits = []
+        ///
+        ///[[fruits]] # Not allowed.
+        /// </summary>
+        internal static string ReDefiningAnArrayAsATableArrayIsAnErrorTestInput {
+            get {
+                return ResourceManager.GetString("ReDefiningAnArrayAsATableArrayIsAnErrorTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # INVALID TOML DOC
+        ///[[fruits]]
+        ///name = &quot;apple&quot;
+        ///
+        ///[[fruits.varieties]]
+        ///name = &quot;red delicious&quot;
+        ///
+        ///# INVALID: This table conflicts with the previous array of tables
+        ///[fruits.varieties]
+        ///name = &quot;granny smith&quot;
+        ///
+        ///[fruits.physical]
+        ///color = &quot;red&quot;
+        ///shape = &quot;round&quot;
+        ///
+        ///# INVALID: This array of tables conflicts with the previous table
+        ///[[fruits.physical]]
+        ///color = &quot;green&quot;.
+        /// </summary>
+        internal static string ReDefiningSubTableAsSubTableArrayTestInput {
+            get {
+                return ResourceManager.GetString("ReDefiningSubTableAsSubTableArrayTestInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to myArr = [1, 2, 3}.
         /// </summary>
         internal static string TomlBadArrayExample {
