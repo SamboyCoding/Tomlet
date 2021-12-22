@@ -1,3 +1,4 @@
+using System;
 using Tomlet.Exceptions;
 using Tomlet.Models;
 using Xunit;
@@ -10,62 +11,62 @@ public class ExceptionTests
 
     [Fact]
     public void InvalidInlineTablesThrow() => 
-        Assert.Throws<InvalidTomlInlineTableException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadInlineTableExample));
+        AssertThrows<InvalidTomlInlineTableException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadInlineTableExample));
 
     [Fact]
     public void InvalidEscapesThrow() =>
-        Assert.Throws<InvalidTomlEscapeException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadEscapeExample));
+        AssertThrows<InvalidTomlEscapeException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadEscapeExample));
     
     [Fact]
     public void InvalidNumbersThrow() => 
-        Assert.Throws<InvalidTomlNumberException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadNumberExample));
+        AssertThrows<InvalidTomlNumberException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadNumberExample));
     
     [Fact]
     public void InvalidDatesThrow() =>
-        Assert.Throws<InvalidTomlDateTimeException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadDateExample));
+        AssertThrows<InvalidTomlDateTimeException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadDateExample));
     
     [Fact]
     public void TruncatedFilesThrow() =>
-        Assert.Throws<TomlEndOfFileException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTruncatedFileExample));
+        AssertThrows<TomlEndOfFileException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTruncatedFileExample));
 
     [Fact]
     public void UndefinedTableArraysThrow() => 
-        Assert.Throws<MissingIntermediateInTomlTableArraySpecException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTableArrayWithMissingIntermediateExample));
+        AssertThrows<MissingIntermediateInTomlTableArraySpecException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTableArrayWithMissingIntermediateExample));
     
     [Fact]
     public void MissingKeysThrow() =>
-        Assert.Throws<NoTomlKeyException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlMissingKeyExample));
+        AssertThrows<NoTomlKeyException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlMissingKeyExample));
     
     [Fact]
     public void TimesWithOffsetsButNoDateThrow() =>
-        Assert.Throws<TimeOffsetOnTomlDateOrTimeException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlLocalTimeWithOffsetExample));
+        AssertThrows<TimeOffsetOnTomlDateOrTimeException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlLocalTimeWithOffsetExample));
     
     [Fact]
     public void IncorrectlyFormattedArraysThrow() =>
-        Assert.Throws<TomlArraySyntaxException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadArrayExample));
+        AssertThrows<TomlArraySyntaxException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadArrayExample));
     
     [Fact]
     public void DateTimesWithNoSeparatorThrow() =>
-        Assert.Throws<TomlDateTimeMissingSeparatorException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlDateTimeWithNoSeparatorExample));
+        AssertThrows<TomlDateTimeMissingSeparatorException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlDateTimeWithNoSeparatorExample));
     
     [Fact]
     public void DatesWithUnnecessarySeparatorThrow() =>
-        Assert.Throws<TomlDateTimeUnnecessarySeparatorException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlUnnecessaryDateTimeSeparatorExample));
+        AssertThrows<TomlDateTimeUnnecessarySeparatorException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlUnnecessaryDateTimeSeparatorExample));
     
     [Fact]
     public void ImplyingAValueIsATableViaDottedKeyInADocumentWhenItIsNotThrows() =>
-        Assert.Throws<TomlDottedKeyParserException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadDottedKeyExample));
+        AssertThrows<TomlDottedKeyParserException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadDottedKeyExample));
 
     [Fact]
     public void ImplyingAValueIsATableViaDottedKeyWhenItIsNotThrows()
     {
         var doc = GetDocument(TestResources.ArrayOfEmptyStringTestInput);
-        Assert.Throws<TomlDottedKeyException>(() => doc.Put("array.a", "foo"));
+        AssertThrows<TomlDottedKeyException>(() => doc.Put("array.a", "foo"));
     }
     
     [Fact]
     public void BadEnumValueThrows() =>
-        Assert.Throws<TomlEnumParseException>(() => TomletMain.To<TomlTestClassWithEnum>(DeliberatelyIncorrectTestResources.TomlBadEnumExample));
+        AssertThrows<TomlEnumParseException>(() => TomletMain.To<TomlTestClassWithEnum>(DeliberatelyIncorrectTestResources.TomlBadEnumExample));
 
     [Fact]
     public void BadKeysThrow()
@@ -73,6 +74,38 @@ public class ExceptionTests
         var doc = GetDocument("");
         
         //A key with both quotes
-        Assert.Throws<InvalidTomlKeyException>(() => doc.GetLong("\"hello'"));
+        AssertThrows<InvalidTomlKeyException>(() => doc.GetLong("\"hello'"));
+    }
+    
+    public void AssertThrows<T>(Action what) where T: Exception
+    {
+        Assert.Throws<T>(() =>
+        {
+            try
+            {
+                what();
+            }
+            catch (Exception e)
+            {
+                var _ = e.Message; //Call this for coverage idc
+                throw;
+            }
+        });
+    }
+
+    public void AssertThrows<T>(Func<object> what) where T: Exception
+    {
+        Assert.Throws<T>(() =>
+        {
+            try
+            {
+                what();
+            }
+            catch (Exception e)
+            {
+                var _ = e.Message; //Call this for coverage idc
+                throw;
+            }
+        });
     }
 }
