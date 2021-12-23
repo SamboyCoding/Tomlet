@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [3.0.0](#300)
   - [2.2.0](#220)
   - [2.1.0](#210)
   - [2.0.2](#202)
@@ -23,9 +24,20 @@
   - [1.0.1](#101)
   - [1.0.0](#100)
 
-## 2.3.0
-- **This version is not yet released, and this changelog is WIP**
+## 3.0.0
+- BREAKING CHANGE: Moved TomlPropertyAttribute to the `Tomlet.Attributes` namespace.
+- BREAKING CHANGE: Removed several exceptions that weren't ever actually thrown
+  - `TomlTableArrayIntermediateNonTableException`
+  - `UnterminatedTomlArrayException`
+  - `UnterminatedTomlInlineObjectException`
 - Added support for comments.
+  - Added `Tomlet.Models.TomlCommentData`, exposed via the `Comments` field on any `TomlValue`.  
+  - Added `Tomlet.Attributes.TomlInlineCommentAttribute` and `Tomlet.Attributes.TomlPrecedingCommentAttribute` to allow specifying inline comments using reflection-based serialization.
+  - Added `TomlNewlineInInlineCommentException`
+  - Please see the readme for more details.
+- Made inline serialization much more likely to be chosen for Toml Tables, assuming they have no comments, and that
+they contain only primitive values.
+- Fixed handling of 8-digit unicode escape sequences.
 - Generally cleaned up the codebase.
 - TomlArray#Add and TomlTable#Put now handle you providing them an already-serialized TOML value instead of double-serializing.
 - Finished adding tests for invalid input. Some very minor output changes could be possible, including:
