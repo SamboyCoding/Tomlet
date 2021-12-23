@@ -21,8 +21,9 @@ namespace Tomlet.Models
             return new TomlDouble(nullableDouble.Value);
         }
 
+        public bool HasDecimal => Value != (int) Value;
         public double Value => _value;
-        public override string StringValue => Value.ToString(CultureInfo.InvariantCulture);
+        public override string StringValue => HasDecimal ? Value.ToString(CultureInfo.InvariantCulture) : $"{Value:F1}";
         
         public override string SerializedValue => StringValue;
     }

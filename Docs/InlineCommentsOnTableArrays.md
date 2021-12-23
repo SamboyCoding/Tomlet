@@ -49,6 +49,10 @@ myKey = "myValue"
 [[myTableArray]] # more inline comment space.
 myKey = "myValue2"
 ```
+**Note also in this case that when reading this file back in, the comment on the table-array and the comment on the first table will be merged.
+The result will be set as a preceding comment on the <u>Table-Array</u>.
+Tomlet will generate this file just fine, but reading it back in, this intricacy will be lost, so you may wish to re-generate it.**
+
 There are two locations here that we could place inline comments, namely both table-array headers.
 
 Each could be used either as the inline comment on the table at a given index, or as the inline comment

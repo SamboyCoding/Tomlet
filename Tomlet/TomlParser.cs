@@ -34,10 +34,15 @@ namespace Tomlet
                 var document = new TomlDocument();
                 using var reader = new TomletStringReader(input);
 
+                string? lastPrecedingComment = null;
                 while (reader.TryPeek(out _))
                 {
                     //We have more to read.
-                    _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
+                    //By the time we get back to this position in the main loop, we've fully consumed any structure.
+                    //So that means we're at the start of a line - which could be a comment, table-array or table header, a key-value pair, or just whitespace.
+                    _lineNumber += reader.SkipAnyNewlineOrWhitespace();
+
+                    lastPrecedingComment = ReadAnyPotentialMultilineComment(reader);
 
                     if (!reader.TryPeek(out var nextChar))
                         break;
@@ -50,16 +55,22 @@ namespace Tomlet
                         if (!reader.TryPeek(out var potentialSecondBracket))
                             throw new TomlEndOfFileException(_lineNumber);
 
+                        TomlValue valueFromSquareBracket;
                         if (potentialSecondBracket != '[')
-                            ReadTableStatement(reader, document);
+                            valueFromSquareBracket = ReadTableStatement(reader, document);
                         else
-                            ReadTableArrayStatement(reader, document);
+                            valueFromSquareBracket = ReadTableArrayStatement(reader, document);
+
+                        valueFromSquareBracket.Comments.PrecedingComment = lastPrecedingComment;
 
                         continue; //Restart loop.
                     }
 
                     //Read a key-value pair
                     ReadKeyValuePair(reader, out var key, out var value);
+
+                    value.Comments.PrecedingComment = lastPrecedingComment;
+                    lastPrecedingComment = null;
 
                     if (_currentTable != null)
                         //Insert into current table
@@ -70,7 +81,6 @@ namespace Tomlet
 
                     //Read up until the end of the line, ignoring any comments or whitespace
                     reader.SkipWhitespace();
-                    reader.SkipAnyComment();
 
                     //Ensure we have a newline
                     reader.SkipPotentialCarriageReturn();
@@ -81,9 +91,11 @@ namespace Tomlet
                     _lineNumber++; //We've consumed a newline, move to the next line number.
                 }
 
+                document.TrailingComment = lastPrecedingComment;
+
                 return document;
             }
-            catch (Exception e) when (!(e is TomlException))
+            catch (Exception e) when (e is not TomlException)
             {
                 throw new TomlInternalException(_lineNumber, e);
             }
@@ -329,6 +341,9 @@ namespace Tomlet
                 default:
                     throw new TomlInvalidValueException(_lineNumber, (char) startOfValue);
             }
+
+            reader.SkipWhitespace();
+            value.Comments.InlineComment = ReadAnyPotentialInlineComment(reader);
 
             return value;
         }
@@ -794,7 +809,7 @@ namespace Tomlet
             return result;
         }
 
-        private void ReadTableStatement(TomletStringReader reader, TomlDocument document)
+        private TomlTable ReadTableStatement(TomletStringReader reader, TomlDocument document)
         {
             //Table name
             var currentTableKey = reader.ReadWhile(c => !c.IsEndOfArrayChar() && !c.IsNewline());
@@ -810,9 +825,6 @@ namespace Tomlet
                 {
                     try
                     {
-                        // this is an intentional variable, resharper.
-
-                        // ReSharper disable once UnusedVariable
                         table = (TomlTable) parent.GetValue(relativeKey);
 
                         //The cast succeeded - we are defining an existing table
@@ -849,7 +861,7 @@ namespace Tomlet
                 throw new UnterminatedTomlTableNameException(_lineNumber);
 
             reader.SkipWhitespace();
-            reader.SkipAnyComment();
+            table.Comments.InlineComment = ReadAnyPotentialInlineComment(reader);
             reader.SkipPotentialCarriageReturn();
 
             if (!reader.TryPeek(out var shouldBeNewline))
@@ -862,9 +874,11 @@ namespace Tomlet
 
             //Save table names
             _tableNames = currentTableKey.Split('.');
+
+            return table;
         }
 
-        private void ReadTableArrayStatement(TomletStringReader reader, TomlDocument document)
+        private TomlArray ReadTableArrayStatement(TomletStringReader reader, TomlDocument document)
         {
             //Consume the (second) opening bracket
             if (!reader.ExpectAndConsume('['))
@@ -914,6 +928,8 @@ namespace Tomlet
 
             //Save table names
             _tableNames = arrayName.Split('.');
+            
+            return array;
         }
 
         private void FindParentAndRelativeKey(ref TomlTable parent, ref string relativeName)
@@ -943,6 +959,44 @@ namespace Tomlet
 
                 relativeName = relativeName.Substring(rootTableName.Length + 1);
             }
+        }
+
+        private string? ReadAnyPotentialInlineComment(TomletStringReader reader)
+        {
+            if (!reader.ExpectAndConsume('#'))
+                return null; //No comment
+            
+            var ret = reader.ReadWhile(c => !c.IsNewline()).Trim();
+
+            if (ret.Length < 1) 
+                return null;
+            
+            if(ret[0] == ' ')
+                ret = ret.Substring(1);
+                
+            return ret;
+
+        }
+        
+        private string? ReadAnyPotentialMultilineComment(TomletStringReader reader)
+        {
+            var ret = new StringBuilder();
+            while (reader.ExpectAndConsume('#'))
+            {
+                var line = reader.ReadWhile(c => c != '\n');
+                
+                if(line[0] == ' ')
+                    line = line.Substring(1);
+                
+                ret.Append(line);
+
+                _lineNumber += reader.SkipAnyNewlineOrWhitespace();
+            }
+
+            if (ret.Length == 0)
+                return null;
+
+            return ret.ToString();
         }
     }
 }
