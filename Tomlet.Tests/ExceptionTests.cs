@@ -194,6 +194,10 @@ public class ExceptionTests
     [Fact]
     public void AskingATableForTheValueAssociatedWithAnInvalidKeyThrows() =>
         AssertThrows<InvalidTomlKeyException>(() => GetDocument("").GetBoolean("\"I am invalid'"));
+    
+    [Fact]
+    public void SettingAnInlineCommentToIncludeANewlineThrows() => 
+        AssertThrows<TomlNewlineInInlineCommentException>(() => TomlDocument.CreateEmpty().Comments.InlineComment = "hello\nworld");
 
     [Fact]
     public void BadKeysThrow()

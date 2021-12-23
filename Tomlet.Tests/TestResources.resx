@@ -312,4 +312,7 @@ allowed = [ "woot", "woot harder" ]</value>
         <value>key = 0xdeadbeef
 key2 = 0x1234567890FD</value>
     </data>
+    <data name="StringEscapesTestInput" xml:space="preserve">
+        <value>myStupidString = "\b\t\n\f\r\"\\\u0020\U00000020"</value>
+    </data>
 </root>

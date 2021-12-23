@@ -168,5 +168,12 @@ namespace Tomlet.Tests
 
             Assert.Equal(TestResources.LiteralQuotedPathWithBackslashesTestInput, document.SerializedValue.Trim());
         }
+
+        [Fact]
+        public void AllEscapesWork()
+        {
+            var document = GetDocument(TestResources.StringEscapesTestInput);
+            Assert.Equal("\b\t\n\f\r\"\\\u0020\U00000020", document.GetString("myStupidString"));
+        }
     }
 }

@@ -400,9 +400,8 @@ namespace Tomlet
             return new TomlString(content.ToString());
         }
 
-        private char[] DecipherUnicodeEscapeSequence(string unicodeString, bool fourDigitMode)
+        private string DecipherUnicodeEscapeSequence(string unicodeString, bool fourDigitMode)
         {
-            char[] toAppend;
             if (unicodeString.Any(c => !c.IsHexDigit()))
                 throw new InvalidTomlEscapeException(_lineNumber, $"\\{(fourDigitMode ? 'u' : 'U')}{unicodeString}");
 
@@ -410,17 +409,12 @@ namespace Tomlet
             {
                 //16-bit char
                 var decodedChar = short.Parse(unicodeString, NumberStyles.HexNumber);
-                toAppend = new[] {(char) decodedChar};
-            }
-            else
-            {
-                //32-bit char
-                var decodedChars = int.Parse(unicodeString, NumberStyles.HexNumber);
-                var chars = Encoding.Unicode.GetChars(BitConverter.GetBytes(decodedChars));
-                toAppend = chars;
+                return ((char) decodedChar).ToString();
             }
 
-            return toAppend;
+            //32-bit char
+            var decodedChars = int.Parse(unicodeString, NumberStyles.HexNumber);
+            return char.ConvertFromUtf32(decodedChars);
         }
 
         private char? HandleEscapedChar(int escapedChar, out bool fourDigitUnicodeMode, out bool eightDigitUnicodeMode, bool allowNewline = false)

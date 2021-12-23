@@ -74,7 +74,7 @@ namespace Tomlet
                 return true;
 
             var upper = char.ToUpperInvariant((char) val);
-            return upper >= 'A' && upper <= 'F';
+            return upper is >= 'A' and <= 'F';
         }
 
         internal static bool TryPeek(this TomletStringReader reader, out int nextChar)
