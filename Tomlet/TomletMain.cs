@@ -23,9 +23,7 @@ namespace Tomlet
 
         public static T To<T>(TomlValue value)
         {
-            var deserializer = TomlSerializationMethods.GetDeserializer<T>();
-
-            return deserializer.Invoke(value);
+            return (T) To(typeof(T), value);
         }
 
         public static object To(Type what, TomlValue value)

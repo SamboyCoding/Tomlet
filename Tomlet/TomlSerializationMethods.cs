@@ -66,19 +66,6 @@ namespace Tomlet
             Register(lt => new TomlLocalTime(lt), value => (value as TomlLocalTime)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlLocalTime), value.GetType(), typeof(TimeSpan)));
         }
 
-        internal static Serialize<T> GetSerializer<T>()
-        {
-            var serializer = GetSerializer(typeof(T));
-
-            return t => serializer.Invoke(t);
-        }
-
-        internal static Deserialize<T> GetDeserializer<T>()
-        {
-            var deserializer = GetDeserializer(typeof(T));
-            return value => (T) deserializer.Invoke(value);
-        }
-
         internal static Serialize<object> GetSerializer(Type t)
         {
             if (Serializers.TryGetValue(t, out var value))
@@ -188,67 +175,11 @@ namespace Tomlet
 
         internal static void Register(Type t, Serialize<object>? serializer, Deserialize<object>? deserializer)
         {
-            if (serializer != null)
-            {
-                var listType = typeof(List<>).MakeGenericType(t);
+            if (serializer != null) 
                 RegisterSerializer(serializer);
 
-                RegisterSerializer(t.MakeArrayType(1), arr =>
-                {
-                    var ret = new TomlArray();
-
-                    if (arr == null)
-                        return ret;
-                    
-                    foreach (var o in (IEnumerable) arr)
-                    {
-                        ret.ArrayValues.Add(serializer.Invoke(o));
-                    }
-
-                    if (ret.ArrayValues.All(o => o is TomlTable))
-                        ret.IsLockedToBeTableArray = true;
-
-                    return ret;
-                });
-                RegisterSerializer(listType, arr =>
-                {
-                    var ret = new TomlArray();
-                    
-                    if (arr == null)
-                        return ret;
-                    
-                    foreach (var o in (IEnumerable) arr)
-                    {
-                        ret.ArrayValues.Add(serializer.Invoke(o));
-                    }
-
-                    if (ret.ArrayValues.All(o => o is TomlTable))
-                        ret.IsLockedToBeTableArray = true;
-
-                    return ret;
-                });
-            }
-
-            if (deserializer != null)
-            {
-                var listType = typeof(List<>).MakeGenericType(t);
+            if (deserializer != null) 
                 RegisterDeserializer(deserializer);
-                RegisterDeserializer(t.MakeArrayType(1), value => value is TomlArray arr ? arr.ArrayValues.Select(deserializer.Invoke).ToArray() : throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), t.MakeArrayType(1)));
-                RegisterDeserializer(listType, delegate(TomlValue value)
-                {
-                    if (value is not TomlArray arr)
-                        throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), listType);
-
-                    object o = Activator.CreateInstance(listType)!;
-
-                    foreach (var o1 in arr.ArrayValues.Select(deserializer.Invoke))
-                    {
-                        o.GetType().GetMethod(nameof(List<object>.Add))!.Invoke(o, new[] {o1});
-                    }
-
-                    return o;
-                });
-            }
         }
 
         private static void RegisterDeserializer<T>(Deserialize<T> deserializer)
@@ -257,20 +188,10 @@ namespace Tomlet
             Deserializers[typeof(T)] = (Deserialize<object>) BoxedDeserializer;
         }
 
-        private static void RegisterDeserializer(Type type, Deserialize<object> deserializer)
-        {
-            Deserializers[type] = deserializer;
-        }
-
         private static void RegisterSerializer<T>(Serialize<T> serializer)
         {
             TomlValue ObjectAcceptingSerializer(object value) => serializer.Invoke((T) value);
             Serializers[typeof(T)] = (Serialize<object>) ObjectAcceptingSerializer!;
-        }
-
-        private static void RegisterSerializer(Type type, Serialize<object> serializer)
-        {
-            Serializers[type] = serializer;
         }
 
         private static void RegisterDictionarySerializer<T>(Serialize<T> serializer)

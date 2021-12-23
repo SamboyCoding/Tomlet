@@ -13,7 +13,7 @@ internal static class TomlCompositeSerializer
 
         if (type.IsEnum)
         {
-            var stringSerializer = TomlSerializationMethods.GetSerializer<string>();
+            var stringSerializer = TomlSerializationMethods.GetSerializer(typeof(string));
             serializer = o => stringSerializer.Invoke(Enum.GetName(type, o!) ?? throw new ArgumentException($"Tomlet: Cannot serialize {o} as an enum of type {type} because the enum type does not declare a name for that value"));
         }
         else

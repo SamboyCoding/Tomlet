@@ -13,10 +13,10 @@ internal static class TomlCompositeDeserializer
         TomlSerializationMethods.Deserialize<object> deserializer;
         if (type.IsEnum)
         {
-            var stringDeserializer = TomlSerializationMethods.GetDeserializer<string>();
+            var stringDeserializer = TomlSerializationMethods.GetDeserializer(typeof(string));
             deserializer = value =>
             {
-                var enumName = stringDeserializer.Invoke(value);
+                var enumName = (string) stringDeserializer.Invoke(value);
 
                 try
                 {
