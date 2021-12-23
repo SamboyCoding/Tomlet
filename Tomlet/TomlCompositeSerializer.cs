@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using Tomlet.Attributes;
 using Tomlet.Models;
 
 namespace Tomlet;
@@ -18,9 +20,13 @@ internal static class TomlCompositeSerializer
         }
         else
         {
-
             //Get all instance fields
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var fieldAttribs = fields
+                .ToDictionary(f => f, f => new {inline = f.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = f.GetCustomAttribute<TomlPrecedingCommentAttribute>()});
+            var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var propAttribs = props
+                .ToDictionary(p => p, p => new {inline = p.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = p.GetCustomAttribute<TomlPrecedingCommentAttribute>()});
 
             //Ignore NonSerialized fields.
             fields = fields.Where(f => !f.IsNotSerialized).ToArray();
@@ -32,7 +38,7 @@ internal static class TomlCompositeSerializer
             {
                 if (instance == null)
                     throw new ArgumentNullException(nameof(instance), "Object being serialized is null. TOML does not support null values.");
-                    
+
                 var resultTable = new TomlTable();
 
                 foreach (var field in fields)
@@ -46,18 +52,29 @@ internal static class TomlCompositeSerializer
                     var tomlValue = fieldSerializer.Invoke(fieldValue);
 
                     var name = field.Name;
-                    var m = System.Text.RegularExpressions.Regex.Match(field.Name, "<(.*)>k__BackingField");
+
+                    var commentAttribs = fieldAttribs[field];
+
+                    var m = Regex.Match(field.Name, "<(.*)>k__BackingField");
                     if (m.Success)
+                    {
                         name = m.Groups[1].Value;
+                        // ReSharper disable once AccessToModifiedClosure
+                        var prop = props.First(p => p.Name == name);
+                        commentAttribs = propAttribs[prop];
+                    }
 
                     var name1 = name;
                     name = type.GetProperties().FirstOrDefault(p => p.Name == name1)?.GetCustomAttribute<TomlPropertyAttribute>()?.GetMappedString() ?? name;
-                        
+
                     if (resultTable.ContainsKey(name))
                         //Do not overwrite fields if they have the same name as something already in the table
                         //This fixes serializing types which re-declare a field using the `new` keyword, overwriting a field of the same name
                         //in its supertype. 
                         continue;
+
+                    tomlValue.Comments.InlineComment = commentAttribs.inline?.Comment;
+                    tomlValue.Comments.PrecedingComment = commentAttribs.preceding?.Comment;
 
                     resultTable.PutValue(name, tomlValue);
                 }

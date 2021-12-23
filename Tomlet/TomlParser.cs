@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Tomlet.Attributes;
 using Tomlet.Exceptions;
 using Tomlet.Models;
 
@@ -20,6 +22,7 @@ namespace Tomlet
         private TomlTable? _currentTable;
 
         // ReSharper disable once UnusedMember.Global
+        [NoCoverage]
         public static TomlDocument ParseFile(string filePath)
         {
             var fileContent = File.ReadAllText(filePath);

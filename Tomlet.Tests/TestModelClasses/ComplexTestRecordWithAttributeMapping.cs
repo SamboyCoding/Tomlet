@@ -1,4 +1,6 @@
-﻿namespace Tomlet.Tests.TestModelClasses
+﻿using Tomlet.Attributes;
+
+namespace Tomlet.Tests.TestModelClasses
 {
     public record ComplexTestRecordWithAttributeMapping
     {

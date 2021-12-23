@@ -1,4 +1,5 @@
 using Tomlet.Models;
+using Tomlet.Tests.TestModelClasses;
 using Xunit;
 
 namespace Tomlet.Tests;
@@ -106,5 +107,18 @@ key = ""value"" # Inline comment on value".Trim();
         //Replace tabs with spaces because this source file uses spaces
         var actual = doc.SerializedValue.Trim().Replace("\t", "    ");
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void CommentAttributesWork()
+    {
+        var config = TomletMain.To<ExampleMailboxConfigClass>(TestResources.ExampleMailboxConfigurationTestInput);
+
+        var doc = TomletMain.DocumentFrom(config);
+        
+        Assert.Equal("The name of the mailbox", doc.GetValue("mailbox").Comments.InlineComment);
+        Assert.Equal("Your username for the mailbox", doc.GetValue("username").Comments.InlineComment);
+        Assert.Equal("The password you use to access the mailbox", doc.GetValue("password").Comments.InlineComment);
+        Assert.Equal("The rules for the mailbox follow", doc.GetArray("rules").Comments.PrecedingComment);
     }
 }

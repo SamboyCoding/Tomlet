@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Tomlet.Attributes;
 using Tomlet.Exceptions;
 using Tomlet.Models;
 
@@ -16,6 +18,8 @@ namespace Tomlet
         private static readonly Dictionary<Type, Delegate> Deserializers = new();
         private static readonly Dictionary<Type, Delegate> Serializers = new();
 
+
+        [NoCoverage]
         static TomlSerializationMethods()
         {
             //Register built-in serializers

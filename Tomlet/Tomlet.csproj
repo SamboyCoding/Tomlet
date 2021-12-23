@@ -22,6 +22,11 @@
         <TargetFrameworks>netstandard2.0;netframework3.5</TargetFrameworks>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' != 'net'">
+        <!-- Properties for .NET Framework -->
+        <DefineConstants>NETSTANDARD</DefineConstants>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="jnm2.ReferenceAssemblies.net35" Version="1.0.1">
         <PrivateAssets>all</PrivateAssets>

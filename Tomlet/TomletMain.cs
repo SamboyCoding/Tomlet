@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using Tomlet.Attributes;
 using Tomlet.Exceptions;
 using Tomlet.Models;
 
@@ -10,6 +11,7 @@ namespace Tomlet
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public static class TomletMain
     {
+        [NoCoverage]
         public static void RegisterMapper<T>(TomlSerializationMethods.Serialize<T>? serializer, TomlSerializationMethods.Deserialize<T>? deserializer)
             => TomlSerializationMethods.Register(serializer, deserializer);
 
