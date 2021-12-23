@@ -19,7 +19,7 @@ namespace Tomlet.Models
 
         public HashSet<string> Keys => new(Entries.Keys);
 
-        public virtual bool ShouldBeSerializedInline => Entries.Count < 4 && Entries.All(e => e.Value is TomlArray arr ? arr.IsSimpleArray : e.Value is not TomlTable);
+        public bool ShouldBeSerializedInline => Entries.Count < 4 && Entries.All(e => e.Value.Comments.ThereAreNoComments && (e.Value is TomlArray arr ? arr.IsSimpleArray : e.Value is not TomlTable));
 
         public override string SerializedValue
         {
@@ -42,7 +42,15 @@ namespace Tomlet.Models
         {
             var builder = new StringBuilder();
             if (includeHeader)
-                builder.Append('[').Append(keyName).Append("]").Append('\n');
+            {
+                builder.Append('[').Append(keyName).Append("]");
+                
+                //For non-inline tables, the inline comment goes on the header line.
+                if(Comments.InlineComment != null)
+                    builder.Append(" # ").Append(Comments.InlineComment);
+
+                builder.Append('\n');
+            }
 
             //Three passes: Simple key-value pairs including inline arrays and tables, sub-tables, then sub-table-arrays.
             foreach (var (subKey, value) in Entries)
@@ -82,30 +90,44 @@ namespace Tomlet.Models
                 keyName = EscapeKeyIfNeeded(keyName);
 
             var fullSubKey = keyName == null ? subKey : $"{keyName}.{subKey}";
+            
+            //Handle any preceding comment - this will ALWAYS go before any sort of value
+            if (value.Comments.PrecedingComment != null)
+                builder.Append(value.Comments.FormatPrecedingComment())
+                    .Append('\n');
 
             switch (value)
             {
                 case TomlArray {CanBeSerializedInline: false} subArray:
                     builder.Append(subArray.SerializeTableArray(fullSubKey)); //No need to append newline as SerializeTableArray always ensure it ends with 2
-                    break;
+                    return; //Return because we don't do newline or handle inline comment here.
                 case TomlArray subArray:
-                    builder.Append(subKey).Append(" = ").Append(subArray.SerializedValue).Append('\n');
+                    builder.Append(subKey).Append(" = ").Append(subArray.SerializedValue);
                     break;
                 case TomlTable {ShouldBeSerializedInline: true} subTable:
-                    builder.Append(subKey).Append(" = ").Append(subTable.SerializedValue).Append('\n');
+                    builder.Append(subKey).Append(" = ").Append(subTable.SerializedValue);
                     break;
                 case TomlTable subTable:
                     builder.Append(subTable.SerializeNonInlineTable(fullSubKey)).Append('\n');
-                    break;
+                    return; //Return because we don't handle inline comment here.
                 default:
-                    builder.Append(subKey).Append(" = ").Append(value.SerializedValue).Append('\n');
+                    builder.Append(subKey).Append(" = ").Append(value.SerializedValue);
                     break;
             }
+
+            //If we're here we did something resembling an inline value, even if that value is actually a multi-line array.
+            
+            //First off, handle the inline comment.
+            if (value.Comments.InlineComment != null)
+                builder.Append(" # ").Append(value.Comments.InlineComment);
+            
+            //Then append a newline
+            builder.Append('\n');
         }
 
         private string EscapeKeyIfNeeded(string key)
         {
-            var didEscape = false;
+            var didQuote = false;
 
             if (key.StartsWith("\"") && key.EndsWith("\"") && key.Count(c => c == '"') == 2)
                 //Already double quoted
@@ -118,12 +140,12 @@ namespace Tomlet.Models
             if (key.Contains("\"") || key.Contains("'"))
             {
                 key = TomlUtils.AddCorrectQuotes(key);
-                didEscape = true;
+                didQuote = true;
             }
 
             var escaped = TomlUtils.EscapeStringValue(key);
 
-            if (escaped.Contains(" ") || escaped.Contains("\\") && !didEscape)
+            if (escaped.Contains(" ") || escaped.Contains("\\") && !didQuote)
                 escaped = TomlUtils.AddCorrectQuotes(escaped);
 
             return escaped;
@@ -150,7 +172,13 @@ namespace Tomlet.Models
             InternalPutValue(key, value, null, false);
         }
 
-        public void Put<T>(string key, T t, bool quote = false) => PutValue(key, TomletMain.ValueFrom(t), quote);
+        public void Put<T>(string key, T t, bool quote = false)
+        {
+            if(t is TomlValue tv)
+                PutValue(key, tv, quote);
+            else
+                PutValue(key, TomletMain.ValueFrom(t), quote);
+        }
 
         public string DeQuoteKey(string key)
         {

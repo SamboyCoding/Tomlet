@@ -20,8 +20,6 @@
 
         public override string SerializedValue => SerializeNonInlineTable(null, false);
 
-        public override bool ShouldBeSerializedInline => false;
-
         public override string StringValue => $"Toml root document ({Entries.Count} entries)";
     }
 }

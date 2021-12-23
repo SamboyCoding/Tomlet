@@ -12,8 +12,10 @@ namespace Tomlet.Models
         internal bool IsLockedToBeTableArray;
         public override string StringValue => $"Toml Array ({ArrayValues.Count} values)";
 
-        public void Add<T>(T t) where T: new() {
-            ArrayValues.Add(TomletMain.ValueFrom(t));
+        public void Add<T>(T t) where T: new()
+        {
+            var tomlValue = t is TomlValue tv ? tv : TomletMain.ValueFrom(t);
+            ArrayValues.Add(tomlValue);
         }
 
         public bool IsTableArray => IsLockedToBeTableArray || ArrayValues.All(t => t is TomlTable);
@@ -21,7 +23,10 @@ namespace Tomlet.Models
         public bool CanBeSerializedInline => !IsTableArray || //Simple array
                                              ArrayValues.All(o => o is TomlTable { ShouldBeSerializedInline: true }) && ArrayValues.Count <= 5; //Table array of inline tables, 5 or fewer of them.
 
-        public bool IsSimpleArray => !IsLockedToBeTableArray && !ArrayValues.Any(o => o is TomlArray || o is TomlTable); //Not table-array and not any sub-arrays or tables.
+        /// <summary>
+        /// Returns true if this is not a table-array, there are not any sub-arrays or tables, and none of the entries contain comments.
+        /// </summary>
+        public bool IsSimpleArray => !IsLockedToBeTableArray && !ArrayValues.Any(o => o is TomlArray or TomlTable || !o.Comments.ThereAreNoComments);
 
         // ReSharper disable once UnusedMember.Global
         public TomlValue this[int index] => ArrayValues[index];
@@ -39,16 +44,33 @@ namespace Tomlet.Models
 
             var builder = new StringBuilder("[");
 
-            if(multiline)
-                builder.Append("\n\t");
-            else
-                builder.Append(' ');
+            var sep = multiline ? '\n' : ' ';
+            
+            foreach (var value in this)
+            {
+                builder.Append(sep);
 
-            var sep = multiline ? ",\n\t" : ", ";
+                if (value.Comments.PrecedingComment != null)
+                {
+                    builder.Append(value.Comments.FormatPrecedingComment(1))
+                        .Append('\n');
+                }
+                
+                if(multiline)
+                    builder.Append('\t');
 
-            builder.Append(string.Join(sep, this.Select(o => o.SerializedValue).ToArray()));
+                builder.Append(value.SerializedValue);
 
-            builder.Append(multiline ? '\n' : ' ');
+                builder.Append(',');
+
+                if (value.Comments.InlineComment != null)
+                {
+                    builder.Append(" # ")
+                        .Append(value.Comments.InlineComment);
+                }
+            }
+
+            builder.Append(sep);
 
             builder.Append(']');
 
@@ -62,14 +84,41 @@ namespace Tomlet.Models
 
             var builder = new StringBuilder();
 
+            if (Comments.InlineComment != null)
+                throw new Exception("Sorry, but inline comments aren't supported on table-arrays themselves. See https://github.com/SamboyCoding/Tomlet/blob/master/docs/InlineCommentsOnTableArrays.md for my rationale on this.");
+
+            var first = true;
             foreach (var value in this)
             {
                 if (value is not TomlTable table)
                     throw new Exception($"Toml Table-Array contains non-table entry? Value is {value}");
 
-                builder.Append("[[").Append(key).Append("]]").Append('\n');
+                if (value.Comments.PrecedingComment != null)
+                {
+                    if (first && Comments.PrecedingComment != null)
+                        //if we have a preceding comment on the array itself, we add a blank line
+                        //prior to the preceding comment on the first table.
+                        builder.Append('\n');
+                    
+                    builder.Append(value.Comments.FormatPrecedingComment())
+                        .Append('\n');
+                }
 
-                builder.Append(table.SerializeNonInlineTable(key, false)).Append('\n');
+                first = false;
+
+                //Write table-array header
+                builder.Append("[[").Append(key).Append("]]");
+
+                if (value.Comments.InlineComment != null)
+                    //Append inline comment on the table itself to the table-array header. 
+                    builder.Append(" # ").Append(value.Comments.InlineComment);
+
+                //Blank line before the table body itself
+                builder.Append('\n');
+
+                //Write table body without header (as we just wrote that), then a blank line.
+                builder.Append(table.SerializeNonInlineTable(key, false))
+                    .Append('\n');
             }
 
             return builder.ToString();

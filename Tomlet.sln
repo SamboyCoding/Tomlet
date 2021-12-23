@@ -10,6 +10,7 @@ ProjectSection(SolutionItems) = preProject
 	CHANGELOG.md = CHANGELOG.md
 	README.md = README.md
 	.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+	Docs\InlineCommentsOnTableArrays.md = Docs\InlineCommentsOnTableArrays.md
 EndProjectSection
 EndProject
 Global

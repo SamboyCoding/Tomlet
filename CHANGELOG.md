@@ -23,6 +23,14 @@
   - [1.0.1](#101)
   - [1.0.0](#100)
 
+## 2.3.0
+- **This version is not yet released, and this changelog is WIP**
+- Added support for comments.
+- Generally cleaned up the codebase.
+- TomlArray#Add and TomlTable#Put now handle you providing them an already-serialized TOML value instead of double-serializing.
+- Finished adding tests for invalid input. Some very minor output changes could be possible, including:
+  - Arrays now output a trailing comma. This is valid TOML and was a choice made to keep the code cleaner. 
+
 ## 2.2.0
 
 - Wrote some tests to test behavior around invalid input. As a result of this, some behavior has changed to bring it in line with the TOML spec. Notably:

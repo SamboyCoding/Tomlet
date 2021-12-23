@@ -2,6 +2,8 @@
 {
     public abstract class TomlValue
     {
+        public TomlCommentData Comments { get; } = new();
+        
         public abstract string StringValue
         {
             get;
