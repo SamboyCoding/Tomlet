@@ -102,4 +102,50 @@ shape = "round"
 [[fruits.physical]]
 color = "green"</value>
     </data>
+    <data name="TomlInlineTableWithNewlineExample" xml:space="preserve">
+        <value>key = {a = 1, b = 2,
+c = 3}</value>
+    </data>
+    <data name="TomlDoubleDottedKeyExample" xml:space="preserve">
+        <value>myTable..badKey = "hello"</value>
+    </data>
+    <data name="TomlInlineTableWithMissingSeparatorExample" xml:space="preserve">
+        <value>key = {a = "one" b = "two"}</value>
+    </data>
+    <data name="TomlBadStringExample" xml:space="preserve">
+        <value>key = ""hello, world""</value>
+    </data>
+    <data name="TomlTripleQuotedKeyExample" xml:space="preserve">
+        <value>"""key""" = 1</value>
+    </data>
+    <data name="TomlWhitespaceInKeyExample" xml:space="preserve">
+        <value>key name = 1</value>
+    </data>
+    <data name="TomlMissingEqualsExample" xml:space="preserve">
+        <value>"key" 1</value>
+    </data>
+    <data name="TomlTripleSingleQuoteInStringExample" xml:space="preserve">
+        <value>key = '''literally three quotes: ''''''</value>
+    </data>
+    <data name="TomlTripleDoubleQuoteInStringExample" xml:space="preserve">
+        <value>key = """literally three quotes: """"""</value>
+    </data>
+    <data name="TomlUnterminatedArrayExample" xml:space="preserve">
+        <value>arr = [1, 2
+anotherKey = "hello"</value>
+    </data>
+    <data name="TomlUnterminatedQuotedKeyExample" xml:space="preserve">
+        <value>"key = 1</value>
+    </data>
+    <data name="TomlUnterminatedStringExample" xml:space="preserve">
+        <value>key = "one</value>
+    </data>
+    <data name="TomlUnterminatedTableArrayExample" xml:space="preserve">
+        <value>[[array
+one = 1</value>
+    </data>
+    <data name="TomlUnterminatedTableExample" xml:space="preserve">
+        <value>[table
+one = 1</value>
+    </data>
 </root>

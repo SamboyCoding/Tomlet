@@ -131,18 +131,18 @@ namespace Tomlet
                 if (reader.TryPeek(out var maybeSecondDoubleQuote) && maybeSecondDoubleQuote.IsDoubleQuote())
                 {
                     reader.Read(); //Consume second double quote.
-                    
+
                     //Check for third quote => invalid key
                     //Else => empty key
                     if (reader.TryPeek(out var maybeThirdDoubleQuote) && maybeThirdDoubleQuote.IsDoubleQuote())
                         throw new TomlTripleQuotedKeyException(_lineNumber);
-                    
+
                     return string.Empty;
                 }
-                
+
                 //We delegate to the dedicated string reading function here because a double-quoted key can contain everything a double-quoted string can. 
                 key = '"' + ReadSingleLineBasicString(reader, false).StringValue + '"';
-                
+
                 if (!reader.ExpectAndConsume('"'))
                     throw new UnterminatedTomlKeyException(_lineNumber);
             }
@@ -157,7 +157,7 @@ namespace Tomlet
             }
             else
                 //Read unquoted key
-                key = ReadKeyInternal(reader, keyChar => keyChar.IsEquals() || keyChar.IsHashSign() || keyChar.IsWhitespace());
+                key = ReadKeyInternal(reader, keyChar => keyChar.IsEquals() || keyChar.IsHashSign());
 
             key = key.Replace("\\n", "\n")
                 .Replace("\\t", "\t");
@@ -168,7 +168,7 @@ namespace Tomlet
         private string ReadKeyInternal(TomletStringReader reader, Func<int, bool> charSignalsEndOfKey)
         {
             var parts = new List<string>();
-            
+
             //Parts loop
             while (reader.TryPeek(out var nextChar))
             {
@@ -182,30 +182,38 @@ namespace Tomlet
                 //Part loop
                 while (reader.TryPeek(out nextChar))
                 {
-                    
                     var numLeadingWhitespace = reader.SkipWhitespace();
-                    reader.TryPeek(out var maybePeriod);
-                    if (maybePeriod.IsPeriod())
+                    reader.TryPeek(out var charAfterWhitespace);
+                    if (charAfterWhitespace.IsPeriod())
                     {
                         //Whitespace is permitted in keys only around periods
                         parts.Add(thisPart.ToString()); //Add this part
-                        
+
                         //Consume period and any trailing whitespace
                         reader.ExpectAndConsume('.');
                         reader.SkipWhitespace();
                         break; //End of part, move to next
                     }
 
-                    //Un-skip the whitespace
-                    reader.Backtrack(numLeadingWhitespace);
-
-                    if(charSignalsEndOfKey(nextChar)) {
+                    if (numLeadingWhitespace > 0 && charSignalsEndOfKey(charAfterWhitespace))
+                    {
                         //Add this part to the list of parts and break out of the loop, without consuming the char (it'll be picked up by the outer loop)
                         parts.Add(thisPart.ToString());
                         break;
                     }
-                    
-                    if(numLeadingWhitespace > 0)
+
+                    //Un-skip the whitespace
+                    reader.Backtrack(numLeadingWhitespace);
+
+                    //NextChar is still the whitespace itself
+                    if (charSignalsEndOfKey(nextChar))
+                    {
+                        //Add this part to the list of parts and break out of the loop, without consuming the char (it'll be picked up by the outer loop)
+                        parts.Add(thisPart.ToString());
+                        break;
+                    }
+
+                    if (numLeadingWhitespace > 0)
                         //Whitespace is not allowed outside of the area immediately around a period in a dotted key
                         throw new TomlWhitespaceInKeyException(_lineNumber);
 
@@ -388,9 +396,6 @@ namespace Tomlet
                 if (!reader.ExpectAndConsume('"'))
                     throw new UnterminatedTomlStringException(_lineNumber);
             }
-            else if (!reader.TryPeek(out _))
-                //We didn't want to consume the quote, but there wasn't one anyway
-                throw new UnterminatedTomlStringException(_lineNumber);
 
             return new TomlString(content.ToString());
         }
@@ -474,7 +479,7 @@ namespace Tomlet
             if (!terminatingChar.IsSingleQuote())
                 throw new UnterminatedTomlStringException(_lineNumber);
 
-            if(consumeClosingQuote)
+            if (consumeClosingQuote)
                 reader.Read(); //Consume terminating quote.
 
             return new TomlString(stringContent);
@@ -724,8 +729,7 @@ namespace Tomlet
                 reader.ExpectAndConsume(','); //We've already verified we have one.
             }
 
-            if (!reader.ExpectAndConsume(']'))
-                throw new UnterminatedTomlArrayException(_lineNumber);
+            reader.ExpectAndConsume(']');
 
             return result;
         }
@@ -739,7 +743,7 @@ namespace Tomlet
             //Move to the first key
             _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
 
-            var result = new TomlTable { Defined = true };
+            var result = new TomlTable {Defined = true};
 
             while (reader.TryPeek(out _))
             {
@@ -766,7 +770,7 @@ namespace Tomlet
                     //Insert into the table
                     result.ParserPutValue(key, value, _lineNumber);
                 }
-                catch (TomlException ex) when (ex is TomlMissingEqualsException || ex is NoTomlKeyException)
+                catch (TomlException ex) when (ex is TomlMissingEqualsException or NoTomlKeyException or TomlWhitespaceInKeyException)
                 {
                     //Wrap missing keys or equals signs in a parent exception.
                     throw new InvalidTomlInlineTableException(_lineNumber, ex);
@@ -790,8 +794,7 @@ namespace Tomlet
                 throw new TomlInlineTableSeparatorException(_lineNumber, (char) postValueChar);
             }
 
-            if (!reader.ExpectAndConsume('}'))
-                throw new UnterminatedTomlInlineObjectException(_lineNumber);
+            reader.ExpectAndConsume('}');
 
             result.Locked = true; //Defined inline, cannot be later modified
             return result;
@@ -833,7 +836,7 @@ namespace Tomlet
                 }
                 else
                 {
-                    table = new TomlTable { Defined = true };
+                    table = new TomlTable {Defined = true};
                     parent.ParserPutValue(relativeKey, table, _lineNumber);
                 }
             }
@@ -885,7 +888,7 @@ namespace Tomlet
 
             if (parentTable == document)
             {
-                if(relativeKey.Contains('.'))
+                if (relativeKey.Contains('.'))
                     throw new MissingIntermediateInTomlTableArraySpecException(_lineNumber, relativeKey);
             }
 
@@ -906,13 +909,13 @@ namespace Tomlet
             }
             else
             {
-                array = new TomlArray { IsLockedToBeTableArray = true };
+                array = new TomlArray {IsLockedToBeTableArray = true};
                 //Insert into parent table
                 parentTable.ParserPutValue(relativeKey, array, _lineNumber);
             }
 
             // Create new table and add it to the array
-            _currentTable = new TomlTable { Defined = true };
+            _currentTable = new TomlTable {Defined = true};
             array.ArrayValues.Add(_currentTable);
 
             //Save table names
@@ -936,7 +939,7 @@ namespace Tomlet
                 }
                 else if (value is TomlArray array)
                 {
-                    parent = (TomlTable)array.Last();
+                    parent = (TomlTable) array.Last();
                 }
                 else
                 {

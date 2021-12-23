@@ -1,6 +1,7 @@
 using System;
 using Tomlet.Exceptions;
 using Tomlet.Models;
+using Tomlet.Tests.TestModelClasses;
 using Xunit;
 
 namespace Tomlet.Tests;
@@ -8,6 +9,38 @@ namespace Tomlet.Tests;
 public class ExceptionTests
 {
     private TomlDocument GetDocument(string resource) => new TomlParser().Parse(resource);
+    
+    private static void AssertThrows<T>(Action what) where T: Exception
+    {
+        Assert.Throws<T>(() =>
+        {
+            try
+            {
+                what();
+            }
+            catch (Exception e)
+            {
+                var _ = e.Message; //Call this for coverage idc
+                throw;
+            }
+        });
+    }
+
+    private static void AssertThrows<T>(Func<object> what) where T: Exception
+    {
+        Assert.Throws<T>(() =>
+        {
+            try
+            {
+                what();
+            }
+            catch (Exception e)
+            {
+                var _ = e.Message; //Call this for coverage idc
+                throw;
+            }
+        });
+    }
 
     [Fact]
     public void InvalidInlineTablesThrow() => 
@@ -83,6 +116,84 @@ public class ExceptionTests
     [Fact]
     public void ReDefiningAnArrayAsATableArrayThrowsAnException() => 
         AssertThrows<TomlNonTableArrayUsedAsTableArrayException>(() => GetDocument(DeliberatelyIncorrectTestResources.ReDefiningAnArrayAsATableArrayIsAnErrorTestInput));
+    
+    [Fact]
+    public void InlineTablesWithNewlinesThrowAnException() => 
+        AssertThrows<NewLineInTomlInlineTableException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlInlineTableWithNewlineExample));
+    
+    [Fact]
+    public void DoubleDottedKeysThrowAnException() => 
+        AssertThrows<TomlDoubleDottedKeyException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlDoubleDottedKeyExample));
+    
+    [Fact]
+    public void MissingTheCommaInAnInlineTableThrows() => 
+        AssertThrows<TomlInlineTableSeparatorException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlInlineTableWithMissingSeparatorExample));
+
+    [Fact]
+    public void ConvertingAPrimitiveToADocumentThrows() =>
+        AssertThrows<TomlPrimitiveToDocumentException>(() => TomletMain.DocumentFrom("hello"));
+    
+    [Fact]
+    public void BadTomlStringThrows() =>
+        AssertThrows<TomlStringException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadStringExample));
+
+    [Fact]
+    public void TripleQuotedKeysThrow() => 
+        AssertThrows<TomlTripleQuotedKeyException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTripleQuotedKeyExample));
+    
+    [Fact]
+    public void WhitespaceInKeyThrows() => 
+        AssertThrows<TomlWhitespaceInKeyException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlWhitespaceInKeyExample));
+    
+    [Fact]
+    public void MissingEqualsSignThrows() => 
+        AssertThrows<TomlMissingEqualsException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlMissingEqualsExample));
+    
+    [Fact]
+    public void TripleSingleQuoteInStringThrows() => 
+        AssertThrows<TripleQuoteInTomlMultilineLiteralException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTripleSingleQuoteInStringExample));
+    
+    [Fact]
+    public void TripleDoubleQuoteInStringThrows() => 
+        AssertThrows<TripleQuoteInTomlMultilineSimpleStringException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTripleDoubleQuoteInStringExample));
+    
+    [Fact]
+    public void UnterminatedKeyThrows() => 
+        AssertThrows<UnterminatedTomlKeyException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlUnterminatedQuotedKeyExample));
+    
+    [Fact]
+    public void UnterminatedStringThrows() =>
+        AssertThrows<UnterminatedTomlStringException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlUnterminatedStringExample));
+    
+    [Fact]
+    public void UnterminatedTableArrayThrows() => 
+        AssertThrows<UnterminatedTomlTableArrayException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlUnterminatedTableArrayExample));
+    
+    [Fact]
+    public void UnterminatedTableNameThrows() => 
+        AssertThrows<UnterminatedTomlTableNameException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlUnterminatedTableExample));
+
+    //These are all runtime mistakes on otherwise-valid TOML documents, so they aren't in the DeliberatelyIncorrectTestResources file.
+    
+    [Fact]
+    public void UnInstantiableObjectsThrow() => 
+        AssertThrows<TomlInstantiationException>(() => TomletMain.To<IConvertible>(""));
+    
+    [Fact]
+    public void MismatchingTypesInPrimitiveMappingThrows() => 
+        AssertThrows<TomlTypeMismatchException>(() => TomletMain.To<float>(GetDocument("MyFloat = \"hello\"").GetValue("MyFloat")));
+
+    [Fact]
+    public void GettingAValueWhichDoesntExistThrows() =>
+        AssertThrows<TomlNoSuchValueException>(() => GetDocument("MyString = \"hello\"").GetValue("MyFloat"));
+    
+    [Fact]
+    public void MismatchingTypesInDeserializationThrow() => 
+        AssertThrows<TomlFieldTypeMismatchException>(() => TomletMain.To<SimplePropertyTestClass>("MyFloat = \"hello\""));
+
+    [Fact]
+    public void AskingATableForTheValueAssociatedWithAnInvalidKeyThrows() =>
+        AssertThrows<InvalidTomlKeyException>(() => GetDocument("").GetBoolean("\"I am invalid'"));
 
     [Fact]
     public void BadKeysThrow()
@@ -91,37 +202,5 @@ public class ExceptionTests
         
         //A key with both quotes
         AssertThrows<InvalidTomlKeyException>(() => doc.GetLong("\"hello'"));
-    }
-
-    private static void AssertThrows<T>(Action what) where T: Exception
-    {
-        Assert.Throws<T>(() =>
-        {
-            try
-            {
-                what();
-            }
-            catch (Exception e)
-            {
-                var _ = e.Message; //Call this for coverage idc
-                throw;
-            }
-        });
-    }
-
-    private static void AssertThrows<T>(Func<object> what) where T: Exception
-    {
-        Assert.Throws<T>(() =>
-        {
-            try
-            {
-                what();
-            }
-            catch (Exception e)
-            {
-                var _ = e.Message; //Call this for coverage idc
-                throw;
-            }
-        });
     }
 }

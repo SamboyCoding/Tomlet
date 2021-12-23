@@ -37,7 +37,16 @@ internal static class TomlCompositeDeserializer
             fields = fields.Where(f => !f.IsNotSerialized).ToArray();
 
             if (fields.Length == 0)
-                return _ => Activator.CreateInstance(type)!;
+                return _ =>
+                {
+                    try
+                    {
+                        return Activator.CreateInstance(type)!;
+                    } catch(MissingMethodException)
+                    {
+                        throw new TomlInstantiationException(type);
+                    }
+                };
 
             deserializer = value =>
             {
