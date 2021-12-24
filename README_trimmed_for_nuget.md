@@ -4,24 +4,13 @@
 [![NuGet](https://img.shields.io/nuget/v/Samboy063.Tomlet)](https://www.nuget.org/packages/Samboy063.Tomlet/)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/SamboyCoding/Tomlet/.NET)
 ![Toml Version](https://img.shields.io/badge/TOML%20Version-1.0.0-blue)
+[![Coverage Status](https://coveralls.io/repos/github/SamboyCoding/Tomlet/badge.svg?branch=master)](https://coveralls.io/github/SamboyCoding/Tomlet?branch=master)
 
 ### I have a [discord server](https://discord.gg/CfPSP5GMMv) for support
 
 Tomlet is a zero-dependency library for the [TOML](https://toml.io/) configuration file format. It's targeting [TOML v1.0.0](https://toml.io/en/v1.0.0).
 
-Currently supported features are as follows:
-
-- [x] Primitive key-value pair reading
-- [x] Table Reading
-- [x] Inline Table Reading
-- [x] Array Reading
-- [x] Table-Array Reading
-- [x] Primitive key-value pair writing
-- [x] Table Writing
-- [x] Inline Table Writing
-- [x] Array Writing
-- [x] Table-Array Writing
-- [x] Full Unit Tests for everything supported here.
+The entire 1.0.0 specification as described [here](https://toml.io/en/v1.0.0) is implemented.  
 
 ## A word on dotted keys
 
@@ -66,6 +55,19 @@ class MyClass {
     public string Password { get; set; }
 }
 ```
+
+### Comments
+
+Comments are parsed and stored alongside their corresponding values, where possible. Every instance of `TomlValue`
+has a `Comments` property, which contains both the "inline" and "preceding" comments. Precending comments are
+the comments that appear before the value (and therefore can span multiple lines), and inline comments are
+the comments that appear on the same line as the value (and thus must be a single line).
+
+Any preceding comment which is not associated with a value (i.e. it is placed after the last value) will be
+stored in the `TrailingComment` property of the TOML document itself, and will be re-serialized from there.
+
+If you're using Tomlet's reflective serialization feature (i.e. `TomletMain.____From`), you can use the `TomlInlineComment` and `TomlPrecedingComment`
+attributes on fields or properties to specify the respective comments.
 
 ### Parse a TOML File
 

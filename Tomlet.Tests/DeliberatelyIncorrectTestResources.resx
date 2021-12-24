@@ -148,4 +148,15 @@ one = 1</value>
         <value>[table
 one = 1</value>
     </data>
+    <data name="InlineTableLockedTestInput" xml:space="preserve">
+        <value>type = { name = "Nail" }
+type.edible = false  # INVALID</value>
+    </data>
+    <data name="TableRedefinitionTestInput" xml:space="preserve">
+        <value>[fruit]
+apple = "red"
+
+[fruit]
+orange = "orange"</value>
+    </data>
 </root>

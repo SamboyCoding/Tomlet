@@ -205,10 +205,6 @@ empty = {   }
 point = { x = 1, y = 2 }
 animal = { type.name = "pug" }</value>
     </data>
-    <data name="InlineTableLockedTestInput" xml:space="preserve">
-        <value>type = { name = "Nail" }
-type.edible = false  # INVALID</value>
-    </data>
     <data name="BasicTableTestInput" xml:space="preserve">
         <value>[table-1]
 key1 = "some string"
@@ -221,13 +217,6 @@ key2 = 456</value>
     <data name="TableWithQuotedDottedStringTestInput" xml:space="preserve">
         <value>[dog."tater.man"]
 type.name = "pug"</value>
-    </data>
-    <data name="TableRedefinitionTestInput" xml:space="preserve">
-        <value>[fruit]
-apple = "red"
-
-[fruit]
-orange = "orange"</value>
     </data>
     <data name="ComplexTableArrayTestInput" xml:space="preserve">
         <value>[[fruits]]

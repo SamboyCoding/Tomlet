@@ -56,11 +56,5 @@ namespace Tomlet.Tests
             
             Assert.Equal("pug", document.GetSubTable("dog").GetSubTable("tater.man").GetSubTable("type").GetString("name"));
         }
-
-        [Fact]
-        public void ReDefiningATableThrowsAnException()
-        {
-            Assert.Throws<TomlTableRedefinitionException>(() => GetDocument(TestResources.TableRedefinitionTestInput));
-        }
     }
 }

@@ -172,6 +172,14 @@ public class ExceptionTests
     [Fact]
     public void UnterminatedTableNameThrows() => 
         AssertThrows<UnterminatedTomlTableNameException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlUnterminatedTableExample));
+    
+    [Fact]
+    public void AttemptingToModifyInlineTablesThrowsAnException() => 
+        AssertThrows<TomlTableLockedException>(() => GetDocument(DeliberatelyIncorrectTestResources.InlineTableLockedTestInput));
+    
+    [Fact]
+    public void ReDefiningATableThrowsAnException() => 
+        AssertThrows<TomlTableRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.TableRedefinitionTestInput));
 
     //These are all runtime mistakes on otherwise-valid TOML documents, so they aren't in the DeliberatelyIncorrectTestResources file.
     

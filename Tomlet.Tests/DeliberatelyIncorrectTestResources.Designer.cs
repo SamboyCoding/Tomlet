@@ -230,5 +230,17 @@ namespace Tomlet.Tests {
                 return ResourceManager.GetString("TomlUnterminatedTableExample", resourceCulture);
             }
         }
+        
+        internal static string InlineTableLockedTestInput {
+            get {
+                return ResourceManager.GetString("InlineTableLockedTestInput", resourceCulture);
+            }
+        }
+        
+        internal static string TableRedefinitionTestInput {
+            get {
+                return ResourceManager.GetString("TableRedefinitionTestInput", resourceCulture);
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Tomlet.Exceptions;
 using Tomlet.Models;
+using Tomlet.Tests.TestModelClasses;
 using Xunit;
 
 namespace Tomlet.Tests
@@ -26,9 +27,18 @@ namespace Tomlet.Tests
         }
 
         [Fact]
-        public void AttemptingToModifyInlineTablesThrowsAnException()
+        public void TablesWithKeysContainingWhitespaceDoNotSerializeInline()
         {
-            Assert.Throws<TomlTableLockedException>(() => GetDocument(TestResources.InlineTableLockedTestInput));
+            //Serializing these inline means we have to duplicate all the key quoting shenanigans, it's easier just to not inline them
+            var obj = new KeyWithWhitespaceTestClass() {KeyWithWhitespace = "hello"};
+            var document = TomlDocument.CreateEmpty();
+            document.Put("myTable", obj);
+
+            var tomlString = document.SerializedValue;
+            var doc = GetDocument(tomlString);
+            var newObj = TomletMain.To<KeyWithWhitespaceTestClass>(doc.GetSubTable("myTable"));
+            
+            Assert.Equal(obj.KeyWithWhitespace, newObj.KeyWithWhitespace);
         }
     }
 }

@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [3.0.1](#301)
   - [3.0.0](#300)
   - [2.2.0](#220)
   - [2.1.0](#210)
@@ -23,6 +24,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 3.0.1
+- Hotfix for an issue where the new, preferred, inline serialization would create invalid TOML documents
+due to not quoting keys.
 
 ## 3.0.0
 - BREAKING CHANGE: Moved TomlPropertyAttribute to the `Tomlet.Attributes` namespace.

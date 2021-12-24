@@ -237,12 +237,6 @@ namespace Tomlet.Tests {
             }
         }
         
-        internal static string InlineTableLockedTestInput {
-            get {
-                return ResourceManager.GetString("InlineTableLockedTestInput", resourceCulture);
-            }
-        }
-        
         internal static string BasicTableTestInput {
             get {
                 return ResourceManager.GetString("BasicTableTestInput", resourceCulture);
@@ -252,12 +246,6 @@ namespace Tomlet.Tests {
         internal static string TableWithQuotedDottedStringTestInput {
             get {
                 return ResourceManager.GetString("TableWithQuotedDottedStringTestInput", resourceCulture);
-            }
-        }
-        
-        internal static string TableRedefinitionTestInput {
-            get {
-                return ResourceManager.GetString("TableRedefinitionTestInput", resourceCulture);
             }
         }
         
