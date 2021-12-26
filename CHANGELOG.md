@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [3.1.0](#310)
   - [3.0.1](#301)
   - [3.0.0](#300)
   - [2.2.0](#220)
@@ -24,6 +25,14 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 3.1.0
+
+- Added `Tomlet.Attributes.TomlDoNotInlineObjectAttribute` and `TomlTable#ForceNoInline` 
+to disable inlining of simple tables
+- Made TomlBoolean no longer a singleton class so that comments do not get duplicated to all true/false
+Toml values.
+- Adjusted some formatting around table headers when serializing
 
 ## 3.0.1
 - Hotfix for an issue where the new, preferred, inline serialization would create invalid TOML documents

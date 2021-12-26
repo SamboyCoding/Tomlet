@@ -2,8 +2,8 @@
 {
     public class TomlBoolean : TomlValue
     {
-        public static readonly TomlBoolean True = new(true);
-        public static readonly TomlBoolean False = new(false);
+        public static TomlBoolean True => new(true);
+        public static TomlBoolean False => new(false);
         
         private bool _value;
         private TomlBoolean(bool value)

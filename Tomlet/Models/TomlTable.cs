@@ -14,12 +14,14 @@ namespace Tomlet.Models
 
         internal bool Locked;
         internal bool Defined;
+        
+        public bool ForceNoInline { get; set; }
 
         public override string StringValue => $"Table ({Entries.Count} entries)";
 
         public HashSet<string> Keys => new(Entries.Keys);
 
-        public bool ShouldBeSerializedInline => Entries.Count < 4 
+        public bool ShouldBeSerializedInline => !ForceNoInline && Entries.Count < 4 
                                                 && Entries.All(e => !e.Key.Contains(" ") 
                                                                     && e.Value.Comments.ThereAreNoComments 
                                                                     && (e.Value is TomlArray arr ? arr.IsSimpleArray : e.Value is not TomlTable));
@@ -93,6 +95,10 @@ namespace Tomlet.Models
                 keyName = EscapeKeyIfNeeded(keyName);
 
             var fullSubKey = keyName == null ? subKey : $"{keyName}.{subKey}";
+            
+            if(value is TomlTable {ShouldBeSerializedInline: false} or TomlArray {CanBeSerializedInline: true})
+                //Put a newline before the header on any table array etc
+                builder.Append("\n");
             
             //Handle any preceding comment - this will ALWAYS go before any sort of value
             if (value.Comments.PrecedingComment != null)
