@@ -986,7 +986,7 @@ namespace Tomlet
             var ret = new StringBuilder();
             while (reader.ExpectAndConsume('#'))
             {
-                var line = reader.ReadWhile(c => c != '\n');
+                var line = reader.ReadWhile(c => !c.IsNewline());
                 
                 if(line[0] == ' ')
                     line = line.Substring(1);

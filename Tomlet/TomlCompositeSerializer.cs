@@ -28,6 +28,8 @@ internal static class TomlCompositeSerializer
             var propAttribs = props
                 .ToDictionary(p => p, p => new {inline = p.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = p.GetCustomAttribute<TomlPrecedingCommentAttribute>()});
 
+            var isForcedNoInline = type.GetCustomAttribute<TomlDoNotInlineObjectAttribute>() != null;
+
             //Ignore NonSerialized fields.
             fields = fields.Where(f => !f.IsNotSerialized).ToArray();
 
@@ -39,7 +41,7 @@ internal static class TomlCompositeSerializer
                 if (instance == null)
                     throw new ArgumentNullException(nameof(instance), "Object being serialized is null. TOML does not support null values.");
 
-                var resultTable = new TomlTable();
+                var resultTable = new TomlTable {ForceNoInline = isForcedNoInline};
 
                 foreach (var field in fields)
                 {

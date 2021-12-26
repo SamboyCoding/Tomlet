@@ -43,6 +43,12 @@ var myClass = TomletMain.To<MyClass>(myString); //Requires a public, zero-argume
 Console.WriteLine(myClass.configurationFileVersion); //Or whatever properties you define.
 ```
 
+### Disable table inlining
+
+By default, Tomlet tries to inline simple tables to reduce the document size. If you don't want this behavior,
+either set `TomlTable#ForceNoInline` (if manually building a Toml doc), or use the 
+`TomlDoNotInlineObjectAttribute` on a class to force all instances of that class to be serialized as a full table.
+
 ### Change what name Tomlet uses to de/serialize a field
 
 Given that you had the above setup and were serializing a class using `TomletMain.TomlStringFrom(myClass)`, you could override TOML key names like so:
