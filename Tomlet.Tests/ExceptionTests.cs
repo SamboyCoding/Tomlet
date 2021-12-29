@@ -180,6 +180,10 @@ public class ExceptionTests
     [Fact]
     public void ReDefiningATableThrowsAnException() => 
         AssertThrows<TomlTableRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.TableRedefinitionTestInput));
+    
+    [Fact]
+    public void UnicodeControlCharsThrowAnException() => 
+        AssertThrows<TomlUnescapedUnicodeControlCharException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlNullBytesExample));
 
     //These are all runtime mistakes on otherwise-valid TOML documents, so they aren't in the DeliberatelyIncorrectTestResources file.
     

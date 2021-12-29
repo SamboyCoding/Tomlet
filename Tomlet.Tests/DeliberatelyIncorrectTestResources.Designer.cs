@@ -242,5 +242,11 @@ namespace Tomlet.Tests {
                 return ResourceManager.GetString("TableRedefinitionTestInput", resourceCulture);
             }
         }
+        
+        internal static string TomlNullBytesExample {
+            get {
+                return ResourceManager.GetString("TomlNullBytesExample", resourceCulture);
+            }
+        }
     }
 }

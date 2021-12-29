@@ -3,68 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Tomlet.Exceptions;
 
 namespace Tomlet
 {
     internal static class Extensions
     {
-        internal static bool IsWhitespace(this int val)
+        private static readonly HashSet<int> IllegalChars = new ()
         {
-            if (val == '\n' || val == '\r')
-                return false; //TOML defines these as non-whitespace
-            
-            return char.IsWhiteSpace((char) val);
-        }
-
-        internal static bool IsEquals(this int val)
-        {
-            return val == '=';
-        }
-
-        internal static bool IsSingleQuote(this int val)
-        {
-            return val == '\'';
-        }
-
-        internal static bool IsDoubleQuote(this int val)
-        {
-            return val == '"';
-        }
-
-        internal static bool IsHashSign(this int val)
-        {
-            return val == '#';
-        }
-
-        internal static bool IsNewline(this int val)
-        {
-            return val == '\r' || val == '\n';
-        }
-
-        internal static bool IsDigit(this int val)
-        {
-            return char.IsDigit((char) val);
-        }
-
-        internal static bool IsComma(this int val)
-        {
-            return val == ',';
-        }
+            '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007',
+            '\u0008', '\u000b', '\u000e', '\u000f', '\u0010', '\u0011', '\u0012', '\u0013',
+            '\u0014', '\u0015', '\u0016', '\u0017', '\u0018', '\u0019', '\u001a', '\u001b',
+            '\u001c', '\u001d', '\u001e', '\u001f', '\u007f'
+        };
         
-        internal static bool IsPeriod(this int val)
-        {
-            return val == '.';
-        }
+        internal static bool IsWhitespace(this int val) => !val.IsNewline() && char.IsWhiteSpace((char) val);
 
-        internal static bool IsEndOfArrayChar(this int val)
-        {
-            return val == ']';
-        }
+        internal static bool IsEquals(this int val) => val == '=';
 
-        internal static bool IsEndOfInlineObjectChar(this int val)
-        {
-            return val == '}';
-        }
+        internal static bool IsSingleQuote(this int val) => val == '\'';
+
+        internal static bool IsDoubleQuote(this int val) => val == '"';
+
+        internal static bool IsHashSign(this int val) => val == '#';
+
+        internal static bool IsNewline(this int val) => val is '\r' or '\n';
+
+        internal static bool IsDigit(this int val) => char.IsDigit((char) val);
+
+        internal static bool IsComma(this int val) => val == ',';
+
+        internal static bool IsPeriod(this int val) => val == '.';
+
+        internal static bool IsEndOfArrayChar(this int val) => val == ']';
+
+        internal static bool IsEndOfInlineObjectChar(this int val) => val == '}';
 
         internal static bool IsHexDigit(this char c)
         {
@@ -83,10 +56,7 @@ namespace Tomlet
             return nextChar != -1;
         }
         
-        internal static int SkipWhitespace(this TomletStringReader reader)
-        {
-            return reader.ReadWhile(c => c.IsWhitespace()).Length;
-        }
+        internal static int SkipWhitespace(this TomletStringReader reader) => reader.ReadWhile(c => c.IsWhitespace()).Length;
 
         internal static void SkipPotentialCarriageReturn(this TomletStringReader reader)
         {
@@ -122,10 +92,7 @@ namespace Tomlet
             return countRead;
         }
         
-        internal static int SkipAnyNewline(this TomletStringReader reader)
-        {
-            return reader.ReadWhile(c => c.IsNewline()).Count(c => c == '\n');
-        }
+        internal static int SkipAnyNewline(this TomletStringReader reader) => reader.ReadWhile(c => c.IsNewline()).Count(c => c == '\n');
 
         internal static char[] ReadChars(this TomletStringReader reader, int count)
         {
@@ -167,11 +134,14 @@ namespace Tomlet
             two = pair.Value;
         }
 
-        public static bool IsNullOrWhiteSpace(this string s)
-        {
-            return string.IsNullOrEmpty(s) || string.IsNullOrEmpty(s.Trim());
-        }
+        public static bool IsNullOrWhiteSpace(this string s) => string.IsNullOrEmpty(s) || string.IsNullOrEmpty(s.Trim());
 
         internal static T? GetCustomAttribute<T>(this MemberInfo info) where T : Attribute => info.GetCustomAttributes(false).Where(a => a is T).Cast<T>().FirstOrDefault();
+
+        internal static void EnsureLegalChar(this int c, int currentLineNum)
+        {
+            if (IllegalChars.Contains(c))
+                throw new TomlUnescapedUnicodeControlCharException(currentLineNum, c);
+        }
     }
 }

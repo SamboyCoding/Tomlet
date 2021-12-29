@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [3.1.1](#311)
   - [3.1.0](#310)
   - [3.0.1](#301)
   - [3.0.0](#300)
@@ -25,6 +26,12 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 3.1.1
+
+- Added `Tomlet.Exceptions.TomlUnescapedUnicodeControlCharException` for if one of the forbidden unicode
+control characters is used without being escaped. See the TOML spec sections on comments and strings for 
+full information.
 
 ## 3.1.0
 

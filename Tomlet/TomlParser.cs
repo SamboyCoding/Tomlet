@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -197,6 +196,8 @@ namespace Tomlet
                 //Part loop
                 while (reader.TryPeek(out nextChar))
                 {
+                    nextChar.EnsureLegalChar(_lineNumber);
+                    
                     var numLeadingWhitespace = reader.SkipWhitespace();
                     reader.TryPeek(out var charAfterWhitespace);
                     if (charAfterWhitespace.IsPeriod())
@@ -363,6 +364,7 @@ namespace Tomlet
             var unicodeStringBuilder = new StringBuilder();
             while (reader.TryPeek(out var nextChar))
             {
+                nextChar.EnsureLegalChar(_lineNumber);
                 if (nextChar == '"' && !escapeMode)
                     break;
 
@@ -483,6 +485,9 @@ namespace Tomlet
         {
             //Literally (hah) just read until a single-quote
             var stringContent = reader.ReadWhile(valueChar => !valueChar.IsSingleQuote() && !valueChar.IsNewline());
+            
+            foreach (var i in stringContent.Select(c => (int) c)) 
+                i.EnsureLegalChar(_lineNumber);
 
             if (!reader.TryPeek(out var terminatingChar))
                 //Unexpected EOF
@@ -505,6 +510,7 @@ namespace Tomlet
             while (reader.TryPeek(out _))
             {
                 var nextChar = reader.Read();
+                nextChar.EnsureLegalChar(_lineNumber);
 
                 if (!nextChar.IsSingleQuote())
                 {
@@ -586,6 +592,7 @@ namespace Tomlet
             while (reader.TryPeek(out _))
             {
                 var nextChar = reader.Read();
+                nextChar.EnsureLegalChar(_lineNumber);
 
                 if (nextChar == '\\' && !escapeMode)
                 {
@@ -976,7 +983,10 @@ namespace Tomlet
             
             if(ret[0] == ' ')
                 ret = ret.Substring(1);
-                
+            
+            foreach (var i in ret.Select(c => (int) c)) 
+                i.EnsureLegalChar(_lineNumber);
+
             return ret;
 
         }
@@ -990,6 +1000,9 @@ namespace Tomlet
                 
                 if(line[0] == ' ')
                     line = line.Substring(1);
+                
+                foreach (var i in line.Select(c => (int) c)) 
+                    i.EnsureLegalChar(_lineNumber);
                 
                 ret.Append(line);
 

@@ -159,4 +159,7 @@ apple = "red"
 [fruit]
 orange = "orange"</value>
     </data>
+    <data name="TomlNullBytesExample" xml:space="preserve">
+        <value>&#000;&#000;&#000;&#000;</value>
+    </data>
 </root>

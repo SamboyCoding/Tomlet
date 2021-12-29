@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Tomlet.Models
 {
     public class TomlString : TomlValue
     {
-        public static readonly TomlString Empty = new("");
-        
+        public static TomlString Empty => new("");
+
         private readonly string _value;
 
         public TomlString(string? value)
