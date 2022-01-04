@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [3.1.2](#312)
   - [3.1.1](#311)
   - [3.1.0](#310)
   - [3.0.1](#301)
@@ -26,6 +27,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 3.1.2
+
+- Fixed serialization of floating-point not-a-number (`nan`) and Infinity (`inf`) values and added a test for them.
 
 ## 3.1.1
 

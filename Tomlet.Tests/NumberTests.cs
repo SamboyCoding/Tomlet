@@ -138,5 +138,21 @@ namespace Tomlet.Tests
             //Test for long hex strings that don't fit in an int, even unsigned
             Assert.Equal(0x1234567890FD, document.GetLong("key2"));
         }
+
+        [Fact]
+        public void SpecialFloatConstantsSerializeWithTheCorrectValue()
+        {
+            var document = TomlDocument.CreateEmpty();
+            var originalFloat = float.NaN;
+            document.Put("float", originalFloat);
+
+            var serialized = document.SerializedValue.Trim();
+
+            var parsed = GetDocument(serialized);
+            var parsedFloat = parsed.GetFloat("float");
+            
+            Assert.Equal(originalFloat, parsedFloat);
+            Assert.Equal("float = nan", serialized);
+        }
     }
 }

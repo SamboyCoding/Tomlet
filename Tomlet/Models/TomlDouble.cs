@@ -23,8 +23,18 @@ namespace Tomlet.Models
 
         public bool HasDecimal => Value != (int) Value;
         public double Value => _value;
-        public override string StringValue => HasDecimal ? Value.ToString(CultureInfo.InvariantCulture) : $"{Value:F1}";
-        
+
+        public bool IsNaN => double.IsNaN(Value);
+        public bool IsInfinity => double.IsInfinity(Value);
+
+        public override string StringValue => this switch
+        {
+            {IsInfinity: true} => double.IsPositiveInfinity(Value) ? "inf" : "-inf",
+            {IsNaN: true} => "nan",
+            {HasDecimal: true} => Value.ToString(CultureInfo.InvariantCulture),
+            _ => $"{Value:F1}" //When no decimal, force a decimal point (.0) to force any consuming tools (including ourselves!) to re-parse as float.
+        };
+
         public override string SerializedValue => StringValue;
     }
 }
