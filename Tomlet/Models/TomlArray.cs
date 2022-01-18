@@ -85,7 +85,7 @@ namespace Tomlet.Models
             var builder = new StringBuilder();
 
             if (Comments.InlineComment != null)
-                throw new Exception("Sorry, but inline comments aren't supported on table-arrays themselves. See https://github.com/SamboyCoding/Tomlet/blob/master/docs/InlineCommentsOnTableArrays.md for my rationale on this.");
+                throw new Exception("Sorry, but inline comments aren't supported on table-arrays themselves. See https://github.com/SamboyCoding/Tomlet/blob/master/Docs/InlineCommentsOnTableArrays.md for my rationale on this.");
 
             var first = true;
             foreach (var value in this)
