@@ -94,11 +94,7 @@ namespace Tomlet.Models
             if(keyName != null)
                 keyName = EscapeKeyIfNeeded(keyName);
 
-            var fullSubKey = keyName == null ? subKey : $"{keyName}.{subKey}";
-            
-            if(value is TomlTable {ShouldBeSerializedInline: false} or TomlArray {CanBeSerializedInline: true})
-                //Put a newline before the header on any table array etc
-                builder.Append("\n");
+            var fullSubKey = keyName == null ? subKey : $"{keyName}.{subKey}";  
             
             //Handle any preceding comment - this will ALWAYS go before any sort of value
             if (value.Comments.PrecedingComment != null)
