@@ -8,9 +8,24 @@
 
 ### I have a [discord server](https://discord.gg/CfPSP5GMMv) for support
 
-Tomlet is a zero-dependency library for the [TOML](https://toml.io/) configuration file format. It's targeting [TOML v1.0.0](https://toml.io/en/v1.0.0).
+Tomlet is a zero-dependency library for the [TOML](https://toml.io/) configuration file format.
 
-The entire 1.0.0 specification as described [here](https://toml.io/en/v1.0.0) is implemented.  
+The entire [TOML 1.0.0 specification](https://toml.io/en/v1.0.0) is implemented.
+
+Tomlet does not preserve layout, ordering, or whitespace around entries in a document. When serialized, documents are ordered in such a way as to maximise human readability
+and predictability. This means:
+- Within a table (including the top-level document), simple key-value pairs (including inline arrays and inline tables) are first, followed by sub-tables, 
+followed by table-arrays.
+- Floating-point values are always serialized with a decimal part, even if that decimal part is zero. This is in the hope that any future parser therefore
+correctly identifies the value as a decimal.
+- Comments are sorted into "preceding" and "inline" and assigned to a specific value, or marked as trailing on the document. Preceding comments will be on the line(s)
+immediately prior to the value, with no blank line separating them, and inline comments follow the value after a single space. Trailing comments are put at the end of the
+document and are separated from the last key by one blank line.
+- Tables are serialized inline if, and only if, they are not marked as forced no-inline (via an attribute or property, see below for details), they contain fewer than four
+entries, all of their entries can also be serialized inline (nested inline tables are not permitted), and none of their entries contain comments.
+- Arrays are serialized all on one line if they are made up purely of primitives with no comments, over multiple lines if they contain any inline tables, arrays, or comments
+on individual entries, and as table-arrays if they contain only tables and one or more table cannot be serialized inline using the above rules. If an array contains mixed
+primitive values and tables that cannot be serialized inline, an exception is thrown when serializing the array.
 
 ## A word on dotted keys
 
@@ -65,7 +80,7 @@ class MyClass {
 ### Comments
 
 Comments are parsed and stored alongside their corresponding values, where possible. Every instance of `TomlValue`
-has a `Comments` property, which contains both the "inline" and "preceding" comments. Precending comments are
+has a `Comments` property, which contains both the "inline" and "preceding" comments. Preceding comments are
 the comments that appear before the value (and therefore can span multiple lines), and inline comments are
 the comments that appear on the same line as the value (and thus must be a single line).
 
@@ -95,8 +110,9 @@ TomlDocument document = parser.Parse(myTomlString);
 
 ### Creating your own mappers.
 
-By default, serialization will call ToString on an object, and deserialization will piece together an object field-by-field using reflection, excluding fields marked as 
-`[NonSerialized]`, and using a parameterless constructor to instantiate the object. 
+By default, serialization and deserialization are reflection-based. Both fields and properties are supported, and properties can be remapped (i.e. told not to
+use their name, but an alternative key) by using the `TomlProperty` attribute. Any fields or properties marked as `[NonSerialized]` are skipped over,
+both when serializing and deserializing, and deserializing requires a parameterless constructor to instantiate the object. 
 
 This approach should work for most model classes, but should something more complex be used, such as storing a colour as an integer/hex string, or if you have a more compact/proprietary
 method of serializing your classes, then you can override this default using code such as this:
@@ -121,9 +137,10 @@ TomletMain.RegisterMapper<Color>(
 );
 ```
 
-Calls to `TomletMain.RegisterMapper` can specify either the serializer or deserializer as `null`, in which case the default (de)serializer will be used.
+Calls to `TomletMain.RegisterMapper` can specify either the serializer or deserializer as `null`, in which case the default handler (usually reflection-based, unless
+you're overriding the behavior for primitive values, IEnumerables, or arrays) will be used.
 
-### Retrieve data from a TomlDocument
+### Manually retrieving data from a TomlDocument
 
 ```c#
 TomlDocument document; // See above for how to obtain one.
