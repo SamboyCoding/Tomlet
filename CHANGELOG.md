@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [3.1.3](#313)
   - [3.1.2](#312)
   - [3.1.1](#311)
   - [3.1.0](#310)
@@ -27,6 +28,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 3.1.3
+
+- Fixed spacing issues with TomlTable. Thanks to [HerpDerpinstine](https://github.com/HerpDerpinstine) for PRing this fix in [#16](https://github.com/SamboyCoding/Tomlet/pull/16)! 
 
 ## 3.1.2
 
