@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [3.1.4](#314)
   - [3.1.3](#313)
   - [3.1.2](#312)
   - [3.1.1](#311)
@@ -28,6 +29,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 3.1.4
+
+- Updated nuget package metadata to enable source link and deterministic builds, allowing you to verify the integrity of the build and see the source with comments in-ide.
 
 ## 3.1.3
 
