@@ -29,7 +29,7 @@ namespace Tomlet.Tests
 
             Assert.Single(document.Entries);
             Assert.Equal("str1", document.Entries.Keys.First());
-            Assert.Equal($"Roses are red\nViolets are blue", Assert.IsType<TomlString>(document.Entries.Values.First()).Value);
+            Assert.Equal($"Roses are red\nViolets are blue", Assert.IsType<TomlString>(document.Entries.Values.First()).Value.Replace("\r\n", "\n"));
         }
 
         [Fact]
@@ -124,7 +124,7 @@ namespace Tomlet.Tests
             //Check values
             Assert.Collection(document.Entries.Values,
                 entry => Assert.Equal(@"I [dw]on't need \d{2} apples", Assert.IsType<TomlString>(entry).Value),
-                entry => Assert.Equal($"The first newline is\ntrimmed in raw strings.\n   All other whitespace\n   is preserved.\n", Assert.IsType<TomlString>(entry).Value)
+                entry => Assert.Equal($"The first newline is\ntrimmed in raw strings.\n   All other whitespace\n   is preserved.\n", Assert.IsType<TomlString>(entry).Value.Replace("\r\n", "\n"))
             );
         }
         

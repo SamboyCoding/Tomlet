@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [3.2.0](#320)
   - [3.1.4](#314)
   - [3.1.3](#313)
   - [3.1.2](#312)
@@ -29,6 +30,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 3.2.0
+
+- Support serialization of `Dictionary<T, U>` and deserialization of `Dictionary<string, T>`.
 
 ## 3.1.4
 

@@ -17,7 +17,7 @@ namespace Tomlet.Tests
         [Fact]
         public void SerializationWorks()
         {
-            var testString = TestResources.ComplexTestRecordForAttributeMapping.Trim();
+            var testString = TestResources.ComplexTestRecordForAttributeMapping.Trim().Replace("\r\n", "\n");
             var record = TomletMain.To<ComplexTestRecordWithAttributeMapping>(testString);
             var serialized = TomletMain.TomlStringFrom(record).Trim();
             Assert.Equal(testString, serialized);

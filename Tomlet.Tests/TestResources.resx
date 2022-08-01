@@ -304,4 +304,13 @@ key2 = 0x1234567890FD</value>
     <data name="StringEscapesTestInput" xml:space="preserve">
         <value>myStupidString = "\b\t\n\f\r\"\\\u0020\U00000020"</value>
     </data>
+    <data name="DictionaryAsFieldTestInput" xml:space="preserve">
+        <value>[name]
+  [name.subname1]
+    a = ''
+    b = ''
+  [name.subname2]
+    a = ''
+    b = ''</value>
+    </data>
 </root>
