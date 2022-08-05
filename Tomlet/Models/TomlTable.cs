@@ -96,6 +96,8 @@ namespace Tomlet.Models
 
             var fullSubKey = keyName == null ? subKey : $"{keyName}.{subKey}";  
             
+            var hadBlankLine = builder.Length < 2 || builder[builder.Length - 2] == '\n';
+            
             //Handle any preceding comment - this will ALWAYS go before any sort of value
             if (value.Comments.PrecedingComment != null)
                 builder.Append(value.Comments.FormatPrecedingComment())
@@ -104,6 +106,9 @@ namespace Tomlet.Models
             switch (value)
             {
                 case TomlArray {CanBeSerializedInline: false} subArray:
+                    if (!hadBlankLine)
+                        builder.Append('\n');
+                    
                     builder.Append(subArray.SerializeTableArray(fullSubKey)); //No need to append newline as SerializeTableArray always ensure it ends with 2
                     return; //Return because we don't do newline or handle inline comment here.
                 case TomlArray subArray:

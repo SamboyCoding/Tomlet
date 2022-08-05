@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [3.2.1](#321)
   - [3.2.0](#320)
   - [3.1.4](#314)
   - [3.1.3](#313)
@@ -30,6 +31,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 3.2.1
+
+- Fixed missing blank line when serializing a table-array inside a table.
 
 ## 3.2.0
 

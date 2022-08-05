@@ -1,5 +1,6 @@
 ﻿using Tomlet.Exceptions;
 using Tomlet.Models;
+using Tomlet.Tests.TestModelClasses;
 using Xunit;
 
 namespace Tomlet.Tests
@@ -111,6 +112,44 @@ namespace Tomlet.Tests
 ".Trim();
             
             Assert.Equal(expectedResult, tomlString);
+        }
+
+        [Fact]
+        public void TablesWithNestedArraysHaveCorrectWhitespace()
+        {
+            var item = new TomlClassWithNestedArray()
+            {
+                Root = new()
+                {
+                    SomeValue = "Hello!",
+                    Array = new []
+                    {
+                        new TomlClassWithNestedArray.ClassWithArray.ArrayItem
+                        {
+                            A = "A",
+                            B = "B"
+                        },
+                        new TomlClassWithNestedArray.ClassWithArray.ArrayItem
+                        {
+                            A = "C",
+                            B = "D"
+                        }
+                    }
+                }
+            };
+
+            var str = TomletMain.TomlStringFrom(item);
+            
+            Assert.Equal(@"[Root]
+SomeValue = ""Hello!""
+
+[[Root.Array]]
+A = ""A""
+B = ""B""
+
+[[Root.Array]]
+A = ""C""
+B = ""D""", str.Trim());
         }
     }
 }
