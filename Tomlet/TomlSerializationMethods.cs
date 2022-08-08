@@ -90,9 +90,11 @@ namespace Tomlet
             {
                 var serializer = _genericDictionarySerializerMethod.MakeGenericMethod(genericArgs);
                 
-                var ret = Serializers[t] = Delegate.CreateDelegate(typeof(Serialize<>).MakeGenericType(t), serializer);
-                
-                return dict => (TomlValue)ret.DynamicInvoke(dict);
+                var del = Delegate.CreateDelegate(typeof(Serialize<>).MakeGenericType(t), serializer);
+                var ret = (Serialize<object>) (dict => (TomlValue)del.DynamicInvoke(dict)!);
+                Serializers[t] = ret;
+
+                return ret;
             }
 
             return TomlCompositeSerializer.For(t);

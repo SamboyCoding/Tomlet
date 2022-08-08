@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [3.2.2](#322)
   - [3.2.1](#321)
   - [3.2.0](#320)
   - [3.1.4](#314)
@@ -31,6 +32,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 3.2.2
+
+- Fixed possible exception when serializing `Dictionary` objects.
 
 ## 3.2.1
 
