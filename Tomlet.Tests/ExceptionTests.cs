@@ -201,7 +201,7 @@ public class ExceptionTests
     
     [Fact]
     public void MismatchingTypesInDeserializationThrow() => 
-        AssertThrows<TomlFieldTypeMismatchException>(() => TomletMain.To<SimplePropertyTestClass>("MyFloat = \"hello\""));
+        AssertThrows<TomlPropertyTypeMismatchException>(() => TomletMain.To<SimplePropertyTestClass>("MyFloat = \"hello\""));
 
     [Fact]
     public void AskingATableForTheValueAssociatedWithAnInvalidKeyThrows() =>

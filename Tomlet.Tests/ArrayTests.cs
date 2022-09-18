@@ -65,7 +65,7 @@ namespace Tomlet.Tests
 
             var tomlString = TomletMain.TomlStringFrom(toSerialize);
             
-            Assert.Equal("<array>i__Field = [ 1, 2, 3, ]", tomlString.Trim());
+            Assert.Equal("array = [ 1, 2, 3, ]", tomlString.Trim());
         }
     }
 }

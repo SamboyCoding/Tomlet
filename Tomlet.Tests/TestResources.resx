@@ -313,4 +313,19 @@ key2 = 0x1234567890FD</value>
     a = ''
     b = ''</value>
     </data>
+    <data name="UserDefinedTypePropertyTestInput" xml:space="preserve">
+        <value>Junk = "Whatever"
+
+[A]
+IntA = 42
+StringA = "Answer"
+
+[B]
+IntB = 33
+StringB = "LongPlay"
+
+[C]
+IntC = 45
+StringC = "Single"</value>
+    </data>
 </root>

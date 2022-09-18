@@ -123,7 +123,11 @@ namespace Tomlet
             {
                 if (genericArgs[0] == typeof(string))
                 {
-                    return (Deserialize<object>)_stringKeyedDictionaryMethod.MakeGenericMethod(genericArgs[1]).Invoke(null, new object[0]);
+#if NETFRAMEWORK
+                    return (Deserialize<object>)_stringKeyedDictionaryMethod.MakeGenericMethod(genericArgs[1]).Invoke(null, new object[0])!;
+#else
+                    return (Deserialize<object>)_stringKeyedDictionaryMethod.MakeGenericMethod(genericArgs[1]).Invoke(null, Array.Empty<object>())!;
+#endif
                 }
             }
 
@@ -172,7 +176,7 @@ namespace Tomlet
                 if (value is not TomlArray tomlArray)
                     throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), listType);
 
-                var ret = Activator.CreateInstance(listType);
+                var ret = Activator.CreateInstance(listType)!;
                 var deserializer = GetDeserializer(elementType);
 
                 foreach (var arrayValue in tomlArray.ArrayValues)
@@ -204,7 +208,12 @@ namespace Tomlet
             var ret = new TomlTable();
             foreach (var entry in dict)
             {
-                ret.PutValue(entry.Key.ToString(), valueSerializer(entry.Value), true);
+                var keyAsString = entry.Key?.ToString();
+                
+                if(keyAsString == null)
+                    continue;
+                
+                ret.PutValue(keyAsString, valueSerializer(entry.Value), true);
             }
 
             return ret;

@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Runtime.CompilerServices;
 using Tomlet.Attributes;
 using Tomlet.Models;
 
@@ -24,16 +24,17 @@ internal static class TomlCompositeSerializer
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var fieldAttribs = fields
                 .ToDictionary(f => f, f => new {inline = f.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = f.GetCustomAttribute<TomlPrecedingCommentAttribute>()});
-            var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .ToArray();
             var propAttribs = props
-                .ToDictionary(p => p, p => new {inline = p.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = p.GetCustomAttribute<TomlPrecedingCommentAttribute>()});
+                .ToDictionary(p => p, p => new {inline = p.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = p.GetCustomAttribute<TomlPrecedingCommentAttribute>(), prop = p.GetCustomAttribute<TomlPropertyAttribute>()});
 
             var isForcedNoInline = type.GetCustomAttribute<TomlDoNotInlineObjectAttribute>() != null;
 
-            //Ignore NonSerialized fields.
-            fields = fields.Where(f => !f.IsNotSerialized).ToArray();
+            //Ignore NonSerialized and CompilerGenerated fields.
+            fields = fields.Where(f => !f.IsNotSerialized && f.GetCustomAttribute<CompilerGeneratedAttribute>() == null && !f.Name.Contains('<')).ToArray();
 
-            if (fields.Length == 0)
+            if (fields.Length + props.Length == 0)
                 return _ => new TomlTable();
 
             serializer = instance =>
@@ -50,26 +51,10 @@ internal static class TomlCompositeSerializer
                     if (fieldValue == null)
                         continue; //Skip nulls - TOML doesn't support them.
 
-                    var fieldSerializer = TomlSerializationMethods.GetSerializer(field.FieldType);
-                    var tomlValue = fieldSerializer.Invoke(fieldValue);
-
-                    var name = field.Name;
-
+                    var tomlValue = TomlSerializationMethods.GetSerializer(field.FieldType).Invoke(fieldValue);
                     var commentAttribs = fieldAttribs[field];
 
-                    var m = Regex.Match(field.Name, "<(.*)>k__BackingField");
-                    if (m.Success)
-                    {
-                        name = m.Groups[1].Value;
-                        // ReSharper disable once AccessToModifiedClosure
-                        var prop = props.First(p => p.Name == name);
-                        commentAttribs = propAttribs[prop];
-                    }
-
-                    var name1 = name;
-                    name = type.GetProperties().FirstOrDefault(p => p.Name == name1)?.GetCustomAttribute<TomlPropertyAttribute>()?.GetMappedString() ?? name;
-
-                    if (resultTable.ContainsKey(name))
+                    if (resultTable.ContainsKey(field.Name))
                         //Do not overwrite fields if they have the same name as something already in the table
                         //This fixes serializing types which re-declare a field using the `new` keyword, overwriting a field of the same name
                         //in its supertype. 
@@ -78,7 +63,29 @@ internal static class TomlCompositeSerializer
                     tomlValue.Comments.InlineComment = commentAttribs.inline?.Comment;
                     tomlValue.Comments.PrecedingComment = commentAttribs.preceding?.Comment;
 
-                    resultTable.PutValue(name, tomlValue);
+                    resultTable.PutValue(field.Name, tomlValue);
+                }
+
+                foreach (var prop in props)
+                {
+                    if(prop.GetGetMethod(true) == null)
+                        continue; //Skip properties without a getter
+                    
+                    if(prop.Name == "EqualityContract")
+                        continue; //Skip record equality contract property. Wish there was a better way to do this.
+                    
+                    var propValue = prop.GetValue(instance, null);
+                    
+                    if(propValue == null)
+                        continue;
+                    
+                    var tomlValue = TomlSerializationMethods.GetSerializer(prop.PropertyType).Invoke(propValue);
+                    var thisPropAttribs = propAttribs[prop];
+                    
+                    tomlValue.Comments.InlineComment = thisPropAttribs.inline?.Comment;
+                    tomlValue.Comments.PrecedingComment = thisPropAttribs.preceding?.Comment;
+
+                    resultTable.PutValue(thisPropAttribs.prop?.GetMappedString() ?? prop.Name, tomlValue);
                 }
 
                 return resultTable;

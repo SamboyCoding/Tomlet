@@ -14,17 +14,17 @@ namespace Tomlet.Models
 
         internal bool Locked;
         internal bool Defined;
-        
+
         public bool ForceNoInline { get; set; }
 
         public override string StringValue => $"Table ({Entries.Count} entries)";
 
         public HashSet<string> Keys => new(Entries.Keys);
 
-        public bool ShouldBeSerializedInline => !ForceNoInline && Entries.Count < 4 
-                                                && Entries.All(e => !e.Key.Contains(" ") 
-                                                                    && e.Value.Comments.ThereAreNoComments 
-                                                                    && (e.Value is TomlArray arr ? arr.IsSimpleArray : e.Value is not TomlTable));
+        public bool ShouldBeSerializedInline => !ForceNoInline && Entries.Count < 4
+                                                               && Entries.All(e => !e.Key.Contains(" ")
+                                                                                   && e.Value.Comments.ThereAreNoComments
+                                                                                   && (e.Value is TomlArray arr ? arr.IsSimpleArray : e.Value is not TomlTable));
 
         public override string SerializedValue
         {
@@ -49,9 +49,9 @@ namespace Tomlet.Models
             if (includeHeader)
             {
                 builder.Append('[').Append(keyName).Append("]");
-                
+
                 //For non-inline tables, the inline comment goes on the header line.
-                if(Comments.InlineComment != null)
+                if (Comments.InlineComment != null)
                     builder.Append(" # ").Append(Comments.InlineComment);
 
                 builder.Append('\n');
@@ -60,7 +60,7 @@ namespace Tomlet.Models
             //Three passes: Simple key-value pairs including inline arrays and tables, sub-tables, then sub-table-arrays.
             foreach (var (subKey, value) in Entries)
             {
-                if (value is TomlTable {ShouldBeSerializedInline: false} or TomlArray {CanBeSerializedInline: false})
+                if (value is TomlTable { ShouldBeSerializedInline: false } or TomlArray { CanBeSerializedInline: false })
                     continue;
 
                 WriteValueToStringBuilder(keyName, subKey, builder);
@@ -68,7 +68,7 @@ namespace Tomlet.Models
 
             foreach (var (subKey, value) in Entries)
             {
-                if (value is not TomlTable {ShouldBeSerializedInline: false})
+                if (value is not TomlTable { ShouldBeSerializedInline: false })
                     continue;
 
                 WriteValueToStringBuilder(keyName, subKey, builder);
@@ -76,7 +76,7 @@ namespace Tomlet.Models
 
             foreach (var (subKey, value) in Entries)
             {
-                if (value is not TomlArray {CanBeSerializedInline: false})
+                if (value is not TomlArray { CanBeSerializedInline: false })
                     continue;
 
                 WriteValueToStringBuilder(keyName, subKey, builder);
@@ -91,13 +91,13 @@ namespace Tomlet.Models
 
             subKey = EscapeKeyIfNeeded(subKey);
 
-            if(keyName != null)
+            if (keyName != null)
                 keyName = EscapeKeyIfNeeded(keyName);
 
-            var fullSubKey = keyName == null ? subKey : $"{keyName}.{subKey}";  
-            
+            var fullSubKey = keyName == null ? subKey : $"{keyName}.{subKey}";
+
             var hadBlankLine = builder.Length < 2 || builder[builder.Length - 2] == '\n';
-            
+
             //Handle any preceding comment - this will ALWAYS go before any sort of value
             if (value.Comments.PrecedingComment != null)
                 builder.Append(value.Comments.FormatPrecedingComment())
@@ -105,16 +105,16 @@ namespace Tomlet.Models
 
             switch (value)
             {
-                case TomlArray {CanBeSerializedInline: false} subArray:
+                case TomlArray { CanBeSerializedInline: false } subArray:
                     if (!hadBlankLine)
                         builder.Append('\n');
-                    
+
                     builder.Append(subArray.SerializeTableArray(fullSubKey)); //No need to append newline as SerializeTableArray always ensure it ends with 2
                     return; //Return because we don't do newline or handle inline comment here.
                 case TomlArray subArray:
                     builder.Append(subKey).Append(" = ").Append(subArray.SerializedValue);
                     break;
-                case TomlTable {ShouldBeSerializedInline: true} subTable:
+                case TomlTable { ShouldBeSerializedInline: true } subTable:
                     builder.Append(subKey).Append(" = ").Append(subTable.SerializedValue);
                     break;
                 case TomlTable subTable:
@@ -126,11 +126,11 @@ namespace Tomlet.Models
             }
 
             //If we're here we did something resembling an inline value, even if that value is actually a multi-line array.
-            
+
             //First off, handle the inline comment.
             if (value.Comments.InlineComment != null)
                 builder.Append(" # ").Append(value.Comments.InlineComment);
-            
+
             //Then append a newline
             builder.Append('\n');
         }
@@ -142,11 +142,11 @@ namespace Tomlet.Models
             if (key.StartsWith("\"") && key.EndsWith("\"") && key.Count(c => c == '"') == 2)
                 //Already double quoted
                 return key;
-            
+
             if (key.StartsWith("'") && key.EndsWith("'") && key.Count(c => c == '\'') == 2)
                 //Already single quoted
                 return key;
-            
+
             if (key.Contains("\"") || key.Contains("'"))
             {
                 key = TomlUtils.AddCorrectQuotes(key);
@@ -171,10 +171,10 @@ namespace Tomlet.Models
 
         public void PutValue(string key, TomlValue value, bool quote = false)
         {
-            if(key == null)
+            if (key == null)
                 throw new ArgumentNullException("key");
 
-            if(value == null)
+            if (value == null)
                 throw new ArgumentNullException("value");
 
             if (quote)
@@ -184,7 +184,7 @@ namespace Tomlet.Models
 
         public void Put<T>(string key, T t, bool quote = false)
         {
-            if(t is TomlValue tv)
+            if (t is TomlValue tv)
                 PutValue(key, tv, quote);
             else
                 PutValue(key, TomletMain.ValueFrom(t), quote);
@@ -249,7 +249,7 @@ namespace Tomlet.Models
 
         public bool ContainsKey(string key)
         {
-            if(key == null)
+            if (key == null)
                 throw new ArgumentNullException("key");
 
             TomlKeyUtils.GetTopLevelAndSubKeys(key, out var ourKeyName, out var restOfKey);
@@ -267,6 +267,19 @@ namespace Tomlet.Models
             throw new TomlContainsDottedKeyNonTableException(key);
         }
 
+#if NET6_0
+        public bool TryGetValue(string key, [NotNullWhen(true)] out TomlValue? value)
+#else
+        public bool TryGetValue(string key, out TomlValue? value)
+#endif
+        {
+            if (ContainsKey(key))
+                return (value = GetValue(key)) != null;
+
+            value = null;
+            return false;
+        }
+
         /// <summary>
         /// Returns the raw instance of <see cref="TomlValue"/> associated with this key. You must cast to a sub-class and access its value
         /// yourself.
@@ -278,7 +291,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public TomlValue GetValue(string key)
         {
-            if(key == null)
+            if (key == null)
                 throw new ArgumentNullException("key");
 
             if (!ContainsKey(key))
@@ -308,7 +321,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public string GetString(string key)
         {
-            if(key == null)
+            if (key == null)
                 throw new ArgumentNullException("key");
 
             var value = GetValue(TomlUtils.AddCorrectQuotes(key));
@@ -328,7 +341,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public int GetInteger(string key)
         {
-            if(key == null)
+            if (key == null)
                 throw new ArgumentNullException("key");
 
             var value = GetValue(TomlUtils.AddCorrectQuotes(key));
@@ -336,9 +349,9 @@ namespace Tomlet.Models
             if (value is not TomlLong lng)
                 throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType(), typeof(int));
 
-            return (int) lng.Value;
+            return (int)lng.Value;
         }
-        
+
         /// <summary>
         /// Returns the long (64-bit int) value associated with the provided key.
         /// </summary>
@@ -348,7 +361,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public long GetLong(string key)
         {
-            if(key == null)
+            if (key == null)
                 throw new ArgumentNullException("key");
 
             var value = GetValue(TomlUtils.AddCorrectQuotes(key));
@@ -368,7 +381,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public float GetFloat(string key)
         {
-            if(key == null)
+            if (key == null)
                 throw new ArgumentNullException("key");
 
             var value = GetValue(TomlUtils.AddCorrectQuotes(key));
@@ -376,7 +389,7 @@ namespace Tomlet.Models
             if (value is not TomlDouble dbl)
                 throw new TomlTypeMismatchException(typeof(TomlDouble), value.GetType(), typeof(float));
 
-            return (float) dbl.Value;
+            return (float)dbl.Value;
         }
 
         /// <summary>
@@ -388,7 +401,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public bool GetBoolean(string key)
         {
-            if(key == null)
+            if (key == null)
                 throw new ArgumentNullException("key");
 
             var value = GetValue(TomlUtils.AddCorrectQuotes(key));
@@ -408,7 +421,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public TomlArray GetArray(string key)
         {
-            if(key == null)
+            if (key == null)
                 throw new ArgumentNullException("key");
 
             var value = GetValue(TomlUtils.AddCorrectQuotes(key));
@@ -428,7 +441,7 @@ namespace Tomlet.Models
         /// <exception cref="TomlNoSuchValueException">If the key is not present in the table.</exception>
         public TomlTable GetSubTable(string key)
         {
-            if(key == null)
+            if (key == null)
                 throw new ArgumentNullException("key");
 
             var value = GetValue(TomlUtils.AddCorrectQuotes(key));

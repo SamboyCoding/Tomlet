@@ -147,7 +147,7 @@ namespace Tomlet.Tests
 
             var tomlString = TomletMain.TomlStringFrom(anObjectWithTheObject);
             
-            Assert.Equal("<obj>i__Field = { <value>i__Field = 1, <str>i__Field = \"hello\" }", tomlString.Trim());
+            Assert.Equal("obj = { value = 1, str = \"hello\" }", tomlString.Trim());
             
         }
     }

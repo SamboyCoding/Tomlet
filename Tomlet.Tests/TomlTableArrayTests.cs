@@ -1,5 +1,4 @@
-﻿using Tomlet.Exceptions;
-using Tomlet.Models;
+﻿using Tomlet.Models;
 using Tomlet.Tests.TestModelClasses;
 using Xunit;
 
@@ -97,18 +96,16 @@ namespace Tomlet.Tests
                 array
             };
             
-            var tomlString = TomletMain.TomlStringFrom(documentRoot)
-                .Replace("i__Field", "") //For my sanity
-                .Trim();
+            var tomlString = TomletMain.TomlStringFrom(documentRoot).Trim();
 
             var expectedResult = @"
-[[<array>]]
-<name> = ""a""
-<value> = { <a> = ""b"", <c> = ""d"" }
+[[array]]
+name = ""a""
+value = { a = ""b"", c = ""d"" }
 
-[[<array>]]
-<name> = ""a""
-<value> = { <a> = ""b"", <c> = ""d"" }
+[[array]]
+name = ""a""
+value = { a = ""b"", c = ""d"" }
 ".Trim();
             
             Assert.Equal(expectedResult, tomlString);

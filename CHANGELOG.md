@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [4.0.0](#400)
   - [3.2.2](#322)
   - [3.2.1](#321)
   - [3.2.0](#320)
@@ -32,6 +33,15 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 4.0.0
+
+- Fundamentally rewrote the way properties are de/serialized, preventing weirdness with inheritance (see #17)
+  - This introduces a **minor breaking change** for anonymous types (i.e. `new { Foo = "bar" }`), in that the property names are now correctly serialized (`Foo` instead of `<Foo>i__Field`)
+  - It may also break if you were making assumptions about the way properties were serialized, but I don't have any specific examples.
+  - As before, the `TomlPropertyAttribute` can be used to override the property name.
+  - Also, deserializing an incorrect type to a property now throws a `TomlPropertyTypeMismatchException` instead of a `TomlFieldTypeMismatchException`.
+- General code cleanup
 
 ## 3.2.2
 

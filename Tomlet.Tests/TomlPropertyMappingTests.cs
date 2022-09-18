@@ -22,5 +22,18 @@ namespace Tomlet.Tests
             var serialized = TomletMain.TomlStringFrom(record).Trim();
             Assert.Equal(testString, serialized);
         }
+
+        [Fact]
+        public void UserDefinedTypesAsPropertiesWorks()
+        {
+            var testString = TestResources.UserDefinedTypePropertyTestInput.Trim().Replace("\r\n", "\n");
+            var record = TomletMain.To<Derived>(testString);
+
+            Assert.Equal("Whatever", record.Junk);
+            Assert.Equal(42, record.A.IntA);
+            Assert.Equal(33, record.B.IntB);
+            Assert.Equal(45, record.C.IntC);
+            Assert.Equal("Answer", record.A.StringA);
+        }
     }
 }
