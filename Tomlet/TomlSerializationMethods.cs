@@ -257,8 +257,13 @@ namespace Tomlet
                 
                 if(keyAsString == null)
                     continue;
+
+                var value = valueSerializer(entry.Value);
                 
-                ret.PutValue(keyAsString, valueSerializer(entry.Value), true);
+                if(value == null)
+                    continue;
+                
+                ret.PutValue(keyAsString, value, true);
             }
 
             return ret;
