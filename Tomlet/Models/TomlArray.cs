@@ -15,7 +15,8 @@ namespace Tomlet.Models
         public void Add<T>(T t) where T: new()
         {
             var tomlValue = t is TomlValue tv ? tv : TomletMain.ValueFrom(t);
-            ArrayValues.Add(tomlValue);
+            if(tomlValue != null)
+                ArrayValues.Add(tomlValue);
         }
 
         public bool IsTableArray => IsLockedToBeTableArray || ArrayValues.All(t => t is TomlTable);

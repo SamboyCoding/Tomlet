@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [5.0.0](#500)
   - [4.0.0](#400)
   - [3.2.2](#322)
   - [3.2.1](#321)
@@ -33,6 +34,15 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 5.0.0
+
+- Sorry for another breaking change so soon!
+- This release adds proper support for `Nullable<T>` to Tomlet (see #2), meaning that Nullables without a value won't be serialized, and those with a value will be serialized as the value itself.
+  - Technically this is breaking because it means any existing nullable values in a TOML file won't be deserialized properly.
+  - As part of this, you can now return null from custom serializers, in which case the value will not be written to the TOML document.
+- It also improves string serialization so that values that contain backslashes but no single quotes (e.g. Windows paths!) will be serialized as literal strings instead of basic strings.
+  - Strings which contain match this criteria and additionally contain newlines will be serialized as multiline literals. 
 
 ## 4.0.0
 

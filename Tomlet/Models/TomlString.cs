@@ -23,23 +23,40 @@ namespace Tomlet.Models
             get
             {
                 //We cannot just blind serialize this, because we have to decide now if we want to serialize as a literal string or not.
-                //If we have single quotes but no double, use a normal string and escape.
-                //If we have double quotes but no single, and no newlines, use a literal string and no escape.
-                //If we have double quotes, no single, but newlines, use a multi-line literal.
-                //Otherwise, use a normal string with escapes.
-
-                if (Value.Contains("'") && !Value.Contains("\""))
-                    //Standard string
-                    return $"\"{TomlUtils.EscapeStringValue(Value)}\"";
-                if (Value.Contains("\"") && !Value.Contains("'") && !Value.Contains("\n"))
-                    //Literal
-                    return $"'{Value}'";
-                if (Value.Contains("\"") && !Value.Contains("'"))
-                    //Multi line literal
-                    return $"'''\n{Value}'''";
                 
-                return $"\"{TomlUtils.EscapeStringValue(Value)}\"";
+                //If we have backslashes in the string (as in, actual backslashes, not escape sequences) we could consider serializing as a literal string.
+                //(but not if the string contains a single quote).
+                //Additionally if it has newlines, we could serialize as a multiline literal
+
+                if (!Value.RuntimeCorrectContains('\''))
+                {
+                    //Ok, we could potentially serialize as a literal string
+                    if (Value.RuntimeCorrectContains('\\'))
+                        return Value.RuntimeCorrectContains('\n') ? MultiLineLiteralStringSerializedForm : LiteralStringSerializedForm;
+                }
+                
+                //Ok, no special casing, just fall back to sensible defaults:
+                //  If we have single quotes but no double, use a normal string and escape.
+                //  If we have double quotes but no single, and no newlines, use a literal string and no escape.
+                //  If we have double quotes, no single, but newlines, use a multi-line literal.
+                //  Otherwise, use a normal string with escapes.
+
+                if (Value.RuntimeCorrectContains('\'') && !Value.RuntimeCorrectContains('"'))
+                    //Standard string
+                    return StandardStringSerializedForm;
+                if (Value.RuntimeCorrectContains('"') && !Value.RuntimeCorrectContains('\'') && !Value.RuntimeCorrectContains('\n'))
+                    //Literal
+                    return LiteralStringSerializedForm;
+                if (Value.RuntimeCorrectContains('"') && !Value.RuntimeCorrectContains('\''))
+                    //Multi line literal
+                    return MultiLineLiteralStringSerializedForm;
+                
+                return StandardStringSerializedForm;
             }
         }
+        
+        internal string StandardStringSerializedForm => $"\"{TomlUtils.EscapeStringValue(Value)}\"";
+        internal string LiteralStringSerializedForm => $"'{Value}'";
+        internal string MultiLineLiteralStringSerializedForm => $"'''\n{Value}'''";
     }
 }

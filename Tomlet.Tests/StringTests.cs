@@ -175,5 +175,15 @@ namespace Tomlet.Tests
             var document = GetDocument(TestResources.StringEscapesTestInput);
             Assert.Equal("\b\t\n\f\r\"\\\u0020\U00000020", document.GetString("myStupidString"));
         }
+
+        [Fact]
+        public void SerializingPathStringsPrefersLiterals()
+        {
+            var myString = @"C:\my\cool\path\to\something";
+            var document = TomlDocument.CreateEmpty();
+            document.Put("myString", myString);
+            
+            Assert.Equal($"myString = '{myString}'", document.SerializedValue.Trim());
+        }
     }
 }

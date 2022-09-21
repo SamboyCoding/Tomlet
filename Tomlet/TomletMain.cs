@@ -25,7 +25,7 @@ namespace Tomlet
 
         public static T To<T>(TomlValue value)
         {
-            return (T) To(typeof(T), value);
+            return (T)To(typeof(T), value);
         }
 
         public static object To(Type what, TomlValue value)
@@ -35,28 +35,34 @@ namespace Tomlet
             return deserializer.Invoke(value);
         }
 
-        public static TomlValue ValueFrom<T>(T t)
+#if NET6_0
+        [return: NotNullIfNotNull("t")]
+#endif
+        public static TomlValue? ValueFrom<T>(T t)
         {
-            if (t == null) 
+            if (t == null)
                 throw new ArgumentNullException(nameof(t));
-            
+
             return ValueFrom(t.GetType(), t);
         }
 
-        public static TomlValue ValueFrom(Type type, object t)
+#if NET6_0
+        [return: NotNullIfNotNull("t")]
+#endif
+        public static TomlValue? ValueFrom(Type type, object t)
         {
             var serializer = TomlSerializationMethods.GetSerializer(type);
 
             var tomlValue = serializer.Invoke(t);
 
-            return tomlValue;
+            return tomlValue!;
         }
 
         public static TomlDocument DocumentFrom<T>(T t)
         {
-            if (t == null) 
+            if (t == null)
                 throw new ArgumentNullException(nameof(t));
-            
+
             return DocumentFrom(t.GetType(), t);
         }
 
@@ -73,7 +79,7 @@ namespace Tomlet
         }
 
         public static string TomlStringFrom<T>(T t) => DocumentFrom(t).SerializedValue;
-        
+
         public static string TomlStringFrom(Type type, object t) => DocumentFrom(type, t).SerializedValue;
     }
 }

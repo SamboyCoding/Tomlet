@@ -120,7 +120,7 @@ method of serializing your classes, then you can override this default using cod
 ```c#
 // Example: UnityEngine.Color stored as an integer in TOML. There is no differentiation between 32-bit and 64-bit integers, so we use TomlLong.
 TomletMain.RegisterMapper<Color>(
-        //Serializer (toml value from class) 
+        //Serializer (toml value from class). Return null if you don't want to serialize this value.
         color => new TomlLong(color.a << 24 | color.r << 16 | color.g << 8 | color.b),
         //Deserializler (class from toml value)
         tomlValue => {

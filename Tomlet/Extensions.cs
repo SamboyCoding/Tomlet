@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Tomlet.Exceptions;
 
@@ -9,15 +10,15 @@ namespace Tomlet
 {
     internal static class Extensions
     {
-        private static readonly HashSet<int> IllegalChars = new ()
+        private static readonly HashSet<int> IllegalChars = new()
         {
             '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007',
             '\u0008', '\u000b', '\u000e', '\u000f', '\u0010', '\u0011', '\u0012', '\u0013',
             '\u0014', '\u0015', '\u0016', '\u0017', '\u0018', '\u0019', '\u001a', '\u001b',
             '\u001c', '\u001d', '\u001e', '\u001f', '\u007f'
         };
-        
-        internal static bool IsWhitespace(this int val) => !val.IsNewline() && char.IsWhiteSpace((char) val);
+
+        internal static bool IsWhitespace(this int val) => !val.IsNewline() && char.IsWhiteSpace((char)val);
 
         internal static bool IsEquals(this int val) => val == '=';
 
@@ -29,7 +30,7 @@ namespace Tomlet
 
         internal static bool IsNewline(this int val) => val is '\r' or '\n';
 
-        internal static bool IsDigit(this int val) => char.IsDigit((char) val);
+        internal static bool IsDigit(this int val) => char.IsDigit((char)val);
 
         internal static bool IsComma(this int val) => val == ',';
 
@@ -41,12 +42,12 @@ namespace Tomlet
 
         internal static bool IsHexDigit(this char c)
         {
-            var val = (int) c;
-            
+            var val = (int)c;
+
             if (val.IsDigit())
                 return true;
 
-            var upper = char.ToUpperInvariant((char) val);
+            var upper = char.ToUpperInvariant((char)val);
             return upper is >= 'A' and <= 'F';
         }
 
@@ -55,7 +56,7 @@ namespace Tomlet
             nextChar = reader.Peek();
             return nextChar != -1;
         }
-        
+
         internal static int SkipWhitespace(this TomletStringReader reader) => reader.ReadWhile(c => c.IsWhitespace()).Length;
 
         internal static void SkipPotentialCarriageReturn(this TomletStringReader reader)
@@ -81,17 +82,17 @@ namespace Tomlet
             var countRead = 0;
             while (reader.TryPeek(out var nextChar))
             {
-                if(!nextChar.IsHashSign() && !nextChar.IsNewline() && !nextChar.IsWhitespace())
+                if (!nextChar.IsHashSign() && !nextChar.IsNewline() && !nextChar.IsWhitespace())
                     break;
-                
-                if(nextChar.IsHashSign())
+
+                if (nextChar.IsHashSign())
                     reader.SkipAnyComment();
                 countRead += reader.SkipAnyNewlineOrWhitespace();
             }
 
             return countRead;
         }
-        
+
         internal static int SkipAnyNewline(this TomletStringReader reader) => reader.ReadWhile(c => c.IsNewline()).Count(c => c == '\n');
 
         internal static char[] ReadChars(this TomletStringReader reader, int count)
@@ -108,7 +109,7 @@ namespace Tomlet
             //Read up until whitespace or an equals
             while (reader.TryPeek(out var nextChar) && predicate(nextChar))
             {
-                ret.Append((char) reader.Read());
+                ret.Append((char)reader.Read());
             }
 
             return ret.ToString();
@@ -127,7 +128,7 @@ namespace Tomlet
 
             return false;
         }
-        
+
         public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> pair, out TKey one, out TValue two)
         {
             one = pair.Key;
@@ -143,5 +144,17 @@ namespace Tomlet
             if (IllegalChars.Contains(c))
                 throw new TomlUnescapedUnicodeControlCharException(currentLineNum, c);
         }
+
+        /// <summary>
+        /// Shim to properly support Contains(char) on net3.5. We prefer using the char version because it's hardware-accelerated on modern .NET.
+        /// </summary>
+        [MethodImpl((MethodImplOptions) 0x0100)] // AggressiveInlining in constant form because net3.5 doesn't define it
+#if NET6_0 || NETSTANDARD2_0
+        public static bool RuntimeCorrectContains(this string original, char c)
+            => original.Contains(c);
+#else
+        public static bool RuntimeCorrectContains(this string original, char c)
+            => original.Contains(c.ToString());
+#endif
     }
 }

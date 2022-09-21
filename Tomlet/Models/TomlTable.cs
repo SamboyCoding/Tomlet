@@ -172,10 +172,10 @@ namespace Tomlet.Models
         public void PutValue(string key, TomlValue value, bool quote = false)
         {
             if (key == null)
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
 
             if (value == null)
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
 
             if (quote)
                 key = TomlUtils.AddCorrectQuotes(key);
@@ -184,10 +184,13 @@ namespace Tomlet.Models
 
         public void Put<T>(string key, T t, bool quote = false)
         {
-            if (t is TomlValue tv)
-                PutValue(key, tv, quote);
-            else
-                PutValue(key, TomletMain.ValueFrom(t), quote);
+            TomlValue? tomlValue;
+            tomlValue = t is not TomlValue tv ? TomletMain.ValueFrom(t) : tv;
+
+            if (tomlValue == null)
+                throw new ArgumentException("Value to insert into TOML table serialized to null.", nameof(t));
+            
+            PutValue(key, tomlValue, quote);
         }
 
         public string DeQuoteKey(string key)

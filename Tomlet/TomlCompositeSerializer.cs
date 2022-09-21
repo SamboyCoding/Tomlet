@@ -52,6 +52,10 @@ internal static class TomlCompositeSerializer
                         continue; //Skip nulls - TOML doesn't support them.
 
                     var tomlValue = TomlSerializationMethods.GetSerializer(field.FieldType).Invoke(fieldValue);
+                    
+                    if(tomlValue == null)
+                        continue;
+                    
                     var commentAttribs = fieldAttribs[field];
 
                     if (resultTable.ContainsKey(field.Name))
@@ -80,6 +84,10 @@ internal static class TomlCompositeSerializer
                         continue;
                     
                     var tomlValue = TomlSerializationMethods.GetSerializer(prop.PropertyType).Invoke(propValue);
+
+                    if (tomlValue == null) 
+                        continue;
+                    
                     var thisPropAttribs = propAttribs[prop];
                     
                     tomlValue.Comments.InlineComment = thisPropAttribs.inline?.Comment;

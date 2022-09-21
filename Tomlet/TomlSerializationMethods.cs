@@ -14,10 +14,11 @@ namespace Tomlet
     {
         private static MethodInfo _stringKeyedDictionaryMethod = typeof(TomlSerializationMethods).GetMethod(nameof(StringKeyedDictionaryDeserializerFor), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static MethodInfo _genericDictionarySerializerMethod = typeof(TomlSerializationMethods).GetMethod(nameof(GenericDictionarySerializer), BindingFlags.Static | BindingFlags.NonPublic)!;
+        private static MethodInfo _genericNullableSerializerMethod = typeof(TomlSerializationMethods).GetMethod(nameof(GenericNullableSerializer), BindingFlags.Static | BindingFlags.NonPublic)!;
 
         public delegate T Deserialize<out T>(TomlValue value);
 
-        public delegate TomlValue Serialize<in T>(T? t);
+        public delegate TomlValue? Serialize<in T>(T? t);
 
         private static readonly Dictionary<Type, Delegate> Deserializers = new();
         private static readonly Dictionary<Type, Delegate> Serializers = new();
@@ -86,15 +87,29 @@ namespace Tomlet
                 return arrSerializer;
             }
 
-            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>) && t.GetGenericArguments() is { Length: 2 } genericArgs)
+            if (t.IsGenericType &&  t.GetGenericArguments() is { } genericArgs)
             {
-                var serializer = _genericDictionarySerializerMethod.MakeGenericMethod(genericArgs);
-                
-                var del = Delegate.CreateDelegate(typeof(Serialize<>).MakeGenericType(t), serializer);
-                var ret = (Serialize<object>) (dict => (TomlValue)del.DynamicInvoke(dict)!);
-                Serializers[t] = ret;
+                if (t.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                {
+                    var serializer = _genericDictionarySerializerMethod.MakeGenericMethod(genericArgs);
 
-                return ret;
+                    var del = Delegate.CreateDelegate(typeof(Serialize<>).MakeGenericType(t), serializer);
+                    var ret = (Serialize<object>)(dict => (TomlValue?)del.DynamicInvoke(dict));
+                    Serializers[t] = ret;
+
+                    return ret;
+                }
+
+                if (t.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    var serializer = _genericNullableSerializerMethod.MakeGenericMethod(genericArgs);
+                    
+                    var del = Delegate.CreateDelegate(typeof(Serialize<>).MakeGenericType(t), serializer);
+                    var ret = (Serialize<object>)(dict => (TomlValue?)del.DynamicInvoke(dict));
+                    Serializers[t] = ret;
+                    
+                    return ret;
+                }
             }
 
             return TomlCompositeSerializer.For(t);
@@ -118,6 +133,13 @@ namespace Tomlet
                 Deserializers[t] = listDeserializer;
                 return listDeserializer;
             }
+            
+            if(t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>) && t.GetGenericArguments() is {Length: 1} genericArguments)
+            {
+                var nullableDeserializer = NullableDeserializerFor(t);
+                Deserializers[t] = nullableDeserializer;
+                return nullableDeserializer;
+            }
 
             if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>) && t.GetGenericArguments() is { Length: 2 } genericArgs)
             {
@@ -134,7 +156,7 @@ namespace Tomlet
             return TomlCompositeDeserializer.For(t);
         }
 
-        private static Serialize<object> GenericEnumerableSerializer() =>
+        private static Serialize<object?> GenericEnumerableSerializer() =>
             o =>
             {
                 if (o is not IEnumerable arr)
@@ -187,6 +209,19 @@ namespace Tomlet
                 return ret;
             };
         }
+        
+        private static Deserialize<object> NullableDeserializerFor(Type nullableType)
+        {
+            var elementType = nullableType.GetGenericArguments()[0];
+            var elementDeserializer = GetDeserializer(elementType);
+            
+            return value =>
+            {
+                //If we're deserializing, we know the value is not null
+                var element = elementDeserializer(value);
+                return Activator.CreateInstance(nullableType, element)!;
+            };
+        }
 
         private static Deserialize<Dictionary<string, T>> StringKeyedDictionaryDeserializerFor<T>()
         {
@@ -199,6 +234,16 @@ namespace Tomlet
 
                 return table.Entries.ToDictionary(entry => entry.Key, entry => (T)deserializer(entry.Value));
             };
+        }
+        
+        private static TomlValue? GenericNullableSerializer<T>(T? nullable) where T : struct
+        {
+            var elementSerializer = GetSerializer(typeof(T));
+            
+            if (nullable.HasValue)
+                return elementSerializer(nullable.Value);
+
+            return null;
         }
 
         private static TomlValue GenericDictionarySerializer<TKey, TValue>(Dictionary<TKey, TValue> dict) where TKey : notnull
@@ -252,7 +297,7 @@ namespace Tomlet
 
         private static void RegisterSerializer<T>(Serialize<T> serializer)
         {
-            TomlValue ObjectAcceptingSerializer(object value) => serializer.Invoke((T)value);
+            TomlValue? ObjectAcceptingSerializer(object value) => serializer.Invoke((T)value);
             Serializers[typeof(T)] = (Serialize<object>)ObjectAcceptingSerializer!;
         }
 
