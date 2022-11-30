@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [5.0.1](#501)
   - [5.0.0](#500)
   - [4.0.0](#400)
   - [3.2.2](#322)
@@ -34,6 +35,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 5.0.1
+
+- Fixes an exception when deserializing empty comments. Thanks to [BruceChenQAQ](https://github.com/BruceChenQAQ) for the fix in [#19](https://github.com/SamboyCoding/Tomlet/pull/19).
 
 ## 5.0.0
 
