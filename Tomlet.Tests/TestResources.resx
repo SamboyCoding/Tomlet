@@ -19,8 +19,10 @@
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
     <data name="CommentTestInput" xml:space="preserve">
-        <value># This is a full-line comment
-key = "value"  # This is a comment at the end of a line
+    <value>#
+key1 = "value1"  #
+# This is a full-line comment
+key2 = "value2"  # This is a comment at the end of a line
 another = "# This is not a comment"</value>
     </data>
     <data name="BasicKVPTestInput" xml:space="preserve">

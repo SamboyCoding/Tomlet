@@ -168,8 +168,10 @@ namespace Tomlet.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to # This is a full-line comment
-        ///key = &quot;value&quot;  # This is a comment at the end of a line
+        ///   Looks up a localized string similar to #
+        ///key1 = &quot;value1&quot;  #
+        ///# This is a full-line comment
+        ///key2 = &quot;value2&quot;  # This is a comment at the end of a line
         ///another = &quot;# This is not a comment&quot;.
         /// </summary>
         internal static string CommentTestInput {

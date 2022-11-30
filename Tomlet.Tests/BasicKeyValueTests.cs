@@ -41,14 +41,16 @@ namespace Tomlet.Tests
             
             //Check keys
             Assert.Collection(doc.Entries.Keys,
-                key1 => Assert.Equal("key", key1),
-                key2 => Assert.Equal("another", key2)
+                key1 => Assert.Equal("key1", key1),
+                key2 => Assert.Equal("key2", key2),
+                key3 => Assert.Equal("another", key3)
             );
             
             //Check values
             Assert.Collection(doc.Entries.Values,
-                value1 => Assert.Equal("value", Assert.IsType<TomlString>(value1).Value),
-                value2 => Assert.Equal("# This is not a comment", Assert.IsType<TomlString>(value2).Value)
+                value1 => Assert.Equal("value1", Assert.IsType<TomlString>(value1).Value),
+                value2 => Assert.Equal("value2", Assert.IsType<TomlString>(value2).Value),
+                value3 => Assert.Equal("# This is not a comment", Assert.IsType<TomlString>(value3).Value)
             );
         }
 

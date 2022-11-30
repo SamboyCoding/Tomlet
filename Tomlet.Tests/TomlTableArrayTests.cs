@@ -96,7 +96,7 @@ namespace Tomlet.Tests
                 array
             };
             
-            var tomlString = TomletMain.TomlStringFrom(documentRoot).Trim();
+            var tomlString = TomletMain.TomlStringFrom(documentRoot).Trim().ReplaceLineEndings();
 
             var expectedResult = @"
 [[array]]
@@ -146,7 +146,7 @@ B = ""B""
 
 [[Root.Array]]
 A = ""C""
-B = ""D""", str.Trim());
+B = ""D""", str.Trim().ReplaceLineEndings());
         }
     }
 }

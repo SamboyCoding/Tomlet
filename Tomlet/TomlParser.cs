@@ -998,7 +998,7 @@ namespace Tomlet
             {
                 var line = reader.ReadWhile(c => !c.IsNewline());
                 
-                if(line[0] == ' ')
+                if(line.Length > 0 && line[0] == ' ')
                     line = line.Substring(1);
                 
                 foreach (var i in line.Select(c => (int) c)) 
