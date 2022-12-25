@@ -2,7 +2,7 @@
 ## A TOML library for .NET
 
 [![NuGet](https://img.shields.io/nuget/v/Samboy063.Tomlet)](https://www.nuget.org/packages/Samboy063.Tomlet/)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/SamboyCoding/Tomlet/.NET)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/SamboyCoding/Tomlet/dotnet.yml)
 ![Toml Version](https://img.shields.io/badge/TOML%20Version-1.0.0-blue)
 [![Coverage Status](https://coveralls.io/repos/github/SamboyCoding/Tomlet/badge.svg?branch=master)](https://coveralls.io/github/SamboyCoding/Tomlet?branch=master)
 
