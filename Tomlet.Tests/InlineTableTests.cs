@@ -40,5 +40,31 @@ namespace Tomlet.Tests
             
             Assert.Equal(obj.KeyWithWhitespace, newObj.KeyWithWhitespace);
         }
+
+        [Fact]
+        public void MembersAnnotatedDoNotInlineAreNotInlined()
+        {
+            var obj = new ClassWithDoNotInlineField()
+            {
+                ShouldBeInlined =
+                {
+                    ["key"] = "value"
+                },
+                ShouldNotBeInlined =
+                {
+                    ["key"] = "value"
+                }
+            };
+
+            var tomlString = TomletMain.TomlStringFrom(obj).Trim();
+
+            var expectedString = @"
+ShouldBeInlined = { key = ""value"" }
+[ShouldNotBeInlined]
+key = ""value""
+".Trim().ReplaceLineEndings("\n");
+            
+            Assert.Equal(expectedString, tomlString);
+        }
     }
 }

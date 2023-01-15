@@ -2,7 +2,7 @@
 
 namespace Tomlet.Attributes;
 
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property)]
 public class TomlDoNotInlineObjectAttribute : Attribute
 {
     

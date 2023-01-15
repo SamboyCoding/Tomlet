@@ -23,7 +23,7 @@ internal static class TomlCompositeSerializer
             //Get all instance fields
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var fieldAttribs = fields
-                .ToDictionary(f => f, f => new {inline = f.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = f.GetCustomAttribute<TomlPrecedingCommentAttribute>()});
+                .ToDictionary(f => f, f => new {inline = f.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = f.GetCustomAttribute<TomlPrecedingCommentAttribute>(), noInline = f.GetCustomAttribute<TomlDoNotInlineObjectAttribute>()});
             var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .ToArray();
             var propAttribs = props
@@ -66,6 +66,9 @@ internal static class TomlCompositeSerializer
 
                     tomlValue.Comments.InlineComment = commentAttribs.inline?.Comment;
                     tomlValue.Comments.PrecedingComment = commentAttribs.preceding?.Comment;
+                    
+                    if(commentAttribs.noInline != null && tomlValue is TomlTable table)
+                        table.ForceNoInline = true;
 
                     resultTable.PutValue(field.Name, tomlValue);
                 }

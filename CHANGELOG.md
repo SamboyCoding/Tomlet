@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [5.1.0](#510)
   - [5.0.1](#501)
   - [5.0.0](#500)
   - [4.0.0](#400)
@@ -35,6 +36,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 5.1.0
+
+- Enabled usage of `[TomlDoNotInlineObject]` on fields and properties, which will prevent the field/prop from serialized as an inline table.
 
 ## 5.0.1
 
