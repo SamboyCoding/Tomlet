@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Tomlet.Exceptions;
+using Tomlet.Models;
 using Tomlet.Tests.TestModelClasses;
 using Xunit;
 
@@ -60,6 +62,18 @@ namespace Tomlet.Tests
             
             Assert.Equal(5, array.Length);
             Assert.All(array, s => Assert.Equal(string.Empty, s));
+        }
+
+        [Fact]
+        public void AttemptingToDeserializeADocumentWithAnIncorrectlyTypedFieldThrows()
+        {
+            var document = TomlDocument.CreateEmpty();
+            document.Put("MyFloat", "Not a float");
+
+            var ex = Assert.Throws<TomlFieldTypeMismatchException>(() => TomletMain.To<SimplePrimitiveTestClass>(document));
+
+            var msg = $"While deserializing an object of type {typeof(SimplePrimitiveTestClass).FullName}, found field MyFloat expecting a type of Double, but value in TOML was of type String";
+            Assert.Equal(msg, ex.Message);
         }
     }
 }

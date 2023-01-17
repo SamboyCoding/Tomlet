@@ -1,4 +1,5 @@
-﻿using Tomlet.Models;
+﻿using Tomlet.Exceptions;
+using Tomlet.Models;
 using Xunit;
 
 namespace Tomlet.Tests
@@ -153,6 +154,19 @@ namespace Tomlet.Tests
             
             Assert.Equal(originalFloat, parsedFloat);
             Assert.Equal("float = nan", serialized);
+        }
+        
+        [Fact]
+        public void IncorrectUnderscoresThrowAnException()
+        {
+            Assert.Throws<InvalidTomlNumberException>(() => GetDocument("key = 1__2"));
+            Assert.Throws<InvalidTomlNumberException>(() => GetDocument("key = 0x_12"));
+            Assert.Throws<InvalidTomlNumberException>(() => GetDocument("key = 12_"));
+            
+            
+            Assert.Throws<InvalidTomlNumberException>(() => GetDocument("key = 1__2.0"));
+            Assert.Throws<InvalidTomlNumberException>(() => GetDocument("key = 0x_12.0"));
+            Assert.Throws<InvalidTomlNumberException>(() => GetDocument("key = 12.0_"));
         }
     }
 }

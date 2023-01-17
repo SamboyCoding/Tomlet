@@ -40,6 +40,15 @@ namespace Tomlet
 
         internal static bool IsEndOfInlineObjectChar(this int val) => val == '}';
 
+        private static bool IsPermittedInNumberLiteral(this char val)
+            => val is '_' or '+' or '-' or 'e' or (>= '0' and <= '9');
+
+        internal static bool IsPermittedInIntegerLiteral(this char val)
+            => val is >= 'a' and <= 'f' || val.IsPermittedInNumberLiteral();
+
+        internal static bool IsPermittedInFloatLiteral(this char val)
+            => val is '.' || val.IsPermittedInNumberLiteral();
+
         internal static bool IsHexDigit(this char c)
         {
             var val = (int)c;
@@ -129,11 +138,13 @@ namespace Tomlet
             return false;
         }
 
+#if !NET5_0_OR_GREATER
         public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> pair, out TKey one, out TValue two)
         {
             one = pair.Key;
             two = pair.Value;
         }
+#endif
 
         public static bool IsNullOrWhiteSpace(this string s) => string.IsNullOrEmpty(s) || string.IsNullOrEmpty(s.Trim());
 
@@ -148,7 +159,7 @@ namespace Tomlet
         /// <summary>
         /// Shim to properly support Contains(char) on net3.5. We prefer using the char version because it's hardware-accelerated on modern .NET.
         /// </summary>
-        [MethodImpl((MethodImplOptions) 0x0100)] // AggressiveInlining in constant form because net3.5 doesn't define it
+        [MethodImpl((MethodImplOptions)0x0100)] // AggressiveInlining in constant form because net3.5 doesn't define it
 #if NET6_0 || NETSTANDARD2_0
         public static bool RuntimeCorrectContains(this string original, char c)
             => original.Contains(c);

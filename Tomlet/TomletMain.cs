@@ -11,7 +11,7 @@ namespace Tomlet
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public static class TomletMain
     {
-        [NoCoverage]
+        [Attributes.ExcludeFromCodeCoverage]
         public static void RegisterMapper<T>(TomlSerializationMethods.Serialize<T>? serializer, TomlSerializationMethods.Deserialize<T>? deserializer)
             => TomlSerializationMethods.Register(serializer, deserializer);
 

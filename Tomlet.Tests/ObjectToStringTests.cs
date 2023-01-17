@@ -107,5 +107,20 @@ namespace Tomlet.Tests
 
             Assert.Equal(testObject, deserializedAgain);
         }
+
+        [Fact]
+        public void SerializingAnEmptyObjectGivesAnEmptyString()
+        {
+            var tomlString = TomletMain.TomlStringFrom(new {}).Trim();
+            
+            Assert.Equal(string.Empty, tomlString);
+        }
+        
+        [Fact]
+        public void AttemptingToDirectlySerializeNullThrows()
+        {
+            //We need to use a type of T that actually has something to serialize
+            Assert.Throws<ArgumentNullException>(() => TomletMain.DocumentFrom(typeof(SimplePrimitiveTestClass), null!));
+        }
     }
 }

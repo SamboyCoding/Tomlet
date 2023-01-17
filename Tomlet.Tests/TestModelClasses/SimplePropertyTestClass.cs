@@ -13,6 +13,15 @@ namespace Tomlet.Tests.TestModelClasses
         public bool MyBool { get; set; }
         public DateTime MyDateTime { get; set; }
 
+        //Properties without getters are ignored, so this should be ignored
+        public string PropWithNoGetter
+        {
+            set
+            {
+                //Do nothing
+            }
+        }
+
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
         public override bool Equals(object obj)
         {

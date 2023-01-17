@@ -16,7 +16,7 @@ namespace Tomlet
                 input = input.Substring(2);
 
             //Invalid characters, double underscores
-            if (input.Contains("__") || input.Any(c => c != '_' && c != '-' && c != '+' && !char.IsDigit(c) && (c < 'a' || c > 'f')))
+            if (input.Contains("__") || input.Any(c => !c.IsPermittedInIntegerLiteral()))
                 return null;
 
             //Underscore without a digit before
@@ -63,7 +63,7 @@ namespace Tomlet
                     return input.StartsWith("-") ? double.NegativeInfinity : double.PositiveInfinity;
             }
             
-            if (input.Contains("__") || input.Any(c => c != '_' && c != '-' && c != '+' && c != 'e' && c != '.' && !char.IsDigit(c)))
+            if (input.Contains("__") || input.Any(c => !c.IsPermittedInFloatLiteral()))
                 return null;
 
             //Underscore without a digit before

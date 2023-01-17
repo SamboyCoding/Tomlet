@@ -24,7 +24,7 @@ namespace Tomlet
         private static readonly Dictionary<Type, Delegate> Serializers = new();
 
 
-        [NoCoverage]
+        [ExcludeFromCodeCoverage]
         static TomlSerializationMethods()
         {
             //Register built-in serializers

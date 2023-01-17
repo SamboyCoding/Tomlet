@@ -16,7 +16,7 @@ public class ExampleMailboxConfigClass
     public string password;
 
     [TomlPrecedingComment("The rules for the mailbox follow")]
-    public Rule[] rules;
+    public Rule[] rules { get; set; }
 
     public class Rule
     {

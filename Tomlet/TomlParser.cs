@@ -21,7 +21,7 @@ namespace Tomlet
         private TomlTable? _currentTable;
 
         // ReSharper disable once UnusedMember.Global
-        [NoCoverage]
+        [ExcludeFromCodeCoverage]
         public static TomlDocument ParseFile(string filePath)
         {
             var fileContent = File.ReadAllText(filePath);
