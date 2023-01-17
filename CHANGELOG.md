@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [5.1.1](#511)
   - [5.1.0](#510)
   - [5.0.1](#501)
   - [5.0.0](#500)
@@ -36,6 +37,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 5.1.1
+
+- Fixed an issue where `[TomlDoNotInlineObject]` on properties didn't actually work. Thanks to [Windows10CE](https://github.com/Windows10CE) for the fix in [#20](https://github.com/SamboyCoding/Tomlet/pull/20)
 
 ## 5.1.0
 
