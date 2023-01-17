@@ -27,7 +27,7 @@ internal static class TomlCompositeSerializer
             var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .ToArray();
             var propAttribs = props
-                .ToDictionary(p => p, p => new {inline = p.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = p.GetCustomAttribute<TomlPrecedingCommentAttribute>(), prop = p.GetCustomAttribute<TomlPropertyAttribute>()});
+                .ToDictionary(p => p, p => new {inline = p.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = p.GetCustomAttribute<TomlPrecedingCommentAttribute>(), prop = p.GetCustomAttribute<TomlPropertyAttribute>(), noInline = p.GetCustomAttribute<TomlDoNotInlineObjectAttribute>()});
 
             var isForcedNoInline = type.GetCustomAttribute<TomlDoNotInlineObjectAttribute>() != null;
 
@@ -95,6 +95,9 @@ internal static class TomlCompositeSerializer
                     
                     tomlValue.Comments.InlineComment = thisPropAttribs.inline?.Comment;
                     tomlValue.Comments.PrecedingComment = thisPropAttribs.preceding?.Comment;
+
+                    if (thisPropAttribs.noInline != null && tomlValue is TomlTable table)
+                        table.ForceNoInline = true;
 
                     resultTable.PutValue(thisPropAttribs.prop?.GetMappedString() ?? prop.Name, tomlValue);
                 }

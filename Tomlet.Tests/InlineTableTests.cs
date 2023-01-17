@@ -44,13 +44,17 @@ namespace Tomlet.Tests
         [Fact]
         public void MembersAnnotatedDoNotInlineAreNotInlined()
         {
-            var obj = new ClassWithDoNotInlineField()
+            var obj = new ClassWithDoNotInlineMembers()
             {
                 ShouldBeInlined =
                 {
                     ["key"] = "value"
                 },
-                ShouldNotBeInlined =
+                ShouldNotBeInlinedField =
+                {
+                    ["key"] = "value"
+                },
+                ShouldNotBeInlinedProp =
                 {
                     ["key"] = "value"
                 }
@@ -60,7 +64,10 @@ namespace Tomlet.Tests
 
             var expectedString = @"
 ShouldBeInlined = { key = ""value"" }
-[ShouldNotBeInlined]
+[ShouldNotBeInlinedField]
+key = ""value""
+
+[ShouldNotBeInlinedProp]
 key = ""value""
 ".Trim().ReplaceLineEndings("\n");
             
