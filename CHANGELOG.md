@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [5.1.2](#512)
   - [5.1.1](#511)
   - [5.1.0](#510)
   - [5.0.1](#501)
@@ -37,6 +38,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 5.1.2
+
+- Fixed an issue where the decimal separator `,` was used instead of the correct `.` in some cases. Thanks to [GeleArthur](https://github.com/GeleArthur) for the fix in [#22](https://github.com/SamboyCoding/Tomlet/pull/22)
 
 ## 5.1.1
 
