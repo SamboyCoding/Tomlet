@@ -111,8 +111,8 @@ TomlDocument document = parser.Parse(myTomlString);
 ### Creating your own mappers.
 
 By default, serialization and deserialization are reflection-based. Both fields and properties are supported, and properties can be remapped (i.e. told not to
-use their name, but an alternative key) by using the `TomlProperty` attribute. Any fields or properties marked as `[NonSerialized]` are skipped over,
-both when serializing and deserializing, and deserializing requires a parameterless constructor to instantiate the object. 
+use their name, but an alternative key) by using the `TomlProperty` attribute. Any fields or properties marked with attributes `[TomlNonSerialized]` or `[NonSerialized]` are skipped over(ignored),
+both when serializing and deserializing. Deserializing requires a parameterless constructor to instantiate the object. 
 
 This approach should work for most model classes, but should something more complex be used, such as storing a colour as an integer/hex string, or if you have a more compact/proprietary
 method of serializing your classes, then you can override this default using code such as this:
