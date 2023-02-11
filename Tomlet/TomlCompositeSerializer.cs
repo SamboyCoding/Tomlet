@@ -32,7 +32,6 @@ internal static class TomlCompositeSerializer
             var isForcedNoInline = type.GetCustomAttribute<TomlDoNotInlineObjectAttribute>() != null;
 
             //Ignore NonSerialized and CompilerGenerated fields.
-            //fields = fields.Where(f => !f.IsNotSerialized && f.GetCustomAttribute<CompilerGeneratedAttribute>() == null && !f.Name.Contains('<')).ToArray();
             fields = fields.Where(f => !(f.IsNotSerialized || f.GetCustomAttribute<TomlNonSerializedAttribute>() != null)
                 && f.GetCustomAttribute<CompilerGeneratedAttribute>() == null 
                 && !f.Name.Contains('<')).ToArray();
