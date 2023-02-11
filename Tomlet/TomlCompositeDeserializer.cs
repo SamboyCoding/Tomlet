@@ -41,8 +41,9 @@ internal static class TomlCompositeDeserializer
 
             var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
+            //Ignore TomlNonSerializedAttribute Decorated Properties
             var propsDict = props
-                .Where(p => p.GetSetMethod(true) != null)
+                .Where(p => p.GetSetMethod(true) != null && p.GetCustomAttribute<TomlNonSerializedAttribute>() == null)
                 .Select(p => new KeyValuePair<PropertyInfo, TomlPropertyAttribute?>(p, p.GetCustomAttribute<TomlPropertyAttribute>()))
                 .ToDictionary(tuple => tuple.Key, tuple => tuple.Value);
 

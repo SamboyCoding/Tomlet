@@ -32,7 +32,12 @@ internal static class TomlCompositeSerializer
             var isForcedNoInline = type.GetCustomAttribute<TomlDoNotInlineObjectAttribute>() != null;
 
             //Ignore NonSerialized and CompilerGenerated fields.
-            fields = fields.Where(f => !f.IsNotSerialized && f.GetCustomAttribute<CompilerGeneratedAttribute>() == null && !f.Name.Contains('<')).ToArray();
+            fields = fields.Where(f => !(f.IsNotSerialized || f.GetCustomAttribute<TomlNonSerializedAttribute>() != null)
+                && f.GetCustomAttribute<CompilerGeneratedAttribute>() == null 
+                && !f.Name.Contains('<')).ToArray();
+
+            //Ignore TomlNonSerializedAttribute Decorated Properties
+            props = props.Where(p => p.GetCustomAttribute<TomlNonSerializedAttribute>() == null).ToArray();
 
             if (fields.Length + props.Length == 0)
                 return _ => new TomlTable();
