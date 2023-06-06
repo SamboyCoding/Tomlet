@@ -56,5 +56,25 @@ namespace Tomlet.Tests
             
             Assert.Equal("pug", document.GetSubTable("dog").GetSubTable("tater.man").GetSubTable("type").GetString("name"));
         }
+
+        [Fact]
+        public void TableIteratorEqualsEntries()
+        {
+            var document = GetDocument(TestResources.TableIteratorInput);
+
+            Assert.Single(document.Entries);
+
+            Assert.NotNull(document.GetSubTable("table-1"));
+
+            var table1 = document.GetSubTable("table-1");
+
+            Assert.Equal(4, table1.Entries.Count);
+
+            foreach (var entry in table1)
+            {
+                Assert.True(table1.Entries.ContainsKey(entry.Key));
+                Assert.Equal(table1.Entries[entry.Key], entry.Value);
+            }
+        }
     }
 }
