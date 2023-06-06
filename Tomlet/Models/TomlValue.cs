@@ -16,5 +16,10 @@
         {
             get;
         }
+
+        public override string ToString()
+        {
+            return StringValue;
+        }
     }
 }
