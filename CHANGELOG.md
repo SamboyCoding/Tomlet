@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [5.1.3](#513)
   - [5.1.2](#512)
   - [5.1.1](#511)
   - [5.1.0](#510)
@@ -39,6 +40,10 @@
   - [1.0.1](#101)
   - [1.0.0](#100)
 
+## 5.1.3
+
+- Improvements for ToString on TOML Values, and iterating over TOML Tables. Thanks to [johnkiddjr](https://github.com/johnkiddjr) in [#28](https://github.com/SamboyCoding/Tomlet/pull/28)
+
 ## 5.1.2
 
 - Fixed an issue where the decimal separator `,` was used instead of the correct `.` in some cases. Thanks to [GeleArthur](https://github.com/GeleArthur) for the fix in [#22](https://github.com/SamboyCoding/Tomlet/pull/22)
@@ -62,7 +67,7 @@
   - Technically this is breaking because it means any existing nullable values in a TOML file won't be deserialized properly.
   - As part of this, you can now return null from custom serializers, in which case the value will not be written to the TOML document.
 - It also improves string serialization so that values that contain backslashes but no single quotes (e.g. Windows paths!) will be serialized as literal strings instead of basic strings.
-  - Strings which contain match this criteria and additionally contain newlines will be serialized as multiline literals. 
+  - Strings which contain match this criteria and additionally contain newlines will be serialized as multiline literals.
 
 ## 4.0.0
 
@@ -91,7 +96,7 @@
 
 ## 3.1.3
 
-- Fixed spacing issues with TomlTable. Thanks to [HerpDerpinstine](https://github.com/HerpDerpinstine) for PRing this fix in [#16](https://github.com/SamboyCoding/Tomlet/pull/16)! 
+- Fixed spacing issues with TomlTable. Thanks to [HerpDerpinstine](https://github.com/HerpDerpinstine) for PRing this fix in [#16](https://github.com/SamboyCoding/Tomlet/pull/16)!
 
 ## 3.1.2
 
@@ -100,20 +105,20 @@
 ## 3.1.1
 
 - Added `Tomlet.Exceptions.TomlUnescapedUnicodeControlCharException` for if one of the forbidden unicode
-control characters is used without being escaped. See the TOML spec sections on comments and strings for 
-full information.
+  control characters is used without being escaped. See the TOML spec sections on comments and strings for
+  full information.
 
 ## 3.1.0
 
-- Added `Tomlet.Attributes.TomlDoNotInlineObjectAttribute` and `TomlTable#ForceNoInline` 
-to disable inlining of simple tables
+- Added `Tomlet.Attributes.TomlDoNotInlineObjectAttribute` and `TomlTable#ForceNoInline`
+  to disable inlining of simple tables
 - Made TomlBoolean no longer a singleton class so that comments do not get duplicated to all true/false
-Toml values.
+  Toml values.
 - Adjusted some formatting around table headers when serializing
 
 ## 3.0.1
 - Hotfix for an issue where the new, preferred, inline serialization would create invalid TOML documents
-due to not quoting keys.
+  due to not quoting keys.
 
 ## 3.0.0
 - BREAKING CHANGE: Moved TomlPropertyAttribute to the `Tomlet.Attributes` namespace.
@@ -122,17 +127,17 @@ due to not quoting keys.
   - `UnterminatedTomlArrayException`
   - `UnterminatedTomlInlineObjectException`
 - Added support for comments.
-  - Added `Tomlet.Models.TomlCommentData`, exposed via the `Comments` field on any `TomlValue`.  
+  - Added `Tomlet.Models.TomlCommentData`, exposed via the `Comments` field on any `TomlValue`.
   - Added `Tomlet.Attributes.TomlInlineCommentAttribute` and `Tomlet.Attributes.TomlPrecedingCommentAttribute` to allow specifying inline comments using reflection-based serialization.
   - Added `TomlNewlineInInlineCommentException`
   - Please see the readme for more details.
 - Made inline serialization much more likely to be chosen for Toml Tables, assuming they have no comments, and that
-they contain only primitive values.
+  they contain only primitive values.
 - Fixed handling of 8-digit unicode escape sequences.
 - Generally cleaned up the codebase.
 - TomlArray#Add and TomlTable#Put now handle you providing them an already-serialized TOML value instead of double-serializing.
 - Finished adding tests for invalid input. Some very minor output changes could be possible, including:
-  - Arrays now output a trailing comma. This is valid TOML and was a choice made to keep the code cleaner. 
+  - Arrays now output a trailing comma. This is valid TOML and was a choice made to keep the code cleaner.
 
 ## 2.2.0
 
@@ -166,7 +171,7 @@ they contain only primitive values.
 - Updated TomlArray to serialize Table Arrays more intelligently, and update the exception message to be more useful to developers using Tomlet.
 - Internal cleanup to remove compiler warnings, resulting in some breaking changes where member names did not meet the standard (hence the bump to 2.0):
   - `TomlEOFException` is now `TomlEndOfFileException`
-  - `TomlBoolean.TRUE` and `TomlBoolean.FALSE` are now `TomlBoolean.True` and `TomlBoolean.False` 
+  - `TomlBoolean.TRUE` and `TomlBoolean.FALSE` are now `TomlBoolean.True` and `TomlBoolean.False`
   - `TomlString.EMPTY` is now `TomlString.Empty`
   - `TomlValueWithDateTime` is now `ITomlValueWithDateTime`
   - `TomletMain.ValueFrom<T>` and `TomletMain.DocumentFrom<T>` will now explicitly throw an `ArgumentNullException` if their argument is null.
@@ -191,7 +196,7 @@ they contain only primitive values.
 ## 1.3.1
 
 - Bugfix for strings with newlines.
-  
+
 ## 1.3.0
 
 - Fixed key names for sub-tables in table arrays
@@ -223,7 +228,7 @@ they contain only primitive values.
 
 ## 1.0.2
 
-- Add support for .NET Framework 3.5. 
+- Add support for .NET Framework 3.5.
 
 ## 1.0.1
 
