@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -8,7 +9,7 @@ using Tomlet.Exceptions;
 namespace Tomlet.Models
 {
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    public class TomlTable : TomlValue
+    public class TomlTable : TomlValue, IEnumerable<KeyValuePair<string, TomlValue>>
     {
         public readonly Dictionary<string, TomlValue> Entries = new();
 
@@ -453,6 +454,16 @@ namespace Tomlet.Models
                 throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType(), typeof(TomlTable));
 
             return tbl;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public IEnumerator<KeyValuePair<string, TomlValue>> GetEnumerator()
+        {
+            return Entries.GetEnumerator();
         }
     }
 }
