@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Tomlet.Exceptions;
 
 namespace Tomlet.Models
@@ -26,6 +27,8 @@ namespace Tomlet.Models
                                                                && Entries.All(e => !e.Key.Contains(" ")
                                                                                    && e.Value.Comments.ThereAreNoComments
                                                                                    && (e.Value is TomlArray arr ? arr.IsSimpleArray : e.Value is not TomlTable));
+
+        private Regex keyOkayWithoutQuotesRegex = new Regex(@"^[a-zA-Z0-9_-]+$");
 
         public override string SerializedValue
         {
@@ -156,7 +159,7 @@ namespace Tomlet.Models
 
             var escaped = TomlUtils.EscapeStringValue(key);
 
-            if (escaped.Contains(" ") || escaped.Contains("\\") && !didQuote)
+            if (!keyOkayWithoutQuotesRegex.IsMatch(escaped) && !didQuote)
                 escaped = TomlUtils.AddCorrectQuotes(escaped);
 
             return escaped;
@@ -190,7 +193,7 @@ namespace Tomlet.Models
 
             if (tomlValue == null)
                 throw new ArgumentException("Value to insert into TOML table serialized to null.", nameof(t));
-            
+
             PutValue(key, tomlValue, quote);
         }
 
