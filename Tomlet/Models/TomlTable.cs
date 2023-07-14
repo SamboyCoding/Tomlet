@@ -36,7 +36,7 @@ namespace Tomlet.Models
 
                 var builder = new StringBuilder("{ ");
 
-                builder.Append(string.Join(", ", Entries.Select(o => o.Key + " = " + o.Value.SerializedValue).ToArray()));
+                builder.Append(string.Join(", ", Entries.Select(o => EscapeKeyIfNeeded(o.Key) + " = " + o.Value.SerializedValue).ToArray()));
 
                 builder.Append(" }");
 
@@ -136,10 +136,8 @@ namespace Tomlet.Models
             builder.Append('\n');
         }
 
-        private string EscapeKeyIfNeeded(string key)
+        private static string EscapeKeyIfNeeded(string key)
         {
-            var didQuote = false;
-
             if (key.StartsWith("\"") && key.EndsWith("\"") && key.Count(c => c == '"') == 2)
                 //Already double quoted
                 return key;
@@ -148,18 +146,24 @@ namespace Tomlet.Models
                 //Already single quoted
                 return key;
 
-            if (key.Contains("\"") || key.Contains("'"))
+            if (IsValidKey(key))
+                return key;
+                    
+            key = TomlUtils.EscapeStringValue(key);
+            return TomlUtils.AddCorrectQuotes(key);
+        }
+
+        private static bool IsValidKey(string key)
+        {
+            foreach (var c in key)
             {
-                key = TomlUtils.AddCorrectQuotes(key);
-                didQuote = true;
+                if (!char.IsLetterOrDigit(c) && c != '_' && c != '-')
+                {
+                    return false;
+                }
             }
 
-            var escaped = TomlUtils.EscapeStringValue(key);
-
-            if (escaped.Contains(" ") || escaped.Contains("\\") && !didQuote)
-                escaped = TomlUtils.AddCorrectQuotes(escaped);
-
-            return escaped;
+            return true;
         }
 
         internal void ParserPutValue(string key, TomlValue value, int lineNumber)

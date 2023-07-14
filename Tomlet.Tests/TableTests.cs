@@ -46,6 +46,26 @@ namespace Tomlet.Tests
             var tomlString = document.SerializedValue.Trim();
             Assert.Equal(inputString, tomlString);
         }
+        
+         [Theory]
+         [InlineData("normal-key", "normal-key")]
+         [InlineData("normal_key", "normal_key")]
+         [InlineData("normalkey", "normalkey")]
+         [InlineData("\"key with spaces\"", "\"key with spaces\"")]
+         [InlineData("key!with{}(*%&)random[other+symbols", "\"key!with{}(*%&)random[other+symbols\"")]
+         [InlineData("key/with/slashes", "\"key/with/slashes\"")]
+         [InlineData("Nam\\e", "\"Nam\\\\e\"")]
+         public void KeysShouldBeSerializedCorrectly(string inputKey, string expectedKey)
+         {
+             var inputString = $"""
+             ["Test Table"]
+             {inputKey} = "value"
+             """;
+             
+             var document = GetDocument(inputString);
+             var serializedDocument = document.SerializedValue.Trim();
+             Assert.Contains(expectedKey, serializedDocument);
+         }
 
         [Fact]
         public void TablesCanHaveQuotedDottedNames()
