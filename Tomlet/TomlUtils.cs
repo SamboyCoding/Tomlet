@@ -15,10 +15,10 @@ namespace Tomlet
 
         public static string AddCorrectQuotes(string key)
         {
-            if (key.Contains('\'') && key.Contains('"'))
+            if (key.Contains("'") && key.Contains("\""))
                 throw new InvalidTomlKeyException(key);
 
-            if (key.Contains('"'))
+            if (key.Contains("\""))
                 return $"'{key}'";
 
             return $"\"{key}\"";
