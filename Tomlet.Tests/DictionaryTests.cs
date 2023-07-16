@@ -27,4 +27,30 @@ public class DictionaryTests
         //Just make sure this doesn't throw
         var serialized = TomletMain.TomlStringFrom(obj); 
     }
+
+    [Fact]
+    public void DictionaryKeysShouldBeProperlyEscaped()
+    {
+        var dictionary = new Dictionary<string, string>
+        {
+            {"normal-key", "normal-key"},
+            {"normal_key", "normal_key"},
+            {"normalkey", "normalkey"},
+            {"key with space", "\"key with spaces\""},
+            {"key!with{}(*%&)random[other+symbols", "\"key!with{}(*%&)random[other+symbols\""},
+            {"key/with/slashes", "\"key/with/slashes\""},
+            {"Nam\\e", "\"Nam\\\\e\""}
+        };
+
+        var obj = new ClassWithDictionary
+        {
+            GenericDictionary = dictionary
+        };
+        
+        var serialized = TomletMain.TomlStringFrom(obj);
+        foreach(var (_, expectedValue) in dictionary)
+        {
+            Assert.Contains(expectedValue, serialized);
+        }
+    }
 }
