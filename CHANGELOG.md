@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [5.2.0](#520)
   - [5.1.3](#513)
   - [5.1.2](#512)
   - [5.1.1](#511)
@@ -39,6 +40,12 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 5.2.0
+
+- Fixed keys with symbols not being quoted when they should be (issue [#30](https://github.com/SamboyCoding/Tomlet/issues/30)). Thanks to [@tcortega](https://github.com/tcortega) in [#33](https://github.com/SamboyCoding/Tomlet/pull/33)
+- Fixed records not being supported due to them having constructors with params - those are now supported. Thanks to [@tcortega](https://github.com/tcortega) in [#32](https://github.com/SamboyCoding/Tomlet/pull/32)
+- Tomlet is now compiled for .NET 7 in addition to the previous targets, and the tests are run against .NET 7.
 
 ## 5.1.3
 
