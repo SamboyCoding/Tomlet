@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
-using Tomlet.Attributes;
 using Tomlet.Exceptions;
 using Tomlet.Models;
 
@@ -15,22 +14,22 @@ namespace Tomlet
         public static void RegisterMapper<T>(TomlSerializationMethods.Serialize<T>? serializer, TomlSerializationMethods.Deserialize<T>? deserializer)
             => TomlSerializationMethods.Register(serializer, deserializer);
 
-        public static T To<T>(string tomlString)
+        public static T To<T>(string tomlString, TomlSerializerOptions? options = null)
         {
             var parser = new TomlParser();
             var tomlDocument = parser.Parse(tomlString);
 
-            return To<T>(tomlDocument);
+            return To<T>(tomlDocument, options);
         }
 
-        public static T To<T>(TomlValue value)
+        public static T To<T>(TomlValue value, TomlSerializerOptions? options = null)
         {
-            return (T)To(typeof(T), value);
+            return (T)To(typeof(T), value, options);
         }
 
-        public static object To(Type what, TomlValue value)
+        public static object To(Type what, TomlValue value, TomlSerializerOptions? options = null)
         {
-            var deserializer = TomlSerializationMethods.GetDeserializer(what);
+            var deserializer = TomlSerializationMethods.GetDeserializer(what, options);
 
             return deserializer.Invoke(value);
         }
@@ -38,37 +37,37 @@ namespace Tomlet
 #if NET6_0
         [return: NotNullIfNotNull("t")]
 #endif
-        public static TomlValue? ValueFrom<T>(T t)
+        public static TomlValue? ValueFrom<T>(T t, TomlSerializerOptions? options = null)
         {
             if (t == null)
                 throw new ArgumentNullException(nameof(t));
 
-            return ValueFrom(t.GetType(), t);
+            return ValueFrom(t.GetType(), t, options);
         }
 
 #if NET6_0
         [return: NotNullIfNotNull("t")]
 #endif
-        public static TomlValue? ValueFrom(Type type, object t)
+        public static TomlValue? ValueFrom(Type type, object t, TomlSerializerOptions? options = null)
         {
-            var serializer = TomlSerializationMethods.GetSerializer(type);
+            var serializer = TomlSerializationMethods.GetSerializer(type, options);
 
             var tomlValue = serializer.Invoke(t);
 
             return tomlValue!;
         }
 
-        public static TomlDocument DocumentFrom<T>(T t)
+        public static TomlDocument DocumentFrom<T>(T t, TomlSerializerOptions? options = null)
         {
             if (t == null)
                 throw new ArgumentNullException(nameof(t));
 
-            return DocumentFrom(t.GetType(), t);
+            return DocumentFrom(t.GetType(), t, options);
         }
 
-        public static TomlDocument DocumentFrom(Type type, object t)
+        public static TomlDocument DocumentFrom(Type type, object t, TomlSerializerOptions? options = null)
         {
-            var val = ValueFrom(type, t);
+            var val = ValueFrom(type, t, options);
 
             return val switch
             {
@@ -78,8 +77,8 @@ namespace Tomlet
             };
         }
 
-        public static string TomlStringFrom<T>(T t) => DocumentFrom(t).SerializedValue;
+        public static string TomlStringFrom<T>(T t, TomlSerializerOptions? options = null) => DocumentFrom(t, options).SerializedValue;
 
-        public static string TomlStringFrom(Type type, object t) => DocumentFrom(type, t).SerializedValue;
+        public static string TomlStringFrom(Type type, object t, TomlSerializerOptions? options = null) => DocumentFrom(type, t, options).SerializedValue;
     }
 }

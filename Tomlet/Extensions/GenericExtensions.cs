@@ -6,9 +6,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Tomlet.Exceptions;
 
-namespace Tomlet
+namespace Tomlet.Extensions
 {
-    internal static class Extensions
+    internal static class GenericExtensions
     {
         private static readonly HashSet<int> IllegalChars = new()
         {

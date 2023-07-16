@@ -5,18 +5,19 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Tomlet.Attributes;
 using Tomlet.Exceptions;
+using Tomlet.Extensions;
 using Tomlet.Models;
 
 namespace Tomlet;
 
 internal static class TomlCompositeDeserializer
 {
-    public static TomlSerializationMethods.Deserialize<object> For(Type type)
+    public static TomlSerializationMethods.Deserialize<object> For(Type type, TomlSerializerOptions options)
     {
         TomlSerializationMethods.Deserialize<object> deserializer;
         if (type.IsEnum)
         {
-            var stringDeserializer = TomlSerializationMethods.GetDeserializer(typeof(string));
+            var stringDeserializer = TomlSerializationMethods.GetDeserializer(typeof(string), options);
             deserializer = value =>
             {
                 var enumName = (string)stringDeserializer.Invoke(value);
@@ -37,53 +38,38 @@ internal static class TomlCompositeDeserializer
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             //Ignore NonSerialized and CompilerGenerated fields.
-            fields = fields.Where(f => !f.IsNotSerialized && f.GetCustomAttribute<CompilerGeneratedAttribute>() == null).ToArray();
+            fields = fields.Where(f => !f.IsNotSerialized && GenericExtensions.GetCustomAttribute<CompilerGeneratedAttribute>(f) == null).ToArray();
 
             var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             //Ignore TomlNonSerializedAttribute Decorated Properties
             var propsDict = props
-                .Where(p => p.GetSetMethod(true) != null && p.GetCustomAttribute<TomlNonSerializedAttribute>() == null)
-                .Select(p => new KeyValuePair<PropertyInfo, TomlPropertyAttribute?>(p, p.GetCustomAttribute<TomlPropertyAttribute>()))
+                .Where(p => p.GetSetMethod(true) != null && GenericExtensions.GetCustomAttribute<TomlNonSerializedAttribute>(p) == null)
+                .Select(p => new KeyValuePair<PropertyInfo, TomlPropertyAttribute?>(p, GenericExtensions.GetCustomAttribute<TomlPropertyAttribute>(p)))
                 .ToDictionary(tuple => tuple.Key, tuple => tuple.Value);
 
             if (fields.Length + propsDict.Count == 0)
-                return _ =>
-                {
-                    try
-                    {
-                        return Activator.CreateInstance(type)!;
-                    }
-                    catch (MissingMethodException)
-                    {
-                        throw new TomlInstantiationException(type);
-                    }
-                };
+                return value => CreateInstance(type, value, options, out _);
 
             deserializer = value =>
             {
                 if (value is not TomlTable table)
                     throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType(), type);
 
-                object instance;
-                try
-                {
-                    instance = Activator.CreateInstance(type)!;
-                }
-                catch (MissingMethodException)
-                {
-                    throw new TomlInstantiationException(type);
-                }
+                var instance = CreateInstance(type, value, options, out var assignedMembers);
 
                 foreach (var field in fields)
                 {
+                    if (!options.OverrideConstructorValues && assignedMembers.Contains(field.Name))
+                        continue;
+                        
                     if (!table.TryGetValue(field.Name, out var entry))
                         continue; //TODO: Do we want to make this configurable? As in, throw exception if data is missing?
 
                     object fieldValue;
                     try
                     {
-                        fieldValue = TomlSerializationMethods.GetDeserializer(field.FieldType).Invoke(entry!);
+                        fieldValue = TomlSerializationMethods.GetDeserializer(field.FieldType, options).Invoke(entry!);
                     }
                     catch (TomlTypeMismatchException e)
                     {
@@ -96,6 +82,9 @@ internal static class TomlCompositeDeserializer
                 foreach (var (prop, attribute) in propsDict)
                 {
                     var name = attribute?.GetMappedString() ?? prop.Name;
+                    if (!options.OverrideConstructorValues && assignedMembers.Contains(name))
+                        continue;
+                        
                     if (!table.TryGetValue(name, out var entry))
                         continue; //TODO: As above, configurable?
 
@@ -103,8 +92,9 @@ internal static class TomlCompositeDeserializer
 
                     try
                     {
-                        propValue = TomlSerializationMethods.GetDeserializer(prop.PropertyType).Invoke(entry!);
-                    } catch (TomlTypeMismatchException e)
+                        propValue = TomlSerializationMethods.GetDeserializer(prop.PropertyType, options).Invoke(entry!);
+                    }
+                    catch (TomlTypeMismatchException e)
                     {
                         throw new TomlPropertyTypeMismatchException(type, prop, e);
                     }
@@ -120,5 +110,48 @@ internal static class TomlCompositeDeserializer
         TomlSerializationMethods.Register(type, null, deserializer);
 
         return deserializer;
+    }
+
+    private static object CreateInstance(Type type, TomlValue tomlValue, TomlSerializerOptions options, out HashSet<string> assignedMembers)
+    {
+        if (tomlValue is not TomlTable table)
+            throw new TomlTypeMismatchException(typeof(TomlTable), tomlValue.GetType(), type);
+        
+        if (!type.TryGetBestMatchConstructor(out var constructor))
+        {
+            throw new TomlInstantiationException();
+        }
+
+        var parameters = constructor!.GetParameters();
+        if (parameters.Length == 0)
+        {
+            assignedMembers = new HashSet<string>();
+            return constructor.Invoke(null);
+        }
+
+        assignedMembers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var arguments = new object[parameters.Length];
+        for (var i = 0; i < parameters.Length; i++)
+        {
+            var parameter = parameters[i];
+            object argument;
+            
+            if (!table.TryGetValue(parameter.Name!.ToPascalCase(), out var entry))
+                continue;
+
+            try
+            {
+                argument = TomlSerializationMethods.GetDeserializer(parameter.ParameterType, options).Invoke(entry!);
+            }
+            catch (TomlTypeMismatchException e)
+            {
+                throw new TomlParameterTypeMismatchException(parameter.ParameterType, parameter, e);
+            }
+
+            arguments[i] = argument;
+            assignedMembers.Add(parameter.Name!);
+        }
+
+        return constructor.Invoke(arguments);
     }
 }

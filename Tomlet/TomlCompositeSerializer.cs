@@ -3,19 +3,20 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Tomlet.Attributes;
+using Tomlet.Extensions;
 using Tomlet.Models;
 
 namespace Tomlet;
 
 internal static class TomlCompositeSerializer
 {
-    public static TomlSerializationMethods.Serialize<object> For(Type type)
+    public static TomlSerializationMethods.Serialize<object> For(Type type, TomlSerializerOptions options)
     {
         TomlSerializationMethods.Serialize<object> serializer;
 
         if (type.IsEnum)
         {
-            var stringSerializer = TomlSerializationMethods.GetSerializer(typeof(string));
+            var stringSerializer = TomlSerializationMethods.GetSerializer(typeof(string), options);
             serializer = o => stringSerializer.Invoke(Enum.GetName(type, o!) ?? throw new ArgumentException($"Tomlet: Cannot serialize {o} as an enum of type {type} because the enum type does not declare a name for that value"));
         }
         else
@@ -23,21 +24,21 @@ internal static class TomlCompositeSerializer
             //Get all instance fields
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var fieldAttribs = fields
-                .ToDictionary(f => f, f => new {inline = f.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = f.GetCustomAttribute<TomlPrecedingCommentAttribute>(), noInline = f.GetCustomAttribute<TomlDoNotInlineObjectAttribute>()});
+                .ToDictionary(f => f, f => new {inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentAttribute>(f), preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentAttribute>(f), noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(f)});
             var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .ToArray();
             var propAttribs = props
-                .ToDictionary(p => p, p => new {inline = p.GetCustomAttribute<TomlInlineCommentAttribute>(), preceding = p.GetCustomAttribute<TomlPrecedingCommentAttribute>(), prop = p.GetCustomAttribute<TomlPropertyAttribute>(), noInline = p.GetCustomAttribute<TomlDoNotInlineObjectAttribute>()});
+                .ToDictionary(p => p, p => new {inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentAttribute>(p), preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentAttribute>(p), prop = GenericExtensions.GetCustomAttribute<TomlPropertyAttribute>(p), noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(p)});
 
-            var isForcedNoInline = type.GetCustomAttribute<TomlDoNotInlineObjectAttribute>() != null;
+            var isForcedNoInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(type) != null;
 
             //Ignore NonSerialized and CompilerGenerated fields.
-            fields = fields.Where(f => !(f.IsNotSerialized || f.GetCustomAttribute<TomlNonSerializedAttribute>() != null)
-                && f.GetCustomAttribute<CompilerGeneratedAttribute>() == null 
+            fields = fields.Where(f => !(f.IsNotSerialized || GenericExtensions.GetCustomAttribute<TomlNonSerializedAttribute>(f) != null)
+                && GenericExtensions.GetCustomAttribute<CompilerGeneratedAttribute>(f) == null 
                 && !f.Name.Contains('<')).ToArray();
 
             //Ignore TomlNonSerializedAttribute Decorated Properties
-            props = props.Where(p => p.GetCustomAttribute<TomlNonSerializedAttribute>() == null).ToArray();
+            props = props.Where(p => GenericExtensions.GetCustomAttribute<TomlNonSerializedAttribute>(p) == null).ToArray();
 
             if (fields.Length + props.Length == 0)
                 return _ => new TomlTable();
@@ -56,7 +57,7 @@ internal static class TomlCompositeSerializer
                     if (fieldValue == null)
                         continue; //Skip nulls - TOML doesn't support them.
 
-                    var tomlValue = TomlSerializationMethods.GetSerializer(field.FieldType).Invoke(fieldValue);
+                    var tomlValue = TomlSerializationMethods.GetSerializer(field.FieldType, options).Invoke(fieldValue);
                     
                     if(tomlValue == null)
                         continue;
@@ -91,7 +92,7 @@ internal static class TomlCompositeSerializer
                     if(propValue == null)
                         continue;
                     
-                    var tomlValue = TomlSerializationMethods.GetSerializer(prop.PropertyType).Invoke(propValue);
+                    var tomlValue = TomlSerializationMethods.GetSerializer(prop.PropertyType, options).Invoke(propValue);
 
                     if (tomlValue == null) 
                         continue;

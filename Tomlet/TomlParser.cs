@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Tomlet.Attributes;
 using Tomlet.Exceptions;
+using Tomlet.Extensions;
 using Tomlet.Models;
 
 namespace Tomlet
