@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Tomlet.Attributes;
 using Tomlet.Exceptions;
 using Tomlet.Models;
@@ -17,8 +16,9 @@ namespace Tomlet
         private static MethodInfo _genericNullableSerializerMethod = typeof(TomlSerializationMethods).GetMethod(nameof(GenericNullableSerializer), BindingFlags.Static | BindingFlags.NonPublic)!;
 
         public delegate T Deserialize<out T>(TomlValue value);
-
+        public delegate T ComplexDeserialize<out T>(TomlValue value, TomlSerializerOptions options);
         public delegate TomlValue? Serialize<in T>(T? t);
+        public delegate TomlValue? ComplexSerialize<in T>(T? t, TomlSerializerOptions options);
 
         private static readonly Dictionary<Type, Delegate> Deserializers = new();
         private static readonly Dictionary<Type, Delegate> Serializers = new();
@@ -75,8 +75,10 @@ namespace Tomlet
             Register(lt => new TomlLocalTime(lt), value => (value as TomlLocalTime)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlLocalTime), value.GetType(), typeof(TimeSpan)));
         }
 
-        internal static Serialize<object> GetSerializer(Type t)
+        internal static Serialize<object> GetSerializer(Type t, TomlSerializerOptions? options)
         {
+            options ??= TomlSerializerOptions.Default;
+            
             if (Serializers.TryGetValue(t, out var value))
                 return (Serialize<object>)value;
 
@@ -93,8 +95,8 @@ namespace Tomlet
                 {
                     var serializer = _genericDictionarySerializerMethod.MakeGenericMethod(genericArgs);
 
-                    var del = Delegate.CreateDelegate(typeof(Serialize<>).MakeGenericType(t), serializer);
-                    var ret = (Serialize<object>)(dict => (TomlValue?)del.DynamicInvoke(dict));
+                    var del = Delegate.CreateDelegate(typeof(ComplexSerialize<>).MakeGenericType(t), serializer);
+                    var ret = (Serialize<object>)(dict => (TomlValue?)del.DynamicInvoke(dict, options));
                     Serializers[t] = ret;
 
                     return ret;
@@ -104,39 +106,41 @@ namespace Tomlet
                 {
                     var serializer = _genericNullableSerializerMethod.MakeGenericMethod(genericArgs);
                     
-                    var del = Delegate.CreateDelegate(typeof(Serialize<>).MakeGenericType(t), serializer);
-                    var ret = (Serialize<object>)(dict => (TomlValue?)del.DynamicInvoke(dict));
+                    var del = Delegate.CreateDelegate(typeof(ComplexSerialize<>).MakeGenericType(t), serializer);
+                    var ret = (Serialize<object>)(dict => (TomlValue?)del.DynamicInvoke(dict, options));
                     Serializers[t] = ret;
                     
                     return ret;
                 }
             }
 
-            return TomlCompositeSerializer.For(t);
+            return TomlCompositeSerializer.For(t, options);
         }
 
-        internal static Deserialize<object> GetDeserializer(Type t)
+        internal static Deserialize<object> GetDeserializer(Type t, TomlSerializerOptions? options)
         {
+            options ??= TomlSerializerOptions.Default;
+            
             if (Deserializers.TryGetValue(t, out var value))
                 return (Deserialize<object>)value;
 
             if (t.IsArray)
             {
-                var arrayDeserializer = ArrayDeserializerFor(t.GetElementType()!);
+                var arrayDeserializer = ArrayDeserializerFor(t.GetElementType()!, options);
                 Deserializers[t] = arrayDeserializer;
                 return arrayDeserializer;
             }
 
             if (t.Namespace == "System.Collections.Generic" && t.Name == "List`1")
             {
-                var listDeserializer = ListDeserializerFor(t.GetGenericArguments()[0]);
+                var listDeserializer = ListDeserializerFor(t.GetGenericArguments()[0], options);
                 Deserializers[t] = listDeserializer;
                 return listDeserializer;
             }
             
             if(t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>) && t.GetGenericArguments() is {Length: 1} genericArguments)
             {
-                var nullableDeserializer = NullableDeserializerFor(t);
+                var nullableDeserializer = NullableDeserializerFor(t, options);
                 Deserializers[t] = nullableDeserializer;
                 return nullableDeserializer;
             }
@@ -145,15 +149,11 @@ namespace Tomlet
             {
                 if (genericArgs[0] == typeof(string))
                 {
-#if NETFRAMEWORK
-                    return (Deserialize<object>)_stringKeyedDictionaryMethod.MakeGenericMethod(genericArgs[1]).Invoke(null, new object[0])!;
-#else
-                    return (Deserialize<object>)_stringKeyedDictionaryMethod.MakeGenericMethod(genericArgs[1]).Invoke(null, Array.Empty<object>())!;
-#endif
+                    return (Deserialize<object>)_stringKeyedDictionaryMethod.MakeGenericMethod(genericArgs[1]).Invoke(null, new object[]{options})!;
                 }
             }
 
-            return TomlCompositeDeserializer.For(t);
+            return TomlCompositeDeserializer.For(t, options);
         }
 
         private static Serialize<object?> GenericEnumerableSerializer() =>
@@ -171,14 +171,14 @@ namespace Tomlet
                 return ret;
             };
 
-        private static Deserialize<object> ArrayDeserializerFor(Type elementType) =>
+        private static Deserialize<object> ArrayDeserializerFor(Type elementType, TomlSerializerOptions options) =>
             value =>
             {
                 if (value is not TomlArray tomlArray)
                     throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), elementType.MakeArrayType());
 
                 var ret = Array.CreateInstance(elementType, tomlArray.Count);
-                var deserializer = GetDeserializer(elementType);
+                var deserializer = GetDeserializer(elementType, options);
                 for (var index = 0; index < tomlArray.ArrayValues.Count; index++)
                 {
                     var arrayValue = tomlArray.ArrayValues[index];
@@ -188,7 +188,7 @@ namespace Tomlet
                 return ret;
             };
 
-        private static Deserialize<object> ListDeserializerFor(Type elementType)
+        private static Deserialize<object> ListDeserializerFor(Type elementType, TomlSerializerOptions options)
         {
             var listType = typeof(List<>).MakeGenericType(elementType);
             var relevantAddMethod = listType.GetMethod("Add")!;
@@ -199,7 +199,7 @@ namespace Tomlet
                     throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), listType);
 
                 var ret = Activator.CreateInstance(listType)!;
-                var deserializer = GetDeserializer(elementType);
+                var deserializer = GetDeserializer(elementType, options);
 
                 foreach (var arrayValue in tomlArray.ArrayValues)
                 {
@@ -210,10 +210,10 @@ namespace Tomlet
             };
         }
         
-        private static Deserialize<object> NullableDeserializerFor(Type nullableType)
+        private static Deserialize<object> NullableDeserializerFor(Type nullableType, TomlSerializerOptions options)
         {
             var elementType = nullableType.GetGenericArguments()[0];
-            var elementDeserializer = GetDeserializer(elementType);
+            var elementDeserializer = GetDeserializer(elementType, options);
             
             return value =>
             {
@@ -223,9 +223,9 @@ namespace Tomlet
             };
         }
 
-        private static Deserialize<Dictionary<string, T>> StringKeyedDictionaryDeserializerFor<T>()
+        private static Deserialize<Dictionary<string, T>> StringKeyedDictionaryDeserializerFor<T>(TomlSerializerOptions options)
         {
-            var deserializer = GetDeserializer(typeof(T));
+            var deserializer = GetDeserializer(typeof(T), options);
 
             return value =>
             {
@@ -236,9 +236,9 @@ namespace Tomlet
             };
         }
         
-        private static TomlValue? GenericNullableSerializer<T>(T? nullable) where T : struct
+        private static TomlValue? GenericNullableSerializer<T>(T? nullable, TomlSerializerOptions options) where T : struct
         {
-            var elementSerializer = GetSerializer(typeof(T));
+            var elementSerializer = GetSerializer(typeof(T), options);
             
             if (nullable.HasValue)
                 return elementSerializer(nullable.Value);
@@ -246,9 +246,9 @@ namespace Tomlet
             return null;
         }
 
-        private static TomlValue GenericDictionarySerializer<TKey, TValue>(Dictionary<TKey, TValue> dict) where TKey : notnull
+        private static TomlValue GenericDictionarySerializer<TKey, TValue>(Dictionary<TKey, TValue> dict, TomlSerializerOptions options) where TKey : notnull
         {
-            var valueSerializer = GetSerializer(typeof(TValue));
+            var valueSerializer = GetSerializer(typeof(TValue), options);
 
             var ret = new TomlTable();
             foreach (var entry in dict)

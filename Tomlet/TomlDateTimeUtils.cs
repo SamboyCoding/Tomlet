@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Tomlet.Exceptions;
+using Tomlet.Extensions;
 using Tomlet.Models;
 
 namespace Tomlet
