@@ -190,6 +190,14 @@ public class ExceptionTests
     [Fact]
     public void UnInstantiableObjectsThrow() => 
         AssertThrows<TomlInstantiationException>(() => TomletMain.To<IConvertible>(""));
+
+    [Fact]
+    public void MultipleParameterizedConstructorsThrow() =>
+        AssertThrows<TomlInstantiationException>(() => TomletMain.To<ClassWithMultipleParameterizedConstructors>(""));
+    
+    [Fact]
+    public void AbstractClassDeserializationThrows() =>
+        AssertThrows<TomlInstantiationException>(() => TomletMain.To<AbstractClass>(""));
     
     [Fact]
     public void MismatchingTypesInPrimitiveMappingThrows() => 

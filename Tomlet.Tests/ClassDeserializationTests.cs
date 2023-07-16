@@ -55,6 +55,14 @@ namespace Tomlet.Tests
         }
 
         [Fact]
+        public void ClassWithParameterlessConstructorDeserializationWorks()
+        {
+            var type = TomletMain.To<ClassWithParameterlessConstructor>(TestResources.SimplePrimitiveDeserializationTestInput);
+            
+            Assert.Equal("Hello, world!", type.MyString);
+        }
+        
+        [Fact]
         public void AnArrayOfEmptyStringsCanBeDeserialized()
         {
             var wrapper = TomletMain.To<StringArrayWrapper>(TestResources.ArrayOfEmptyStringTestInput);
@@ -74,6 +82,24 @@ namespace Tomlet.Tests
 
             var msg = $"While deserializing an object of type {typeof(SimplePrimitiveTestClass).FullName}, found field MyFloat expecting a type of Double, but value in TOML was of type String";
             Assert.Equal(msg, ex.Message);
+        }
+
+        [Fact]
+        public void ShouldOverrideDefaultConstructorsValues()
+        {
+            var options = new TomlSerializerOptions { OverrideConstructorValues = true };
+            var type = TomletMain.To<ClassWithValuesSetOnConstructor>(TestResources.SimplePrimitiveDeserializationTestInput, options);
+            
+            Assert.Equal("Hello, world!", type.MyString);
+        }
+        
+        [Fact]
+        public void ShouldNotOverrideDefaultConstructorsValues()
+        {
+            var options = new TomlSerializerOptions { OverrideConstructorValues = false };
+            var type = TomletMain.To<ClassWithValuesSetOnConstructor>(TestResources.SimplePrimitiveDeserializationTestInput, options);
+            
+            Assert.Equal("Modified on constructor!", type.MyString);
         }
     }
 }

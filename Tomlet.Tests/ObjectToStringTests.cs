@@ -77,34 +77,23 @@ namespace Tomlet.Tests
         [Fact]
         public void SerializingSimpleTestRecordToTomlStringWorks()
         {
-            var testObject = new SimpleTestRecord
-            {
-                MyBool = true,
-                MyFloat = 420.69f,
-                MyString = "Hello, world!",
-                MyDateTime = new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc)
-            };
-
+            var testObject = new SimpleTestRecord("Hello, world!", 420.69f, true,
+                new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc));
             var serializedForm = TomletMain.TomlStringFrom(testObject);
-
+        
             Assert.Equal("MyString = \"Hello, world!\"\nMyFloat = 420.69000244140625\nMyBool = true\nMyDateTime = 1970-01-01T07:00:00", serializedForm.Trim());
         }
 
         [Fact]
         public void SerializingSimpleTestRecordAndDeserializingAgainGivesEquivalentObject()
         {
-            var testObject = new SimpleTestRecord
-            {
-                MyBool = true,
-                MyFloat = 420.69f,
-                MyString = "Hello, world!",
-                MyDateTime = new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc)
-            };
+            var testObject = new SimpleTestRecord("Hello, world!", 420.69f, true,
+                new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc));
 
             var serializedForm = TomletMain.TomlStringFrom(testObject);
-
+        
             var deserializedAgain = TomletMain.To<SimpleTestRecord>(serializedForm);
-
+        
             Assert.Equal(testObject, deserializedAgain);
         }
 
@@ -120,7 +109,7 @@ namespace Tomlet.Tests
         public void AttemptingToDirectlySerializeNullThrows()
         {
             //We need to use a type of T that actually has something to serialize
-            Assert.Throws<ArgumentNullException>(() => TomletMain.DocumentFrom(typeof(SimplePrimitiveTestClass), null!));
+            Assert.Throws<ArgumentNullException>(() => TomletMain.DocumentFrom(typeof(SimplePrimitiveTestClass), null!, null));
         }
     }
 }
