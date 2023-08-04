@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Tomlet.Exceptions;
 using Tomlet.Models;
+using Tomlet.Tests.TestDataGenerators;
 using Tomlet.Tests.TestModelClasses;
 using Xunit;
 
@@ -66,10 +68,23 @@ namespace Tomlet.Tests
         public void AnArrayOfEmptyStringsCanBeDeserialized()
         {
             var wrapper = TomletMain.To<StringArrayWrapper>(TestResources.ArrayOfEmptyStringTestInput);
-            var array = wrapper.array;
+            var array = wrapper.Array;
             
             Assert.Equal(5, array.Length);
             Assert.All(array, s => Assert.Equal(string.Empty, s));
+        }
+
+        [Theory]
+        [ClassData(typeof(EnumerableDeserializerDataGenerator))]
+        public void EnumerableCanBeDeserialized(Type wrapperType, string input, int expectedCount, string expectedValue)
+        {
+            dynamic wrapper = TomletMain.To(wrapperType, input);
+            var array = (IEnumerable<string>)wrapper.Array;
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            Assert.Equal(expectedCount, array.Count());
+            // ReSharper disable once PossibleMultipleEnumeration
+            Assert.All(array, s => Assert.Equal(expectedValue, s));
         }
 
         [Fact]

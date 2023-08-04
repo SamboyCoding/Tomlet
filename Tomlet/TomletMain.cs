@@ -21,6 +21,14 @@ namespace Tomlet
 
             return To<T>(tomlDocument, options);
         }
+        
+        public static object To(Type what, string tomlString, TomlSerializerOptions? options = null)
+        {
+            var parser = new TomlParser();
+            var tomlDocument = parser.Parse(tomlString);
+
+            return To(what, tomlDocument, options);
+        }
 
         public static T To<T>(TomlValue value, TomlSerializerOptions? options = null)
         {

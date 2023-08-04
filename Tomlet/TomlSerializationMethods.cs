@@ -82,7 +82,7 @@ namespace Tomlet
             if (Serializers.TryGetValue(t, out var value))
                 return (Serialize<object>)value;
 
-            if (t.IsArray || t.Namespace == "System.Collections.Generic" && t.Name == "List`1")
+            if (t.IsArray || typeof(IEnumerable).IsAssignableFrom(t))
             {
                 var arrSerializer = GenericEnumerableSerializer();
                 Serializers[t] = arrSerializer;
@@ -124,9 +124,10 @@ namespace Tomlet
             if (Deserializers.TryGetValue(t, out var value))
                 return (Deserialize<object>)value;
 
-            if (t.IsArray)
+            if (t.IsArray || t.IsInterface && typeof(IEnumerable).IsAssignableFrom(t))
             {
-                var arrayDeserializer = ArrayDeserializerFor(t.GetElementType()!, options);
+                var elementType = t.IsInterface ? t.GetGenericArguments()[0] : t.GetElementType()!;
+                var arrayDeserializer = ArrayDeserializerFor(elementType, options);
                 Deserializers[t] = arrayDeserializer;
                 return arrayDeserializer;
             }
