@@ -23,7 +23,7 @@
         <RepositoryUrl>https://github.com/SamboyCoding/Tomlet.git</RepositoryUrl>
         <TargetFrameworks>net6;net7;netstandard2.0;netframework3.5</TargetFrameworks>
         <Title>Tomlet</Title>
-        <Version>5.2.0</Version>
+        <Version>5.3.0</Version>
 
         <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
     </PropertyGroup>

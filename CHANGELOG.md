@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [5.3.0](#530)
   - [5.2.0](#520)
   - [5.1.3](#513)
   - [5.1.2](#512)
@@ -40,6 +41,12 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 5.3.0
+
+- Added `TomletMain.To(Type, string, TomlSerializerOptions)` as a wrapper for parse-then-deserialize to fill an API hole.
+- Added `TomlSerializationMethods.GetDefaultSerializerForType` and `TomlSerializationMethods.GetDefaultDeserializerForType` to expose the default reflection-based de/serializers for use in custom serializers.
+- Added support for de/serializing fields and properties of type `IEnumerable` - they will be treated as arrays. Based on work by [@tcortega](https://github.com/tcortega) in [#35](https://github.com/SamboyCoding/Tomlet/pull/32)
 
 ## 5.2.0
 
