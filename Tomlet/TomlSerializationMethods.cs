@@ -75,6 +75,38 @@ namespace Tomlet
             Register(lt => new TomlLocalTime(lt), value => (value as TomlLocalTime)?.Value ?? throw new TomlTypeMismatchException(typeof(TomlLocalTime), value.GetType(), typeof(TimeSpan)));
         }
 
+        /// <summary>
+        /// Returns the default (reflection-based) serializer for the given type. Can be useful if you're implementing your own custom serializer but want to use the default behavior (e.g. to extend it or to use it as a fallback). 
+        /// </summary>
+        /// <param name="type">The type to get the default serializer for</param>
+        /// <param name="options">The options to use for the serializer</param>
+        /// <returns>The default reflection-based serializer for the given type.</returns>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="type"/> is a primitive type.</exception>
+        public static Serialize<object> GetDefaultSerializerForType(Type type, TomlSerializerOptions? options = null)
+        {
+            options ??= TomlSerializerOptions.Default;
+            if(type.IsPrimitive)
+                throw new ArgumentException("Can't use reflection-based serializer for primitive types.", nameof(type));
+            
+            return TomlCompositeSerializer.For(type, options);
+        }
+        
+        /// <summary>
+        /// Returns the default (reflection-based) deserializer for the given type. Can be useful if you're implementing your own custom deserializer but want to use the default behavior (e.g. to extend it or to use it as a fallback).
+        /// </summary>
+        /// <param name="type">The type to get the default deserializer for</param>
+        /// <param name="options">The options to use for the deserializer</param>
+        /// <returns>The default reflection-based deserializer for the given type.</returns>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="type"/> is a primitive type.</exception>
+        public static Deserialize<object> GetDefaultDeserializerForType(Type type, TomlSerializerOptions? options = null)
+        {
+            options ??= TomlSerializerOptions.Default;
+            if(type.IsPrimitive)
+                throw new ArgumentException("Can't use reflection-based deserializer for primitive types.", nameof(type));
+            
+            return TomlCompositeDeserializer.For(type, options);
+        }
+
         internal static Serialize<object> GetSerializer(Type t, TomlSerializerOptions? options)
         {
             options ??= TomlSerializerOptions.Default;
@@ -138,7 +170,7 @@ namespace Tomlet
                 return listDeserializer;
             }
             
-            if(t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>) && t.GetGenericArguments() is {Length: 1} genericArguments)
+            if(t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>) && t.GetGenericArguments() is {Length: 1})
             {
                 var nullableDeserializer = NullableDeserializerFor(t, options);
                 Deserializers[t] = nullableDeserializer;
@@ -253,7 +285,7 @@ namespace Tomlet
             var ret = new TomlTable();
             foreach (var entry in dict)
             {
-                var keyAsString = entry.Key?.ToString();
+                var keyAsString = entry.Key.ToString();
                 
                 if(keyAsString == null)
                     continue;
