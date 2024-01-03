@@ -16,10 +16,15 @@ namespace Tomlet
 
         public static T To<T>(string tomlString, TomlSerializerOptions? options = null)
         {
+            return (T)To(typeof(T), tomlString, options);
+        }
+        
+        public static object To(Type what, string tomlString, TomlSerializerOptions? options = null)
+        {
             var parser = new TomlParser();
             var tomlDocument = parser.Parse(tomlString);
 
-            return To<T>(tomlDocument, options);
+            return To(what, tomlDocument, options);
         }
 
         public static T To<T>(TomlValue value, TomlSerializerOptions? options = null)

@@ -370,7 +370,7 @@ MyBool = true
 MyDateTime = 1970-01-01T07:00:00</value>
   </data>
   <data name="ArrayOfEmptyStringTestInput" xml:space="preserve">
-    <value>array =["","","","",""]</value>
+    <value>Array =["","","","",""]</value>
   </data>
   <data name="KeyWithEscapedQuotesTestInput" xml:space="preserve">
     <value>"\"a.b\"" = "hello"</value>
@@ -442,5 +442,11 @@ dep1 = "0.8.5"
 dep2 = "0.8.6"
 dep3 = "0.8.7"
 dep4 = "0.8.8"</value>
+  </data>
+  <data name="ArrayOfEmptyStringTestOutput" xml:space="preserve">
+    <value>Array = [ "", "", "", "", "", ]</value>
+  </data>
+  <data name="HashSetOfEmptyStringTestOutput" xml:space="preserve">
+    <value>Array = [ "", ]</value>
   </data>
 </root>

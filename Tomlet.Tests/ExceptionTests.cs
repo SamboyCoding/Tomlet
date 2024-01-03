@@ -94,7 +94,7 @@ public class ExceptionTests
     public void ImplyingAValueIsATableViaDottedKeyWhenItIsNotThrows()
     {
         var doc = GetDocument(TestResources.ArrayOfEmptyStringTestInput);
-        AssertThrows<TomlDottedKeyException>(() => doc.Put("array.a", "foo"));
+        AssertThrows<TomlDottedKeyException>(() => doc.Put("Array.a", "foo"));
     }
     
     [Fact]

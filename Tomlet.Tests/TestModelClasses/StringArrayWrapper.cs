@@ -2,8 +2,7 @@
 {
     public class StringArrayWrapper
     {
-        // ReSharper disable once InconsistentNaming
         // ReSharper disable once UnassignedField.Global
-        public string[] array;
+        public string[] Array;
     }
 }

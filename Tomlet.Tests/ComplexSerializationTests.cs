@@ -1,4 +1,5 @@
 ﻿using System;
+using Tomlet.Tests.TestDataGenerators;
 using Tomlet.Tests.TestModelClasses;
 using Xunit;
 using Xunit.Abstractions;
@@ -149,6 +150,14 @@ namespace Tomlet.Tests
             
             Assert.Equal("obj = { value = 1, str = \"hello\" }", tomlString.Trim());
             
+        }
+        
+        [Theory]
+        [ClassData(typeof(EnumerableSerializerDataGenerator))]
+        public void EnumerableShouldSerialize(StringEnumerableWrapper inputWrapper, string expectedOutput)
+        {
+            var tomlString = TomletMain.TomlStringFrom(inputWrapper).Trim();
+            Assert.Equal(tomlString, expectedOutput);
         }
     }
 }

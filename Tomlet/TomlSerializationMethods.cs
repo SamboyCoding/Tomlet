@@ -114,13 +114,15 @@ namespace Tomlet
             if (Serializers.TryGetValue(t, out var value))
                 return (Serialize<object>)value;
 
-            if (t.IsArray || t.Namespace == "System.Collections.Generic" && t.Name == "List`1")
+            //First check, lists and arrays get serialized as enumerables.
+            if (t.IsArray || t is { Namespace: "System.Collections.Generic", Name: "List`1" })
             {
                 var arrSerializer = GenericEnumerableSerializer();
                 Serializers[t] = arrSerializer;
                 return arrSerializer;
             }
 
+            //Check for dicts and nullables
             if (t.IsGenericType &&  t.GetGenericArguments() is { } genericArgs)
             {
                 if (t.GetGenericTypeDefinition() == typeof(Dictionary<,>))
@@ -145,6 +147,14 @@ namespace Tomlet
                     return ret;
                 }
             }
+            
+            //Now we've got dicts out of the way we can check if we're dealing with something that's IEnumerable and if so serialize as an array. We do this only *after* checking for dictionaries, because we don't want to serialize dictionaries as enumerables (i.e. table-arrays)
+            if (typeof(IEnumerable).IsAssignableFrom(t))
+            {
+                var enumerableSerializer = GenericEnumerableSerializer();
+                Serializers[t] = enumerableSerializer;
+                return enumerableSerializer;
+            }
 
             return TomlCompositeSerializer.For(t, options);
         }
@@ -156,9 +166,11 @@ namespace Tomlet
             if (Deserializers.TryGetValue(t, out var value))
                 return (Deserialize<object>)value;
 
-            if (t.IsArray)
+            //We allow deserializing to IEnumerable fields/props, by setting them an array. We DO NOT do anything for classes that implement IEnumerable, though, because that would mess with deserializing lists, dictionaries, etc.
+            if (t.IsArray || t.IsInterface && typeof(IEnumerable).IsAssignableFrom(t)) 
             {
-                var arrayDeserializer = ArrayDeserializerFor(t.GetElementType()!, options);
+                var elementType = t.IsInterface ? t.GetGenericArguments()[0] : t.GetElementType()!;
+                var arrayDeserializer = ArrayDeserializerFor(elementType, options);
                 Deserializers[t] = arrayDeserializer;
                 return arrayDeserializer;
             }
