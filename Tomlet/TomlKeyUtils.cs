@@ -1,57 +1,136 @@
 ﻿using System;
+using System.Text.RegularExpressions;
+using Tomlet.Exceptions;
 
 namespace Tomlet
 {
     internal static class TomlKeyUtils
     {
+        private static readonly Regex UnquotedKeyRegex = new Regex("^[a-zA-Z0-9-_]+$");
+
         internal static void GetTopLevelAndSubKeys(string key, out string ourKeyName, out string restOfKey)
         {
-            var wholeKeyIsQuoted = key.StartsWith("\"") && key.EndsWith("\"") || key.StartsWith("'") && key.EndsWith("'");
-            var firstPartOfKeyIsQuoted = !wholeKeyIsQuoted && (key.StartsWith("\"") || key.StartsWith("'"));
+            var isBasicString = key.StartsWith("\"");
+            var isLiteralString = key.StartsWith("'");
 
-            if (!key.Contains(".") || wholeKeyIsQuoted)
+            if (isLiteralString)
             {
+                // Literal strings can't be escaped
+                var literalEnd = key.IndexOf('\'', 1);
+                if (literalEnd + 1 == key.Length)
+                {
+                    // Full key, no splitting needed.
+                    ourKeyName = key;
+                    restOfKey = "";
+                    return;
+                }
+
+                if (key[literalEnd + 1] != '.')
+                {
+                    // Literal strings cannot contain '
+                    // TODO: Find better exception
+                    throw new InvalidTomlKeyException(key);
+                }
+
+                if (literalEnd + 2 == key.Length)
+                {
+                    // You cannot have an empty unquoted key
+                    // TODO: Find better exception
+                    throw new InvalidTomlKeyException(key);
+                }
+
+                ourKeyName = key.Substring(0, literalEnd + 1);
+                restOfKey = key.Substring(literalEnd + 2);
+                return;
+            }
+
+            if (!isBasicString)
+            {
+                var firstDot = key.IndexOf(".", StringComparison.Ordinal);
+                if (firstDot == -1)
+                {
+                    // Key is undotted. 
+                    // We could make a check for illegal characters here, but there isn't much point to it.
+                    ourKeyName = key;
+                    restOfKey = "";
+                    return;
+                }
+
+                if (firstDot + 1 == key.Length)
+                {
+                    // You cannot have an empty unquoted key
+                    // TODO: Find better exception
+                    throw new InvalidTomlKeyException(key);
+                }
+
+                ourKeyName = key.Substring(0, firstDot);
+                restOfKey = key.Substring(firstDot + 1);
+                return;
+            }
+
+            var firstUnquote = FindNextUnescapedQuote(key, 1);
+            if (firstUnquote == -1)
+            {
+                // Quoted string was never closed
+                // TODO: Find better exception
+                throw new InvalidTomlKeyException(key);
+            }
+
+            if (firstUnquote + 1 == key.Length)
+            {
+                // Full key, no splitting needed.
                 ourKeyName = key;
                 restOfKey = "";
                 return;
             }
 
-            //Unquoted dotted key means we put this in a sub-table.
-
-            //First get the name of the key in *this* table.
-            if (!firstPartOfKeyIsQuoted)
+            if (key[firstUnquote + 1] != '.')
             {
-                var split = key.Split('.');
-                ourKeyName = split[0];
-            }
-            else
-            {
-                ourKeyName = key;
-                var keyNameWithoutOpeningQuote = ourKeyName.Substring(1);
-                if (ourKeyName.Contains("\""))
-                    ourKeyName = ourKeyName.Substring(0, 2 + keyNameWithoutOpeningQuote.IndexOf("\"", StringComparison.Ordinal));
-                else
-                    ourKeyName = ourKeyName.Substring(0, 2 + keyNameWithoutOpeningQuote.IndexOf("'", StringComparison.Ordinal));
+                // Quoted strings cannot contain unescaped "
+                // TODO: Find better exception
+                throw new InvalidTomlKeyException(key);
             }
 
-            //And get the remainder of the key, relative to the sub-table.
-            restOfKey = key.Substring(ourKeyName.Length + 1);
+            if (firstUnquote + 2 == key.Length)
+            {
+                // You cannot have an empty unquoted key
+                // TODO: Find better exception
+                throw new InvalidTomlKeyException(key);
+            }
 
-            ourKeyName = ourKeyName.Trim();
+            ourKeyName = key.Substring(0, firstUnquote + 1);
+            restOfKey = key.Substring(firstUnquote + 2);
         }
 
-        public static string FullStringToProperKey(string key)
-        {
-            GetTopLevelAndSubKeys(key, out var a, out var b);
-            var keyLooksQuoted = key.StartsWith("\"") || key.StartsWith("'");
-            var keyLooksDotted = key.Contains(".");
 
-            if (keyLooksQuoted || keyLooksDotted || !string.IsNullOrEmpty(b))
+        private static int FindNextUnescapedQuote(string input, int startingIndex)
+        {
+            var i = startingIndex;
+            var isEscaped = false;
+            for (; i < input.Length; i++)
             {
-                return TomlUtils.AddCorrectQuotes(key);
+                if (input[i] == '\\')
+                {
+                    isEscaped = !isEscaped;
+                    continue;
+                }
+
+                if (input[i] != '"' || isEscaped)
+                {
+                    isEscaped = false;
+                    continue;
+                }
+
+                return i;
             }
-            
-            return key;
+
+            return -1; // Return -1 if no unescaped quote is found
+        }
+
+        internal static string FullStringToProperKey(string key)
+        {
+            var canBeUnquoted = UnquotedKeyRegex.Match(key).Success;
+            return canBeUnquoted ? key : TomlUtils.AddCorrectQuotes(key);
         }
     }
 }
