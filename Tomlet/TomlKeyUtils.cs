@@ -39,5 +39,19 @@ namespace Tomlet
 
             ourKeyName = ourKeyName.Trim();
         }
+
+        public static string FullStringToProperKey(string key)
+        {
+            GetTopLevelAndSubKeys(key, out var a, out var b);
+            var keyLooksQuoted = key.StartsWith("\"") || key.StartsWith("'");
+            var keyLooksDotted = key.Contains(".");
+
+            if (keyLooksQuoted || keyLooksDotted || !string.IsNullOrEmpty(b))
+            {
+                return TomlUtils.AddCorrectQuotes(key);
+            }
+            
+            return key;
+        }
     }
 }

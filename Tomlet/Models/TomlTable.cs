@@ -89,6 +89,7 @@ namespace Tomlet.Models
 
         private void WriteValueToStringBuilder(string? keyName, string subKey, StringBuilder builder)
         {
+            subKey = TomlKeyUtils.FullStringToProperKey(subKey);
             var value = GetValue(subKey);
 
             subKey = EscapeKeyIfNeeded(subKey);
