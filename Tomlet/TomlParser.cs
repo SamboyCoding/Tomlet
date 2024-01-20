@@ -208,13 +208,13 @@ namespace Tomlet
                 {
                     return sb.ToString();
                 }
-                
-                sb.Append((char) reader.Read());
+
+                sb.Append((char)reader.Read());
             }
 
             throw new TomlEndOfFileException(_lineNumber);
         }
-        
+
         private TomlValue ReadValue(TomletStringReader reader)
         {
             if (!reader.TryPeek(out var startOfValue))
@@ -300,7 +300,7 @@ namespace Tomlet
                     var charsRead = reader.ReadChars(4);
 
                     if (!TrueChars.SequenceEqual(charsRead))
-                        throw new TomlInvalidValueException(_lineNumber, (char) startOfValue);
+                        throw new TomlInvalidValueException(_lineNumber, (char)startOfValue);
 
                     value = TomlBoolean.True;
                     break;
@@ -311,13 +311,13 @@ namespace Tomlet
                     var charsRead = reader.ReadChars(5);
 
                     if (!FalseChars.SequenceEqual(charsRead))
-                        throw new TomlInvalidValueException(_lineNumber, (char) startOfValue);
+                        throw new TomlInvalidValueException(_lineNumber, (char)startOfValue);
 
                     value = TomlBoolean.False;
                     break;
                 }
                 default:
-                    throw new TomlInvalidValueException(_lineNumber, (char) startOfValue);
+                    throw new TomlInvalidValueException(_lineNumber, (char)startOfValue);
             }
 
             reader.SkipWhitespace();
@@ -363,7 +363,7 @@ namespace Tomlet
                 if (fourDigitUnicodeMode || eightDigitUnicodeMode)
                 {
                     //Handle \u1234 and \U12345678
-                    unicodeStringBuilder.Append((char) nextChar);
+                    unicodeStringBuilder.Append((char)nextChar);
 
                     if (fourDigitUnicodeMode && unicodeStringBuilder.Length == 4 || eightDigitUnicodeMode && unicodeStringBuilder.Length == 8)
                     {
@@ -382,7 +382,7 @@ namespace Tomlet
                 if (nextChar.IsNewline())
                     throw new UnterminatedTomlStringException(_lineNumber);
 
-                content.Append((char) nextChar);
+                content.Append((char)nextChar);
             }
 
             if (consumeClosingQuote)
@@ -403,7 +403,7 @@ namespace Tomlet
             {
                 //16-bit char
                 var decodedChar = short.Parse(unicodeString, NumberStyles.HexNumber);
-                return ((char) decodedChar).ToString();
+                return ((char)decodedChar).ToString();
             }
 
             //32-bit char
@@ -459,7 +459,6 @@ namespace Tomlet
         {
             //Literally (hah) just read until a single-quote
             var stringContent = reader.ReadWhile(valueChar => !valueChar.IsSingleQuote() && !valueChar.IsNewline());
-            
             foreach (var i in stringContent.Select(c => (int) c)) 
                 i.EnsureLegalChar(_lineNumber);
 
@@ -488,7 +487,7 @@ namespace Tomlet
 
                 if (!nextChar.IsSingleQuote())
                 {
-                    content.Append((char) nextChar);
+                    content.Append((char)nextChar);
 
                     if (nextChar == '\n')
                         _lineNumber++; //We've wrapped to a new line.
@@ -600,7 +599,7 @@ namespace Tomlet
                 if (fourDigitUnicodeMode || eightDigitUnicodeMode)
                 {
                     //Handle \u1234 and \U12345678
-                    unicodeStringBuilder.Append((char) nextChar);
+                    unicodeStringBuilder.Append((char)nextChar);
 
                     if (fourDigitUnicodeMode && unicodeStringBuilder.Length == 4 || eightDigitUnicodeMode && unicodeStringBuilder.Length == 8)
                     {
@@ -621,7 +620,7 @@ namespace Tomlet
                     if (nextChar == '\n')
                         _lineNumber++;
 
-                    content.Append((char) nextChar);
+                    content.Append((char)nextChar);
                     continue;
                 }
 
@@ -736,7 +735,7 @@ namespace Tomlet
             //Move to the first key
             _lineNumber += reader.SkipAnyCommentNewlineWhitespaceEtc();
 
-            var result = new TomlTable {Defined = true};
+            var result = new TomlTable { Defined = true };
 
             while (reader.TryPeek(out _))
             {
@@ -784,7 +783,7 @@ namespace Tomlet
                 if (postValueChar.IsEndOfInlineObjectChar())
                     break; //end of table
 
-                throw new TomlInlineTableSeparatorException(_lineNumber, (char) postValueChar);
+                throw new TomlInlineTableSeparatorException(_lineNumber, (char)postValueChar);
             }
 
             reader.ExpectAndConsume('}');
@@ -797,7 +796,7 @@ namespace Tomlet
         {
             var key = ReadKey(reader);
             var originalKey = string.Join(".", key.ToArray());
-            
+
             var parent = (TomlTable)document;
             GetLowestTable(ref parent, ref key, 0, typeof(TomlTable));
 
@@ -858,11 +857,12 @@ namespace Tomlet
             {
                 var subkey = key[0];
                 usedKeys.Add(subkey);
-                
+
                 if (!parent.Entries.TryGetValue(subkey, out var value))
                 {
                     break;
                 }
+
                 key.RemoveAt(0);
 
                 if (value is TomlTable subTable)
@@ -876,6 +876,7 @@ namespace Tomlet
                     {
                         throw new TomlKeyRedefinitionException(_lineNumber, string.Join(".", usedKeys.ToArray()));
                     }
+
                     parent = table;
                 }
                 else
@@ -905,8 +906,9 @@ namespace Tomlet
             {
                 throw new MissingIntermediateInTomlTableArraySpecException(_lineNumber, string.Join(".", key.ToArray()));
             }
+
             var remainingKey = key[0];
-            
+
             //Find existing array or make new one
             TomlArray array;
             if (parent.Entries.TryGetValue(remainingKey, out var value))
@@ -923,23 +925,23 @@ namespace Tomlet
             }
             else
             {
-                array = new TomlArray {IsLockedToBeTableArray = true};
+                array = new TomlArray { IsLockedToBeTableArray = true };
                 //Insert into parent table
                 parent.ParserPutValue(ref key, array, _lineNumber);
             }
 
             // Create new table and add it to the array
-            _currentTable = new TomlTable {Defined = true};
+            _currentTable = new TomlTable { Defined = true };
             array.ArrayValues.Add(_currentTable);
-            
+
             return array;
         }
-        
+
         private string? ReadAnyPotentialInlineComment(TomletStringReader reader)
         {
             if (!reader.ExpectAndConsume('#'))
                 return null; //No comment
-            
+
             var ret = reader.ReadWhile(c => !c.IsNewline()).Trim();
 
             if (ret.Length < 1) 
@@ -954,7 +956,7 @@ namespace Tomlet
             return ret;
 
         }
-        
+
         private string? ReadAnyPotentialMultilineComment(TomletStringReader reader)
         {
             var ret = new StringBuilder();

@@ -135,7 +135,7 @@ namespace Tomlet.Models
             //Then append a newline
             builder.Append('\n');
         }
-        
+
         internal void ParserPutValue(ref List<string> key, TomlValue value, int lineNumber)
         {
             // NB: key is ref to signal that it mutates!
@@ -163,10 +163,10 @@ namespace Tomlet.Models
 
             if (tomlValue == null)
                 throw new ArgumentException("Value to insert into TOML table serialized to null.", nameof(t));
-            
+
             PutValue(key, tomlValue, quote);
         }
-        
+
         private void InternalPutValue(ref List<string> key, TomlValue value, int? lineNumber)
         {
             // NB: key is ref to signal that it mutates!
@@ -175,7 +175,7 @@ namespace Tomlet.Models
                 // TODO: Check what should be done here
                 throw new NoTomlKeyException(lineNumber ?? -1);
             }
-            
+
             var ourKeyName = key[0];
             key.RemoveAt(0);
 
@@ -212,7 +212,7 @@ namespace Tomlet.Models
             //Yes, get the sub-table to handle the rest of the key
             existingTable.ParserPutValue(ref key, value, lineNumber!.Value);
         }
-        
+
         private void InternalPutValue(string key, TomlValue value, int? lineNumber)
         {
             // Because we have a single key, we know it's not dotted
@@ -221,7 +221,7 @@ namespace Tomlet.Models
 
             Entries[key] = value;
         }
-        
+
         public bool ContainsKey(string key)
         {
             if (key == null)
