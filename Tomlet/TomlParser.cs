@@ -762,7 +762,7 @@ namespace Tomlet
                     //Insert into the table
                     result.ParserPutValue(ref key, value, _lineNumber);
                 }
-                catch (TomlException ex) when (ex is TomlMissingEqualsException or NoTomlKeyException or TomlWhitespaceInKeyException)
+                catch (TomlException ex) when (ex is TomlMissingEqualsException or NoTomlKeyException)
                 {
                     //Wrap missing keys or equals signs in a parent exception.
                     throw new InvalidTomlInlineTableException(_lineNumber, ex);
