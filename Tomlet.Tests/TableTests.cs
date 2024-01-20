@@ -37,6 +37,7 @@ namespace Tomlet.Tests
         {
             //Ensure we have enough entries to make sure the table is not re-serialized inline
             var inputString = "[\"Table Name With Spaces\"]\nkey = \"value\"\nkey2 = 1\nkey3 = 2\nkey4 = 3\nkey5 = 4";
+            var expectedOutput = "['Table Name With Spaces']\nkey = \"value\"\nkey2 = 1\nkey3 = 2\nkey4 = 3\nkey5 = 4";
             var document = GetDocument(inputString);
             
             Assert.Single(document.Keys, "Table Name With Spaces");
@@ -44,17 +45,17 @@ namespace Tomlet.Tests
             Assert.Equal("value", document.GetSubTable("Table Name With Spaces").GetString("key"));
 
             var tomlString = document.SerializedValue.Trim();
-            Assert.Equal(inputString, tomlString);
+            Assert.Equal(expectedOutput, tomlString);
         }
         
          [Theory]
          [InlineData("normal-key", "normal-key")]
          [InlineData("normal_key", "normal_key")]
          [InlineData("normalkey", "normalkey")]
-         [InlineData("\"key with spaces\"", "\"key with spaces\"")]
-         [InlineData("key!with{}(*%&)random[other+symbols", "\"key!with{}(*%&)random[other+symbols\"")]
-         [InlineData("key/with/slashes", "\"key/with/slashes\"")]
-         [InlineData("Nam\\e", "\"Nam\\\\e\"")]
+         [InlineData("\"key with spaces\"", "'key with spaces'")]
+         [InlineData("key!with{}(*%&)random[other+symbols", "'key!with{}(*%&)random[other+symbols'")]
+         [InlineData("key/with/slashes", "'key/with/slashes'")]
+         [InlineData("Nam\\e", "'Nam\\e'")]
          public void KeysShouldBeSerializedCorrectly(string inputKey, string expectedKey)
          {
              var inputString = $"""

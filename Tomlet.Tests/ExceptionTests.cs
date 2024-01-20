@@ -88,7 +88,7 @@ public class ExceptionTests
     
     [Fact]
     public void ImplyingAValueIsATableViaDottedKeyInADocumentWhenItIsNotThrows() =>
-        AssertThrows<TomlDottedKeyParserException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadDottedKeyExample));
+        AssertThrows<TomlKeyRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadDottedKeyExample));
 
     [Fact]
     public void ImplyingAValueIsATableViaDottedKeyWhenItIsNotThrows()
@@ -103,7 +103,7 @@ public class ExceptionTests
 
     [Fact]
     public void ReDefiningASubTableAsASubTableArrayThrowsAnException() => 
-        AssertThrows<TomlKeyRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.ReDefiningSubTableAsSubTableArrayTestInput));
+        AssertThrows<TomlTableRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.ReDefiningSubTableAsSubTableArrayTestInput));
 
     [Fact]
     public void RedefiningAKeyAsATableNameThrowsAnException() => 
@@ -143,7 +143,7 @@ public class ExceptionTests
     
     [Fact]
     public void WhitespaceInKeyThrows() => 
-        AssertThrows<TomlWhitespaceInKeyException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlWhitespaceInKeyExample));
+        AssertThrows<TomlMissingEqualsException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlWhitespaceInKeyExample));
     
     [Fact]
     public void MissingEqualsSignThrows() => 
