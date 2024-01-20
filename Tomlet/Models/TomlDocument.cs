@@ -19,7 +19,7 @@ namespace Tomlet.Models
         {
             foreach (var (key, value) in from)
             {
-                PutValue(TomlKeyUtils.FullStringToProperKey(key), value);
+                PutValue(key, value);
             }
         }
 

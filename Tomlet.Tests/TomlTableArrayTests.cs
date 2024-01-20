@@ -57,7 +57,7 @@ namespace Tomlet.Tests
             Assert.Equal("red", physical.GetString("color"));
             Assert.Equal("round", physical.GetString("shape"));
 
-            Assert.Equal("yellow", jam.GetString("color"));
+            Assert.Equal("yellowy", jam.GetString("color"));
             Assert.Equal("sticky", jam.GetString("feel"));
 
             Assert.Equal(2, varieties.Count);

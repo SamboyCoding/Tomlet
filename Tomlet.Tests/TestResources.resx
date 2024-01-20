@@ -328,7 +328,7 @@ color = "red"
 shape = "round"
 
 [fruits.jam] # second subtable
-color = "yellow"
+color = "yellowy"
 feel = "sticky"
 
 [[fruits.varieties]]  # nested array of tables

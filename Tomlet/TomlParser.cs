@@ -18,7 +18,6 @@ namespace Tomlet
 
         private int _lineNumber = 1;
 
-        private string[] _tableNames = new string[0];
         private TomlTable? _currentTable;
 
         // ReSharper disable once UnusedMember.Global
@@ -77,10 +76,10 @@ namespace Tomlet
 
                     if (_currentTable != null)
                         //Insert into current table
-                        _currentTable.ParserPutValue(key, value, _lineNumber);
+                        _currentTable.ParserPutValue(ref key, value, _lineNumber);
                     else
                         //Insert into the document
-                        document.ParserPutValue(key, value, _lineNumber);
+                        document.ParserPutValue(ref key, value, _lineNumber);
 
                     //Read up until the end of the line, ignoring any comments or whitespace
                     reader.SkipWhitespace();
@@ -104,19 +103,19 @@ namespace Tomlet
             }
         }
 
-        private void ReadKeyValuePair(TomletStringReader reader, out string key, out TomlValue value)
+        private void ReadKeyValuePair(TomletStringReader reader, out List<string> key, out TomlValue value)
         {
             //Read the key
             key = ReadKey(reader);
 
             //Consume the equals sign, potentially with whitespace either side.
-            reader.SkipWhitespace();
             if (!reader.ExpectAndConsume('='))
             {
-                if (reader.TryPeek(out var shouldHaveBeenEquals))
-                    throw new TomlMissingEqualsException(_lineNumber, (char) shouldHaveBeenEquals);
+                if (!reader.TryPeek(out var shouldHaveBeenEquals)) 
+                    throw new TomlEndOfFileException(_lineNumber);
+                
+                throw new TomlMissingEqualsException(_lineNumber, (char) shouldHaveBeenEquals);
 
-                throw new TomlEndOfFileException(_lineNumber);
             }
 
             reader.SkipWhitespace();
@@ -125,12 +124,12 @@ namespace Tomlet
             value = ReadValue(reader);
         }
 
-        private string ReadKey(TomletStringReader reader)
+        private List<string> ReadKey(TomletStringReader reader)
         {
             reader.SkipWhitespace();
 
             if (!reader.TryPeek(out var nextChar))
-                return "";
+                return new List<string>();
 
             if (nextChar.IsEquals())
                 throw new NoTomlKeyException(_lineNumber);
@@ -138,110 +137,84 @@ namespace Tomlet
             //Read a key
             reader.SkipWhitespace();
 
-            string key;
-            if (nextChar.IsDoubleQuote())
+            var key = new List<string> { ReadKeyPart(reader) };
+
+            reader.SkipWhitespace();
+            while (reader.TryPeek(out nextChar) && nextChar == '.')
             {
-                //Read double-quoted key
-                reader.Read();
-                if (reader.TryPeek(out var maybeSecondDoubleQuote) && maybeSecondDoubleQuote.IsDoubleQuote())
-                {
-                    reader.Read(); //Consume second double quote.
-
-                    //Check for third quote => invalid key
-                    //Else => empty key
-                    if (reader.TryPeek(out var maybeThirdDoubleQuote) && maybeThirdDoubleQuote.IsDoubleQuote())
-                        throw new TomlTripleQuotedKeyException(_lineNumber);
-
-                    return string.Empty;
-                }
-
-                //We delegate to the dedicated string reading function here because a double-quoted key can contain everything a double-quoted string can. 
-                key = '"' + ReadSingleLineBasicString(reader, false).StringValue + '"';
-
-                if (!reader.ExpectAndConsume('"'))
-                    throw new UnterminatedTomlKeyException(_lineNumber);
+                reader.ExpectAndConsume('.');
+                reader.SkipWhitespace();
+                key.Add(ReadKeyPart(reader));
+                reader.SkipWhitespace();
             }
-            else if (nextChar.IsSingleQuote())
-            {
-                reader.Read(); //Consume opening quote.
-
-                //Read single-quoted key
-                key = "'" + ReadSingleLineLiteralString(reader, false).StringValue + "'";
-                if (!reader.ExpectAndConsume('\''))
-                    throw new UnterminatedTomlKeyException(_lineNumber);
-            }
-            else
-                //Read unquoted key
-                key = ReadKeyInternal(reader, keyChar => keyChar.IsEquals() || keyChar.IsHashSign());
-
-            key = key.Replace("\\n", "\n")
-                .Replace("\\t", "\t");
 
             return key;
         }
 
-        private string ReadKeyInternal(TomletStringReader reader, Func<int, bool> charSignalsEndOfKey)
+        private string ReadKeyPart(TomletStringReader reader)
         {
-            var parts = new List<string>();
+            if (!reader.TryPeek(out var nextChar))
+                return "";
+            
+            if(nextChar.IsPeriod())
+                throw new TomlDoubleDottedKeyException(_lineNumber);
+            
+            if (nextChar.IsDoubleQuote())
+            {
+                //Read double-quoted key
+                reader.Read();
+                string basicString;
+                try
+                {
+                    basicString = ReadSingleLineBasicString(reader).StringValue;
+                }
+                catch (UnterminatedTomlStringException)
+                {
+                    throw new UnterminatedTomlKeyException(_lineNumber);
+                }
 
-            //Parts loop
+                if (reader.TryPeek(out var notQuote) && notQuote.IsDoubleQuote())
+                {
+                    throw new TomlTripleQuotedKeyException(_lineNumber);
+                }
+                return basicString;
+            }
+
+            if (nextChar.IsSingleQuote())
+            {
+                reader.Read(); //Consume opening quote.
+
+                //Read single-quoted key
+                try
+                {
+                    return ReadSingleLineLiteralString(reader).StringValue;
+                }
+                catch (UnterminatedTomlStringException)
+                {
+                    throw new UnterminatedTomlKeyException(_lineNumber);
+                }
+            }
+
+            return ReadUnquotedKey(reader);
+        }
+
+        private string ReadUnquotedKey(TomletStringReader reader)
+        {
+            var sb = new StringBuilder();
             while (reader.TryPeek(out var nextChar))
             {
-                if (charSignalsEndOfKey(nextChar))
-                    return string.Join(".", parts.ToArray());
-
-                if (nextChar.IsPeriod())
-                    throw new TomlDoubleDottedKeyException(_lineNumber);
-
-                var thisPart = new StringBuilder();
-                //Part loop
-                while (reader.TryPeek(out nextChar))
+                nextChar.EnsureLegalChar(_lineNumber);
+                if (nextChar.IsPeriod() || nextChar.IsWhitespace() || nextChar.IsEquals() || nextChar.IsEndOfArrayChar())
                 {
-                    nextChar.EnsureLegalChar(_lineNumber);
-                    
-                    var numLeadingWhitespace = reader.SkipWhitespace();
-                    reader.TryPeek(out var charAfterWhitespace);
-                    if (charAfterWhitespace.IsPeriod())
-                    {
-                        //Whitespace is permitted in keys only around periods
-                        parts.Add(thisPart.ToString()); //Add this part
-
-                        //Consume period and any trailing whitespace
-                        reader.ExpectAndConsume('.');
-                        reader.SkipWhitespace();
-                        break; //End of part, move to next
-                    }
-
-                    if (numLeadingWhitespace > 0 && charSignalsEndOfKey(charAfterWhitespace))
-                    {
-                        //Add this part to the list of parts and break out of the loop, without consuming the char (it'll be picked up by the outer loop)
-                        parts.Add(thisPart.ToString());
-                        break;
-                    }
-
-                    //Un-skip the whitespace
-                    reader.Backtrack(numLeadingWhitespace);
-
-                    //NextChar is still the whitespace itself
-                    if (charSignalsEndOfKey(nextChar))
-                    {
-                        //Add this part to the list of parts and break out of the loop, without consuming the char (it'll be picked up by the outer loop)
-                        parts.Add(thisPart.ToString());
-                        break;
-                    }
-
-                    if (numLeadingWhitespace > 0)
-                        //Whitespace is not allowed outside of the area immediately around a period in a dotted key
-                        throw new TomlWhitespaceInKeyException(_lineNumber);
-
-                    //Append this char to the part
-                    thisPart.Append((char) reader.Read());
+                    return sb.ToString();
                 }
+                
+                sb.Append((char) reader.Read());
             }
 
             throw new TomlEndOfFileException(_lineNumber);
         }
-
+        
         private TomlValue ReadValue(TomletStringReader reader)
         {
             if (!reader.TryPeek(out var startOfValue))
@@ -788,7 +761,7 @@ namespace Tomlet
                     //Read a key-value pair
                     ReadKeyValuePair(reader, out var key, out var value);
                     //Insert into the table
-                    result.ParserPutValue(key, value, _lineNumber);
+                    result.ParserPutValue(ref key, value, _lineNumber);
                 }
                 catch (TomlException ex) when (ex is TomlMissingEqualsException or NoTomlKeyException or TomlWhitespaceInKeyException)
                 {
@@ -822,47 +795,37 @@ namespace Tomlet
 
         private TomlTable ReadTableStatement(TomletStringReader reader, TomlDocument document)
         {
-            //Table name
-            var currentTableKey = reader.ReadWhile(c => !c.IsEndOfArrayChar() && !c.IsNewline());
+            var key = ReadKey(reader);
+            var originalKey = string.Join(".", key.ToArray());
+            
+            var parent = (TomlTable)document;
+            GetLowestTable(ref parent, ref key, 0, typeof(TomlTable));
 
-            var parent = (TomlTable) document;
-            var relativeKey = currentTableKey;
-            FindParentAndRelativeKey(ref parent, ref relativeKey);
-
-            TomlTable table;
-            try
+            if (key.Count == 0)
             {
-                if (parent.ContainsKey(relativeKey))
+                if (parent.Defined)
                 {
-                    try
-                    {
-                        table = (TomlTable) parent.GetValue(relativeKey);
+                    throw new TomlTableRedefinitionException(_lineNumber, originalKey);
+                }
 
-                        //The cast succeeded - we are defining an existing table
-                        if (table.Defined)
-                        {
-                            // The table was not one created automatically
-                            throw new TomlTableRedefinitionException(_lineNumber, currentTableKey);
-                        }
-                    }
-                    catch (InvalidCastException)
-                    {
-                        //The cast failed, we are re-defining a non-table.
-                        throw new TomlKeyRedefinitionException(_lineNumber, currentTableKey);
-                    }
-                }
-                else
-                {
-                    table = new TomlTable {Defined = true};
-                    parent.ParserPutValue(relativeKey, table, _lineNumber);
-                }
+                parent.Defined = true;
             }
-            catch (TomlContainsDottedKeyNonTableException e)
+
+            var table = parent;
+            if (key.Count > 0)
             {
-                //Re-throw with correct line number and exception type.
-                //To be clear - here we're re-defining a NON-TABLE key as a table, so this is a dotted key exception
-                //while the one above is a TableRedefinition exception because it's re-defining a key which is already a table.
-                throw new TomlDottedKeyParserException(_lineNumber, e.Key);
+                table = new TomlTable { Defined = true };
+                try
+                {
+                    parent.ParserPutValue(ref key, table, _lineNumber);
+                }
+                catch (TomlContainsDottedKeyNonTableException e)
+                {
+                    //Re-throw with correct line number and exception type.
+                    //To be clear - here we're re-defining a NON-TABLE key as a table, so this is a dotted key exception
+                    //while the one above is a TableRedefinition exception because it's re-defining a key which is already a table.
+                    throw new TomlDottedKeyParserException(_lineNumber, e.Key);
+                }
             }
 
             if (!reader.TryPeek(out _))
@@ -882,11 +845,45 @@ namespace Tomlet
                 throw new TomlMissingNewlineException(_lineNumber, (char) shouldBeNewline);
 
             _currentTable = table;
-
-            //Save table names
-            _tableNames = currentTableKey.Split('.');
-
             return table;
+        }
+
+        private void GetLowestTable(ref TomlTable parent, ref List<string> key, int keepSubkeys, Type context)
+        {
+            // NB: Mutates key. Variable marked as ref so nobody uses this wrong.
+
+            var usedKeys = new List<string>();
+            // Loop through all the subkeys until we have only one key left or have to create a new table
+            while (key.Count > keepSubkeys)
+            {
+                var subkey = key[0];
+                usedKeys.Add(subkey);
+                
+                if (!parent.Entries.TryGetValue(subkey, out var value))
+                {
+                    break;
+                }
+                key.RemoveAt(0);
+
+                if (value is TomlTable subTable)
+                {
+                    parent = subTable;
+                }
+                else if (value is TomlArray array)
+                {
+                    var arrayElement = array.Last();
+                    if (arrayElement is not TomlTable table)
+                    {
+                        throw new TomlKeyRedefinitionException(_lineNumber, string.Join(".", usedKeys.ToArray()));
+                    }
+                    parent = table;
+                }
+                else
+                {
+                    // Note: Expects either TomlArray or TomlTable
+                    throw new TomlKeyRedefinitionException(_lineNumber, string.Join(".", usedKeys.ToArray()));
+                }
+            }
         }
 
         private TomlArray ReadTableArrayStatement(TomletStringReader reader, TomlDocument document)
@@ -896,82 +893,48 @@ namespace Tomlet
                 throw new ArgumentException("Internal Tomlet Bug: ReadTableArrayStatement called and first char is not a [");
 
             //Array
-            var arrayName = reader.ReadWhile(c => !c.IsEndOfArrayChar() && !c.IsNewline());
+            var key = ReadKey(reader);
 
             if (!reader.ExpectAndConsume(']') || !reader.ExpectAndConsume(']'))
                 throw new UnterminatedTomlTableArrayException(_lineNumber);
 
-            TomlTable parentTable = document;
-            var relativeKey = arrayName;
-            FindParentAndRelativeKey(ref parentTable, ref relativeKey);
+            var parent = (TomlTable)document;
+            GetLowestTable(ref parent, ref key, 1, typeof(TomlArray));
 
-            if (parentTable == document)
+            if (parent == document && key.Count > 1)
             {
-                if (relativeKey.Contains('.'))
-                    throw new MissingIntermediateInTomlTableArraySpecException(_lineNumber, relativeKey);
+                throw new MissingIntermediateInTomlTableArraySpecException(_lineNumber, string.Join(".", key.ToArray()));
             }
-
+            var remainingKey = key[0];
+            
             //Find existing array or make new one
             TomlArray array;
-            if (parentTable.ContainsKey(relativeKey))
+            if (parent.Entries.TryGetValue(remainingKey, out var value))
             {
-                var value = parentTable.GetValue(relativeKey);
                 if (value is TomlArray arr)
                     array = arr;
                 else
-                    throw new TomlTableArrayAlreadyExistsAsNonArrayException(_lineNumber, arrayName);
+                    throw new TomlTableArrayAlreadyExistsAsNonArrayException(_lineNumber, string.Join(".", key.ToArray()));
 
                 if (!array.IsLockedToBeTableArray)
                 {
-                    throw new TomlNonTableArrayUsedAsTableArrayException(_lineNumber, arrayName);
+                    throw new TomlNonTableArrayUsedAsTableArrayException(_lineNumber, string.Join(".", key.ToArray()));
                 }
             }
             else
             {
                 array = new TomlArray {IsLockedToBeTableArray = true};
                 //Insert into parent table
-                parentTable.ParserPutValue(relativeKey, array, _lineNumber);
+                parent.ParserPutValue(ref key, array, _lineNumber);
             }
 
             // Create new table and add it to the array
             _currentTable = new TomlTable {Defined = true};
             array.ArrayValues.Add(_currentTable);
-
-            //Save table names
-            _tableNames = arrayName.Split('.');
             
             return array;
         }
-
-        private void FindParentAndRelativeKey(ref TomlTable parent, ref string relativeName)
-        {
-            for (var index = 0; index < _tableNames.Length; index++)
-            {
-                var rootTableName = _tableNames[index];
-                if (!relativeName.StartsWith(rootTableName + "."))
-                {
-                    break;
-                }
-
-                var value = parent.GetValue(rootTableName);
-                if (value is TomlTable subTable)
-                {
-                    parent = subTable;
-                }
-                else if (value is TomlArray array)
-                {
-                    parent = (TomlTable) array.Last();
-                }
-                else
-                {
-                    // Note: Expects either TomlArray or TomlTable
-                    throw new TomlTypeMismatchException(typeof(TomlArray), value.GetType(), typeof(TomlArray));
-                }
-
-                relativeName = relativeName.Substring(rootTableName.Length + 1);
-            }
-        }
-
+        
         private string? ReadAnyPotentialInlineComment(TomletStringReader reader)
         {
             if (!reader.ExpectAndConsume('#'))
