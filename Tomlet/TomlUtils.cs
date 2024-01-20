@@ -7,12 +7,11 @@ namespace Tomlet
     {
         // Characters that can't be in either literal or quoted strings. *Technically* these can be converted to \u
         // characters, but somebody else can implement this functionality.
+        // NB: /[\uD800-\uDBFF][\uDC00-\uDFFF]/ finds 2-byte unicode characters
         private static readonly Regex CanBeBasicRegex =
-            new Regex(@"^[\x08-\x0A\x0C-\x0D\x20-\x7E\x80-\uD7FF\uE000-\uFFFF]+$");
-
-        // Toml defines non-ascii as %x80-D7FF / %xE000-10FFFF, so this will break hard for UTF16
+            new Regex(@"^(([\uD800-\uDBFF][\uDC00-\uDFFF])|[\x08-\x0A\x0C-\x0D\x20-\x7E\x80-\uD7FF\uE000-\uFFFF])+$");
         private static readonly Regex CanBeLiteralRegex =
-            new Regex(@"^[\x09\x20-\x26\x28-\x7E\x80-\uD7FF\uE000-\uFFFF]+$");
+            new Regex(@"^(([\uD800-\uDBFF][\uDC00-\uDFFF])|[\x09\x20-\x26\x28-\x7E\x80-\uD7FF\uE000-\uFFFF])+$");
 
         public static string EscapeStringValue(string key)
         {
