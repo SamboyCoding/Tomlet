@@ -64,6 +64,14 @@ public class ExceptionTests
         AssertThrows<TomlEndOfFileException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTruncatedFileExample));
 
     [Fact]
+    public void TruncatedFilesThrow2() =>
+        AssertThrows<TomlEndOfFileException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTruncatedFileExample2));
+
+    [Fact]
+    public void TruncatedFilesThrow3() =>
+        AssertThrows<TomlEndOfFileException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTruncatedFileExample3));
+
+    [Fact]
     public void UndefinedTableArraysThrow() => 
         AssertThrows<MissingIntermediateInTomlTableArraySpecException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTableArrayWithMissingIntermediateExample));
     
