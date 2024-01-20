@@ -167,13 +167,13 @@ namespace Tomlet.Models
             PutValue(key, tomlValue, quote);
         }
 
-        private void InternalPutValue(ref List<string> key, TomlValue value, int? lineNumber)
+        private void InternalPutValue(ref List<string> key, TomlValue value, int lineNumber)
         {
             // NB: key is ref to signal that it mutates!
             if (key.Count == 0)
             {
                 // TODO: Check what should be done here
-                throw new NoTomlKeyException(lineNumber ?? -1);
+                throw new NoTomlKeyException(lineNumber);
             }
 
             var ourKeyName = key[0];
@@ -183,8 +183,8 @@ namespace Tomlet.Models
             if (key.Count == 0)
             {
                 // Non-dotted keys land here.
-                if (Entries.ContainsKey(ourKeyName) && lineNumber.HasValue)
-                    throw new TomlKeyRedefinitionException(lineNumber.Value, ourKeyName);
+                if (Entries.ContainsKey(ourKeyName))
+                    throw new TomlKeyRedefinitionException(lineNumber, ourKeyName);
 
                 Entries[ourKeyName] = value;
                 return;
@@ -196,7 +196,7 @@ namespace Tomlet.Models
                 //We don't have a sub-table with this name defined. That's fine, make one.
                 var subtable = new TomlTable();
                 Entries[ourKeyName] = subtable;
-                subtable.ParserPutValue(ref key, value, lineNumber!.Value);
+                subtable.ParserPutValue(ref key, value, lineNumber);
                 return;
             }
 
@@ -204,13 +204,11 @@ namespace Tomlet.Models
             if (existingValue is not TomlTable existingTable)
             {
                 //No - throw an exception
-                if (lineNumber.HasValue) throw new TomlDottedKeyParserException(lineNumber.Value, ourKeyName);
-
-                throw new TomlDottedKeyException(ourKeyName);
+                throw new TomlDottedKeyParserException(lineNumber, ourKeyName);
             }
 
             //Yes, get the sub-table to handle the rest of the key
-            existingTable.ParserPutValue(ref key, value, lineNumber!.Value);
+            existingTable.ParserPutValue(ref key, value, lineNumber);
         }
 
         private void InternalPutValue(string key, TomlValue value, int? lineNumber)

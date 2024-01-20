@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Tomlet.Exceptions;
 using Tomlet.Models;
 using Tomlet.Tests.TestModelClasses;
@@ -207,4 +208,16 @@ public class ExceptionTests
     [Fact]
     public void SettingAnInlineCommentToIncludeANewlineThrows() => 
         AssertThrows<TomlNewlineInInlineCommentException>(() => TomlDocument.CreateEmpty().Comments.InlineComment = "hello\nworld");
+
+    [Fact]
+    public void RedefiningDottedKeyThrows() => AssertThrows<TomlDottedKeyParserException>(
+        () =>
+        {
+            var parser = new TomlParser();
+            var tomlDocument = parser.Parse("""
+            a.b = 2
+            a.b.c = 3                       
+            """);
+        }
+    );
 }
