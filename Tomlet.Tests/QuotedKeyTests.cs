@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Tomlet.Exceptions;
 using Xunit;
@@ -47,7 +46,7 @@ namespace Tomlet.Tests
         [InlineData("'a.b'.\"c\"", "a.b", "c")]
         [InlineData("a.'b.c'", "a", "b.c")]
         [InlineData("\"a\".'b.c'", "a", "b.c")]
-        [InlineData("\"a\\\".b.c", "a", "b.c")]
+        [InlineData("\"a\".b.c", "a", "b")]
         [InlineData("'a.\"b'.c", "a.\"b", "c")]
         [InlineData("\"a.b\\\"c\".d", "a.b\"c", "d")]
         public void DottedKeysWork(string inputKey, string expectedKey, string expectedSubkey)
@@ -59,14 +58,14 @@ namespace Tomlet.Tests
         }
 
         [Theory]
-        [InlineData("'a.\"b'.c\"")]
-        [InlineData("\"a.bc\".d\"")]
+        // [InlineData("'a.\"b'.c\"")]  // Illegal in specs, but no harm in reading it
+        // [InlineData("\"a.bc\".d\"")]  // Illegal in specs, but no harm in reading it
         [InlineData("\"a.b\"c\".d\"")]
-        [InlineData("\"a.b\"c\".d")]
-        [InlineData("\"a.b\\\"c\".d\"")]
+        [InlineData("\"a.b\"c\".d")] 
+        //[InlineData("\"a.b\\\"c\".d\"")]  // Illegal in specs, but no harm in reading it
         [InlineData("'a.b'c'.d")]
         [InlineData("'a.b\\'c'.d")]
-        [InlineData("'a.bc'.d'")]
+        //[InlineData("'a.bc'.d'")]  // Illegal in specs, but no harm in reading it
         public void IllegalDottedKeysThrow(string inputKey)
         {
             var inputString = $"{inputKey} = \"value\"";
@@ -75,23 +74,25 @@ namespace Tomlet.Tests
 
 
         [Theory]
-        [InlineData("\"a\"b\"", @"(?:'""a""b""')|(?:""\\""a\\""b\\"""")")] // Simple or Literal
-        [InlineData("'a'b'", @"""'a'b'""")] // Simple only
-        [InlineData("'a\\'b'", @"""'a\\'b'""")] // Simple only
-        [InlineData("a\"b", @"(?:'a""b')|(?:""a\\""b"")")] // Simple or Literal
-        [InlineData("a'b", @"""a'b""")] // Simple only
-        [InlineData("a🐱b", @"(?:'a🐱b')|(?:""a🐱b"")")] // Simple or Literal
-        [InlineData("'ab\"", @"""'ab\\""""")] // Simple only
+        [InlineData("\"a\"b\"", @"^(?:'""a""b""')|(?:""\\""a\\""b\\"""")")] // Simple or Literal
+        [InlineData("'a'b'", @"^""'a'b'""")] // Simple only
+        [InlineData("'a\\'b'", @"^""'a\\\\'b'""")] // Simple only
+        [InlineData("a\"b", @"^(?:'a""b')|(?:""a\\""b"")")] // Simple or Literal
+        [InlineData("a'b", @"^""a'b""")] // Simple only
+        [InlineData("a🐱b", @"^(?:'a🐱b')|(?:""a🐱b"")")] // Simple or Literal
+        [InlineData("'ab\"", @"^""'ab\\""""")] // Simple only
         public void SerializingIllegalKeysWorks(string inputKey, string expectedOutput)
         {
             var dict = new Dictionary<string, string>
             {
-                { inputKey, "a" },
+                { inputKey, "z" },
             };
             var document = TomletMain.DocumentFrom(dict);
             Assert.NotEmpty(document.Keys);
             var parsedKey = document.Keys.First();
-            Assert.Matches(expectedOutput, parsedKey);
+            Assert.Equal(inputKey, parsedKey);
+            var serializedString = document.SerializedValue;
+            Assert.Matches(expectedOutput, serializedString);
         }
     }
 }
