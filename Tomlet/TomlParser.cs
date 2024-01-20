@@ -814,17 +814,7 @@ namespace Tomlet
             if (key.Count > 0)
             {
                 table = new TomlTable { Defined = true };
-                try
-                {
-                    parent.ParserPutValue(ref key, table, _lineNumber);
-                }
-                catch (TomlContainsDottedKeyNonTableException e)
-                {
-                    //Re-throw with correct line number and exception type.
-                    //To be clear - here we're re-defining a NON-TABLE key as a table, so this is a dotted key exception
-                    //while the one above is a TableRedefinition exception because it's re-defining a key which is already a table.
-                    throw new TomlDottedKeyParserException(_lineNumber, e.Key);
-                }
+                parent.ParserPutValue(ref key, table, _lineNumber);
             }
 
             if (!reader.TryPeek(out _))
