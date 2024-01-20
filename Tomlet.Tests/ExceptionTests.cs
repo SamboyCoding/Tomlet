@@ -220,4 +220,27 @@ public class ExceptionTests
             """);
         }
     );
+    
+    // These _can_ be converted, but since we're not we should add a proper exception for it
+    [Theory]
+    [InlineData("\x00")]
+    [InlineData("\x01")]
+    [InlineData("\x02")]
+    [InlineData("\x03")]
+    [InlineData("\x04")]
+    [InlineData("\x05")]
+    [InlineData("\x06")]
+    [InlineData("\x07")]
+    [InlineData("\x0b")]
+    [InlineData("\x0e")]
+    [InlineData("\x0f")]
+    public void SpecialCharactersCantBeKeys(string text)
+    {
+        AssertThrows<InvalidTomlKeyException>(
+            () =>
+            {
+                var document = TomletMain.TomlStringFrom(new Dictionary<string, string> { { text, "a" } });
+            }
+        );
+    }
 }
