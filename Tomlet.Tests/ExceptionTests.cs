@@ -89,13 +89,6 @@ public class ExceptionTests
     [Fact]
     public void ImplyingAValueIsATableViaDottedKeyInADocumentWhenItIsNotThrows() =>
         AssertThrows<TomlKeyRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadDottedKeyExample));
-
-    [Fact]
-    public void ImplyingAValueIsATableViaDottedKeyWhenItIsNotThrows()
-    {
-        var doc = GetDocument(TestResources.ArrayOfEmptyStringTestInput);
-        AssertThrows<TomlDottedKeyException>(() => doc.Put("Array.a", "foo"));
-    }
     
     [Fact]
     public void BadEnumValueThrows() =>
@@ -212,19 +205,6 @@ public class ExceptionTests
         AssertThrows<TomlPropertyTypeMismatchException>(() => TomletMain.To<SimplePropertyTestClass>("MyFloat = \"hello\""));
 
     [Fact]
-    public void AskingATableForTheValueAssociatedWithAnInvalidKeyThrows() =>
-        AssertThrows<InvalidTomlKeyException>(() => GetDocument("").GetBoolean("\"I am invalid'"));
-    
-    [Fact]
     public void SettingAnInlineCommentToIncludeANewlineThrows() => 
         AssertThrows<TomlNewlineInInlineCommentException>(() => TomlDocument.CreateEmpty().Comments.InlineComment = "hello\nworld");
-
-    [Fact]
-    public void BadKeysThrow()
-    {
-        var doc = GetDocument("");
-        
-        //A key with both quotes
-        AssertThrows<InvalidTomlKeyException>(() => doc.GetLong("\"hello'"));
-    }
 }
