@@ -198,7 +198,7 @@ namespace Tomlet.Tests {
         ///shape = &quot;round&quot;
         ///
         ///[fruits.jam] # second subtable
-        ///color = &quot;yellow&quot;
+        ///color = &quot;yellowy&quot;
         ///feel = &quot;sticky&quot;
         ///
         ///[[fruits.varieties]]  # nested array of tables

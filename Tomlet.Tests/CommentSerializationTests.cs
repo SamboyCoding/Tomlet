@@ -121,4 +121,17 @@ key = ""value"" # Inline comment on value".Trim();
         Assert.Equal("The password you use to access the mailbox", doc.GetValue("password").Comments.InlineComment);
         Assert.Equal("The rules for the mailbox follow", doc.GetArray("rules").Comments.PrecedingComment);
     }
+
+    [Fact]
+    public void TrailingCommentWorks()
+    {
+        var document = TomlDocument.CreateEmpty();
+        document.TrailingComment = "Hello World!";
+        var output = document.SerializedValue;
+        Assert.Equal("\n# Hello World!", output);
+
+        document.Put("Hello", "World");
+        output = document.SerializedValue;
+        Assert.Equal("Hello = \"World\"\n\n# Hello World!", output);
+    }
 }

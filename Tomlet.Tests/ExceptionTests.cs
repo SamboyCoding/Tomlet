@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Tomlet.Exceptions;
 using Tomlet.Models;
 using Tomlet.Tests.TestModelClasses;
@@ -63,6 +64,14 @@ public class ExceptionTests
         AssertThrows<TomlEndOfFileException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTruncatedFileExample));
 
     [Fact]
+    public void TruncatedFilesThrow2() =>
+        AssertThrows<TomlEndOfFileException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTruncatedFileExample2));
+
+    [Fact]
+    public void TruncatedFilesThrow3() =>
+        AssertThrows<TomlEndOfFileException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTruncatedFileExample3));
+
+    [Fact]
     public void UndefinedTableArraysThrow() => 
         AssertThrows<MissingIntermediateInTomlTableArraySpecException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlTableArrayWithMissingIntermediateExample));
     
@@ -88,14 +97,7 @@ public class ExceptionTests
     
     [Fact]
     public void ImplyingAValueIsATableViaDottedKeyInADocumentWhenItIsNotThrows() =>
-        AssertThrows<TomlDottedKeyParserException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadDottedKeyExample));
-
-    [Fact]
-    public void ImplyingAValueIsATableViaDottedKeyWhenItIsNotThrows()
-    {
-        var doc = GetDocument(TestResources.ArrayOfEmptyStringTestInput);
-        AssertThrows<TomlDottedKeyException>(() => doc.Put("Array.a", "foo"));
-    }
+        AssertThrows<TomlKeyRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlBadDottedKeyExample));
     
     [Fact]
     public void BadEnumValueThrows() =>
@@ -103,7 +105,7 @@ public class ExceptionTests
 
     [Fact]
     public void ReDefiningASubTableAsASubTableArrayThrowsAnException() => 
-        AssertThrows<TomlKeyRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.ReDefiningSubTableAsSubTableArrayTestInput));
+        AssertThrows<TomlTableRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.ReDefiningSubTableAsSubTableArrayTestInput));
 
     [Fact]
     public void RedefiningAKeyAsATableNameThrowsAnException() => 
@@ -143,7 +145,7 @@ public class ExceptionTests
     
     [Fact]
     public void WhitespaceInKeyThrows() => 
-        AssertThrows<TomlWhitespaceInKeyException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlWhitespaceInKeyExample));
+        AssertThrows<TomlMissingEqualsException>(() => GetDocument(DeliberatelyIncorrectTestResources.TomlWhitespaceInKeyExample));
     
     [Fact]
     public void MissingEqualsSignThrows() => 
@@ -212,19 +214,41 @@ public class ExceptionTests
         AssertThrows<TomlPropertyTypeMismatchException>(() => TomletMain.To<SimplePropertyTestClass>("MyFloat = \"hello\""));
 
     [Fact]
-    public void AskingATableForTheValueAssociatedWithAnInvalidKeyThrows() =>
-        AssertThrows<InvalidTomlKeyException>(() => GetDocument("").GetBoolean("\"I am invalid'"));
-    
-    [Fact]
     public void SettingAnInlineCommentToIncludeANewlineThrows() => 
         AssertThrows<TomlNewlineInInlineCommentException>(() => TomlDocument.CreateEmpty().Comments.InlineComment = "hello\nworld");
 
     [Fact]
-    public void BadKeysThrow()
+    public void RedefiningDottedKeyThrows() => AssertThrows<TomlDottedKeyParserException>(
+        () =>
+        {
+            var parser = new TomlParser();
+            var tomlDocument = parser.Parse("""
+            a.b = 2
+            a.b.c = 3                       
+            """);
+        }
+    );
+    
+    // These _can_ be converted, but since we're not we should add a proper exception for it
+    [Theory]
+    [InlineData("\x00")]
+    [InlineData("\x01")]
+    [InlineData("\x02")]
+    [InlineData("\x03")]
+    [InlineData("\x04")]
+    [InlineData("\x05")]
+    [InlineData("\x06")]
+    [InlineData("\x07")]
+    [InlineData("\x0b")]
+    [InlineData("\x0e")]
+    [InlineData("\x0f")]
+    public void SpecialCharactersCantBeKeys(string text)
     {
-        var doc = GetDocument("");
-        
-        //A key with both quotes
-        AssertThrows<InvalidTomlKeyException>(() => doc.GetLong("\"hello'"));
+        AssertThrows<InvalidTomlKeyException>(
+            () =>
+            {
+                var document = TomletMain.TomlStringFrom(new Dictionary<string, string> { { text, "a" } });
+            }
+        );
     }
 }

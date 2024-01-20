@@ -33,6 +33,12 @@
     <data name="TomlTruncatedFileExample" xml:space="preserve">
         <value>string =</value>
     </data>
+    <data name="TomlTruncatedFileExample2" xml:space="preserve">
+        <value>[</value>
+    </data>
+    <data name="TomlTruncatedFileExample3" xml:space="preserve">
+        <value>string</value>
+    </data>
     <data name="TomlTableArrayWithMissingIntermediateExample" xml:space="preserve">
         <value>[[numbers.one]]
 value = 1</value>

@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Tomlet.Extensions;
 
 namespace Tomlet.Models
 {
@@ -16,9 +17,9 @@ namespace Tomlet.Models
 
         internal TomlDocument(TomlTable from)
         {
-            foreach (var key in from.Keys)
+            foreach (var (key, value) in from)
             {
-                PutValue(key, from.GetValue(key));
+                PutValue(key, value);
             }
         }
 

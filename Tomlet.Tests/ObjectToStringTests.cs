@@ -1,4 +1,5 @@
 ﻿using System;
+using Tomlet.Models;
 using Tomlet.Tests.TestModelClasses;
 using Xunit;
 
@@ -110,6 +111,18 @@ namespace Tomlet.Tests
         {
             //We need to use a type of T that actually has something to serialize
             Assert.Throws<ArgumentNullException>(() => TomletMain.DocumentFrom(typeof(SimplePrimitiveTestClass), null!, null));
+        }
+
+        [Fact]
+        public void DocumentToStringWorks()
+        {
+            var document = TomlDocument.CreateEmpty();
+            var output = document.ToString();
+            Assert.Equal("Toml root document (0 entries)", output);
+
+            document.Put("a", "a");
+            output = document.ToString();
+            Assert.Equal("Toml root document (1 entries)", output);
         }
     }
 }

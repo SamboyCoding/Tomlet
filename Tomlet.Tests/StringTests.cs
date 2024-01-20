@@ -199,5 +199,17 @@ namespace Tomlet.Tests
                 entry => Assert.Equal(Assert.IsType<TomlLong>(entry).StringValue, Assert.IsType<TomlLong>(entry).ToString())
             );
         }
+        
+        [Fact]
+        public void AllNumbersWork()
+        {
+            var document = GetDocument("a = [0o12, 0x12, 0b10010110]");
+            var values = document
+                .GetArray("a")
+                .Select(Assert.IsType<TomlLong>)
+                .Select(value => value.Value)
+                .ToArray();
+            Assert.Equal(new long[] { 10, 0x12, 0b10010110 }, values);
+        }
     }
 }
