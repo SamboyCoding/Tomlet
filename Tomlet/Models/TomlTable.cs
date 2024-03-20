@@ -158,7 +158,8 @@ namespace Tomlet.Models
         {
             foreach (var c in key)
             {
-                if (!char.IsLetterOrDigit(c) && c != '_' && c != '-')
+                //TODO Future: This check for period is perhaps not super valid but it was way more broken without it so I'm leaving it in for now.
+                if (!char.IsLetterOrDigit(c) && c != '_' && c != '-' && c != '.')
                 {
                     return false;
                 }
