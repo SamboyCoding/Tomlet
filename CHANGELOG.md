@@ -45,7 +45,7 @@
 
 ## 5.3.1
 
-- Fixes an issue introduced by [#33](https://github.com/SamboyCoding/Tomlet/pull/33) which caused some keys (e.g. in table array names) to be erroneously quoted when they shouldn't have been, resulting in breaking round-trip functionality. 
+- Fixes an issue introduced by [#33](https://github.com/SamboyCoding/Tomlet/pull/33) which caused some keys (e.g. in table array names) to be erroneously quoted when they shouldn't have been, resulting in breaking round-trip functionality. Reported as [#40](https://github.com/SamboyCoding/Tomlet/issues/40)
 
 ## 5.3.0
 
