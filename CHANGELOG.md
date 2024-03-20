@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [5.3.1](#531)
   - [5.3.0](#530)
   - [5.2.0](#520)
   - [5.1.3](#513)
@@ -41,6 +42,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 5.3.1
+
+- Fixes an issue introduced by [#33](https://github.com/SamboyCoding/Tomlet/pull/33) which caused some keys (e.g. in table array names) to be erroneously quoted when they shouldn't have been, resulting in breaking round-trip functionality. 
 
 ## 5.3.0
 
