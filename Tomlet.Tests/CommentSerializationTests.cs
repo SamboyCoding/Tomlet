@@ -51,7 +51,7 @@ public class CommentSerializationTests
 [table] # This is an inline comment
 key = ""value"" # Inline comment on value";
 
-        Assert.Equal(expected, doc.SerializedValue.Trim().ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), doc.SerializedValue.Trim().ReplaceLineEndings());
     }
 
     [Fact]
@@ -84,7 +84,7 @@ key = ""value"" # Inline comment on value";
 [[table-array]] # This is an inline comment on the table
 key = ""value"" # Inline comment on value".Trim();
 
-        Assert.Equal(expected, doc.SerializedValue.Trim().ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), doc.SerializedValue.Trim().ReplaceLineEndings());
     }
 
     [Fact]
@@ -102,7 +102,7 @@ key = ""value"" # Inline comment on value".Trim();
     1,
     2, # This is an inline comment on the second value of the array
     3,
-]";
+]".ReplaceLineEndings();
         
         //Replace tabs with spaces because this source file uses spaces
         var actual = doc.SerializedValue.Trim().Replace("\t", "    ").ReplaceLineEndings();

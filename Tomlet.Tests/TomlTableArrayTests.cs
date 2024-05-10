@@ -106,7 +106,7 @@ value = { a = ""b"", c = ""d"" }
 [[array]]
 name = ""a""
 value = { a = ""b"", c = ""d"" }
-".Trim();
+".Trim().ReplaceLineEndings();
             
             Assert.Equal(expectedResult, tomlString);
         }
@@ -146,7 +146,7 @@ B = ""B""
 
 [[Root.Array]]
 A = ""C""
-B = ""D""", str.Trim().ReplaceLineEndings());
+B = ""D""".ReplaceLineEndings(), str.Trim().ReplaceLineEndings());
         }
     }
 }
