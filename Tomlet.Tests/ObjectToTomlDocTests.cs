@@ -40,11 +40,11 @@ namespace Tomlet.Tests
             var expectedResult = @"OverwrittenField = ""this should be overwritten, not 'default value' as set in superclass.""
 NotOverwrittenSubclassField = ""this is a non-overwritten field, defined only in the subclass.""
 NotOverwrittenSuperclassField = ""this is a non-overwritten field, defined only in the superclass.""
-".Replace("\r", "");
+";
 
             var tomlDoc = TomletMain.DocumentFrom(testObject);
 
-            Assert.Equal(expectedResult, tomlDoc.SerializedValue);
+            Assert.Equal(expectedResult.ReplaceLineEndings(), tomlDoc.SerializedValue.ReplaceLineEndings());
         }
 
         [Fact]
