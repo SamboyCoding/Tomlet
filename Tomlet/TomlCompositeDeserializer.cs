@@ -35,12 +35,17 @@ internal static class TomlCompositeDeserializer
         else
         {
             //Get all instance fields
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var memberFlags = BindingFlags.Public | BindingFlags.Instance;
+            if (!options.IgnoreNonPublicMembers) {
+                memberFlags |= BindingFlags.NonPublic;
+            }
+
+            var fields = type.GetFields(memberFlags);
 
             //Ignore NonSerialized and CompilerGenerated fields.
             fields = fields.Where(f => !f.IsNotSerialized && GenericExtensions.GetCustomAttribute<CompilerGeneratedAttribute>(f) == null).ToArray();
 
-            var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var props = type.GetProperties(memberFlags);
 
             //Ignore TomlNonSerializedAttribute Decorated Properties
             var propsDict = props
