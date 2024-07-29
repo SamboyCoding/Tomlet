@@ -22,10 +22,15 @@ internal static class TomlCompositeSerializer
         else
         {
             //Get all instance fields
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var memberFlags = BindingFlags.Public | BindingFlags.Instance;
+            if (!options.IgnoreNonPublicMembers) {
+                memberFlags |= BindingFlags.NonPublic;
+            }
+
+            var fields = type.GetFields(memberFlags);
             var fieldAttribs = fields
                 .ToDictionary(f => f, f => new {inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentAttribute>(f), preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentAttribute>(f), noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(f)});
-            var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+            var props = type.GetProperties(memberFlags)
                 .ToArray();
             var propAttribs = props
                 .ToDictionary(p => p, p => new {inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentAttribute>(p), preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentAttribute>(p), prop = GenericExtensions.GetCustomAttribute<TomlPropertyAttribute>(p), noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(p)});
