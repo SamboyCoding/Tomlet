@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [5.4.0](#540)
   - [5.3.1](#531)
   - [5.3.0](#530)
   - [5.2.0](#520)
@@ -42,6 +43,10 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 5.4.0
+
+- Adds an option to ignore non-public members when de/serializing. Thanks to [@Sprixitite](https://github.com/Sprixitite) in [#43](https://github.com/SamboyCoding/Tomlet/pull/43)
 
 ## 5.3.1
 
