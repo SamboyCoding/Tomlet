@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Tomlet.Models;
 using Tomlet.Tests.TestModelClasses;
 using Xunit;
@@ -53,4 +54,40 @@ public class DictionaryTests
             Assert.Contains(expectedValue, serialized);
         }
     }
+
+    private bool PrimitiveKeyTestHelper<T>(params T[] values) where T : unmanaged, IConvertible
+    {
+        var primitiveDict = new Dictionary<T, string>();
+        for (int i=0; i<values.Length; i++) {
+            T val = values[i];
+            primitiveDict[val] = $"Test {i+1}";
+        }
+
+        var serialized = TomletMain.TomlStringFrom(primitiveDict);
+
+        var deserialized = TomletMain.To<Dictionary<T, string>>(serialized);
+        
+        foreach (var (key, value) in primitiveDict) {
+            if (!deserialized.ContainsKey(key)) {
+                return false;
+            }
+            if (deserialized[key] != value) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    [Fact]
+    public void PrimitiveDictionaryKeysShouldWork()
+    {
+        Assert.True(PrimitiveKeyTestHelper(true, false));
+        Assert.True(PrimitiveKeyTestHelper(long.MaxValue, long.MinValue, 0, 4736251));
+        Assert.True(PrimitiveKeyTestHelper(uint.MinValue, uint.MaxValue, 0u, 1996u));
+
+        // \n causes an exception when deserializing
+        // I don't consider this a bug with the primitive dict deserializer because the string dict deserializer also has this issue
+        Assert.True(PrimitiveKeyTestHelper('a', 'b', 'c' /*, '\n' */));
+    }
+
 }

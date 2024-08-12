@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Tomlet.Attributes;
 using Tomlet.Exceptions;
+using Tomlet.Extensions;
 using Tomlet.Models;
 
 namespace Tomlet
@@ -12,6 +14,7 @@ namespace Tomlet
     public static class TomlSerializationMethods
     {
         private static MethodInfo _stringKeyedDictionaryMethod = typeof(TomlSerializationMethods).GetMethod(nameof(StringKeyedDictionaryDeserializerFor), BindingFlags.Static | BindingFlags.NonPublic)!;
+        private static MethodInfo _primitiveKeyedDictionaryMethod = typeof(TomlSerializationMethods).GetMethod(nameof(PrimitiveKeyedDictionaryDeserializerFor), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static MethodInfo _genericDictionarySerializerMethod = typeof(TomlSerializationMethods).GetMethod(nameof(GenericDictionarySerializer), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static MethodInfo _genericNullableSerializerMethod = typeof(TomlSerializationMethods).GetMethod(nameof(GenericNullableSerializer), BindingFlags.Static | BindingFlags.NonPublic)!;
 
@@ -195,6 +198,12 @@ namespace Tomlet
                 {
                     return (Deserialize<object>)_stringKeyedDictionaryMethod.MakeGenericMethod(genericArgs[1]).Invoke(null, new object[]{options})!;
                 }
+
+                if (genericArgs[0].IsIntegerType() || genericArgs[0] == typeof(bool) || genericArgs[0] == typeof(char))
+                {
+                    // float primitives not supported due to decimal point causing issues
+                    return (Deserialize<object>)_primitiveKeyedDictionaryMethod.MakeGenericMethod(genericArgs).Invoke(null, new object[]{options})!;
+                }
             }
 
             return TomlCompositeDeserializer.For(t, options);
@@ -279,7 +288,24 @@ namespace Tomlet
                 return table.Entries.ToDictionary(entry => entry.Key, entry => (T)deserializer(entry.Value));
             };
         }
-        
+
+        // unmanaged + IConvertible is the closest I can get to expressing "primitives only"
+        private static Deserialize<Dictionary<TKey, TValue>> PrimitiveKeyedDictionaryDeserializerFor<TKey, TValue>(TomlSerializerOptions options) where TKey : unmanaged, IConvertible
+        {
+            var valueDeserializer = GetDeserializer(typeof(TValue), options);
+
+            return value =>
+            {
+                if (value is not TomlTable table)
+                    throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType(), typeof(Dictionary<TKey, TValue>));
+
+                return table.Entries.ToDictionary(
+                    entry => (TKey)(entry.Key as IConvertible).ToType(typeof(TKey), CultureInfo.InvariantCulture),
+                    entry => (TValue)valueDeserializer(entry.Value)
+                );
+            };
+        }
+
         private static TomlValue? GenericNullableSerializer<T>(T? nullable, TomlSerializerOptions options) where T : struct
         {
             var elementSerializer = GetSerializer(typeof(T), options);
