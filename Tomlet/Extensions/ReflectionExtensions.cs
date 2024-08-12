@@ -32,5 +32,22 @@ namespace Tomlet.Extensions
             bestMatchConstructor = parameterizedConstructors.Single();
             return true;
         }
+
+        internal static bool IsIntegerType(this Type type) {
+            switch (Type.GetTypeCode(type)) {
+                case TypeCode.Byte:
+                case TypeCode.SByte:
+                case TypeCode.UInt16:
+                case TypeCode.Int16:
+                case TypeCode.UInt32:
+                case TypeCode.Int32:
+                case TypeCode.UInt64:
+                case TypeCode.Int64:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
     }
 }

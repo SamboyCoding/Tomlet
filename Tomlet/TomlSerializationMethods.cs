@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Tomlet.Attributes;
 using Tomlet.Exceptions;
+using Tomlet.Extensions;
 using Tomlet.Models;
 
 namespace Tomlet
@@ -198,9 +199,10 @@ namespace Tomlet
                     return (Deserialize<object>)_stringKeyedDictionaryMethod.MakeGenericMethod(genericArgs[1]).Invoke(null, new object[]{options})!;
                 }
 
-                if (genericArgs[0].IsPrimitive && typeof(IConvertible).IsAssignableFrom(genericArgs[0]))
+                if (genericArgs[0].IsIntegerType() || genericArgs[0] == typeof(bool) || genericArgs[0] == typeof(char))
                 {
-                    return (Deserialize<object>)_primitiveKeyedDictionaryMethod.MakeGenericMethod(genericArgs[0], genericArgs[1]).Invoke(null, new object[]{options})!;
+                    // float primitives not supported due to decimal point causing issues
+                    return (Deserialize<object>)_primitiveKeyedDictionaryMethod.MakeGenericMethod(genericArgs).Invoke(null, new object[]{options})!;
                 }
             }
 
