@@ -1,4 +1,6 @@
+using System;
 using Tomlet.Models;
+using Tomlet.Tests.CommentProvider;
 using Tomlet.Tests.TestModelClasses;
 using Xunit;
 
@@ -72,7 +74,7 @@ key = ""value"" # Inline comment on value";
         tomlString.Comments.InlineComment = "Inline comment on value";
         table.PutValue("key", tomlString);
 
-        var tableArray = new TomlArray {table};
+        var tableArray = new TomlArray { table };
         tableArray.Comments.PrecedingComment = "This is a preceding comment on the table-array itself";
 
         doc.PutValue("table-array", tableArray);
@@ -91,7 +93,7 @@ key = ""value"" # Inline comment on value".Trim();
     public void CommentsOnPrimitiveArraysWork()
     {
         var doc = TomlDocument.CreateEmpty();
-        var tomlNumbers = new TomlArray {1, 2, 3};
+        var tomlNumbers = new TomlArray { 1, 2, 3 };
         doc.PutValue("numbers", tomlNumbers);
 
         tomlNumbers[0].Comments.PrecedingComment = "This is a preceding comment on the first value of the array";
@@ -103,7 +105,7 @@ key = ""value"" # Inline comment on value".Trim();
     2, # This is an inline comment on the second value of the array
     3,
 ]".ReplaceLineEndings();
-        
+
         //Replace tabs with spaces because this source file uses spaces
         var actual = doc.SerializedValue.Trim().Replace("\t", "    ").ReplaceLineEndings();
         Assert.Equal(expected, actual);
@@ -115,10 +117,33 @@ key = ""value"" # Inline comment on value".Trim();
         var config = TomletMain.To<ExampleMailboxConfigClass>(TestResources.ExampleMailboxConfigurationTestInput);
 
         var doc = TomletMain.DocumentFrom(config);
-        
+
         Assert.Equal("The name of the mailbox", doc.GetValue("mailbox").Comments.InlineComment);
         Assert.Equal("Your username for the mailbox", doc.GetValue("username").Comments.InlineComment);
         Assert.Equal("The password you use to access the mailbox", doc.GetValue("password").Comments.InlineComment);
         Assert.Equal("The rules for the mailbox follow", doc.GetArray("rules").Comments.PrecedingComment);
+    }
+
+    [Fact]
+    public void CommentProviderTest()
+    {
+        TestPrecedingCommentProvider.Comments["PrecedingComment"] = Guid.NewGuid().ToString();
+        TestInlineCommentProvider.Comments["InlineComment"] = Guid.NewGuid().ToString();
+
+        var data = new CommentProviderTestModel()
+        {
+            PrecedingComment = "Dynamic Preceding Comment",
+            InlineComment = "Inline Comment",
+        };
+
+        var doc = TomletMain.DocumentFrom(data);
+
+        Assert.Equal(TestPrecedingCommentProvider.Comments["PrecedingComment"],
+            doc.GetValue("PrecedingComment").Comments.PrecedingComment);
+        Assert.Equal("PlainInlineComment", doc.GetValue("PrecedingComment").Comments.InlineComment);
+
+        Assert.Equal(TestInlineCommentProvider.Comments["InlineComment"],
+            doc.GetValue("InlineComment").Comments.InlineComment);
+        Assert.Equal("PlainPrecedingComment", doc.GetValue("InlineComment").Comments.PrecedingComment);
     }
 }
