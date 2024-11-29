@@ -3,12 +3,10 @@ using System;
 namespace Tomlet.Attributes;
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-public class TomlPrecedingCommentAttribute : Attribute
+public class TomlPrecedingCommentAttribute : TomlPrecedingCommentProviderAttribute
 {
-    internal string Comment { get; }
-
-    public TomlPrecedingCommentAttribute(string comment)
+    public TomlPrecedingCommentAttribute(string comment) : base(typeof(TomlSimpleCommentProvider),
+        new object[] { comment })
     {
-        Comment = comment;
     }
 }
