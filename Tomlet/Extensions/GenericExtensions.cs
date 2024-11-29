@@ -148,7 +148,8 @@ namespace Tomlet.Extensions
 
         public static bool IsNullOrWhiteSpace(this string s) => string.IsNullOrEmpty(s) || string.IsNullOrEmpty(s.Trim());
 
-        internal static T? GetCustomAttribute<T>(this MemberInfo info) where T : Attribute => info.GetCustomAttributes(false).Where(a => a is T).Cast<T>().FirstOrDefault();
+        internal static T? GetCustomAttribute<T>(this MemberInfo info) where T : Attribute 
+            => info.GetCustomAttributes(false).Where(a => typeof(T).IsAssignableFrom(a.GetType())).Cast<T>().FirstOrDefault();
 
         internal static void EnsureLegalChar(this int c, int currentLineNum)
         {
