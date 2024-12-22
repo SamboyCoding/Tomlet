@@ -69,6 +69,7 @@ public static class TomletMain
 
 #if MODERN_DOTNET
     [return: NotNullIfNotNull("t")]
+    [UnconditionalSuppressMessage("AOT", "IL2072", Justification = "Any object that is being serialized must have been in the consuming code in order for this call to be occurring, so the dynamic code requirement is already satisfied.")]
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode("The native code for underlying implementations of serialize helper methods may not be available for a given type.")]
 #endif // NET7_0_OR_GREATER
@@ -80,7 +81,7 @@ public static class TomletMain
         if (t == null)
             return null;
 
-        return ValueFrom(typeof(T), t, options);
+        return ValueFrom(t.GetType(), t, options);
     }
 
 #if MODERN_DOTNET

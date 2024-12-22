@@ -106,10 +106,10 @@ namespace Tomlet.Tests
         }
         
         [Fact]
-        public void AttemptingToDirectlySerializeNullThrows()
+        public void AttemptingToDirectlySerializeNullReturnsNull()
         {
             //We need to use a type of T that actually has something to serialize
-            Assert.Throws<ArgumentNullException>(() => TomletMain.DocumentFrom(typeof(SimplePrimitiveTestClass), null!, null));
+            Assert.Null(TomletMain.DocumentFrom(typeof(SimplePrimitiveTestClass), null!, null));
         }
     }
 }
