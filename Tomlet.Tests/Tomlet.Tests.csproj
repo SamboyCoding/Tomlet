@@ -5,6 +5,7 @@
         <IsPackable>false</IsPackable>
         <LangVersion>11</LangVersion>
         <IsTrimmable>false</IsTrimmable>
+        <NoWarn>SYSLIB0050</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
