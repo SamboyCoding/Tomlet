@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Tomlet.Attributes
+namespace Tomlet.Attributes;
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public class TomlNonSerializedAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class TomlNonSerializedAttribute : Attribute
-    {
-    }
 }

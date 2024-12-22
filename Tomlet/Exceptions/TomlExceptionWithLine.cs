@@ -1,19 +1,18 @@
 ﻿using System;
 
-namespace Tomlet.Exceptions
+namespace Tomlet.Exceptions;
+
+public abstract class TomlExceptionWithLine : TomlException
 {
-    public abstract class TomlExceptionWithLine : TomlException
+    protected int LineNumber;
+
+    protected TomlExceptionWithLine(int lineNumber)
     {
-        protected int LineNumber;
+        LineNumber = lineNumber;
+    }
 
-        protected TomlExceptionWithLine(int lineNumber)
-        {
-            LineNumber = lineNumber;
-        }
-
-        protected TomlExceptionWithLine(int lineNumber, Exception cause) : base(cause)
-        {
-            LineNumber = lineNumber;
-        }
+    protected TomlExceptionWithLine(int lineNumber, Exception cause) : base(cause)
+    {
+        LineNumber = lineNumber;
     }
 }

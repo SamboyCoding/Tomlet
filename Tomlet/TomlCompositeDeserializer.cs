@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -12,7 +13,12 @@ namespace Tomlet;
 
 internal static class TomlCompositeDeserializer
 {
+#if MODERN_DOTNET
+    [UnconditionalSuppressMessage("AOT", "IL2072", Justification = "Any field that is being deserialized to must have been used as a field in the consuming code in order for the code path that queries it to run, so the dynamic code requirement is already satisfied.")]
+    public static TomlSerializationMethods.Deserialize<object> For([DynamicallyAccessedMembers(TomlSerializationMethods.MainDeserializerAccessedMemberTypes)] Type type, TomlSerializerOptions options)
+#else
     public static TomlSerializationMethods.Deserialize<object> For(Type type, TomlSerializerOptions options)
+#endif
     {
         TomlSerializationMethods.Deserialize<object> deserializer;
         if (type.IsEnum)
@@ -74,7 +80,7 @@ internal static class TomlCompositeDeserializer
                     object fieldValue;
                     try
                     {
-                        fieldValue = TomlSerializationMethods.GetDeserializer(field.FieldType, options).Invoke(entry!);
+                        fieldValue = TomlSerializationMethods.GetDeserializer(field.FieldType, options).Invoke(entry);
                     }
                     catch (TomlTypeMismatchException e)
                     {
@@ -97,7 +103,7 @@ internal static class TomlCompositeDeserializer
 
                     try
                     {
-                        propValue = TomlSerializationMethods.GetDeserializer(prop.PropertyType, options).Invoke(entry!);
+                        propValue = TomlSerializationMethods.GetDeserializer(prop.PropertyType, options).Invoke(entry);
                     }
                     catch (TomlTypeMismatchException e)
                     {
@@ -117,7 +123,12 @@ internal static class TomlCompositeDeserializer
         return deserializer;
     }
 
+#if MODERN_DOTNET
+    [UnconditionalSuppressMessage("AOT", "IL2072", Justification = "Any constructor parameter must have been used somewhere in the consuming code in order for the code path that queries it to run, so the dynamic code requirement is already satisfied.")]
+    private static object CreateInstance([DynamicallyAccessedMembers(TomlSerializationMethods.MainDeserializerAccessedMemberTypes)] Type type, TomlValue tomlValue, TomlSerializerOptions options, out HashSet<string> assignedMembers)
+#else
     private static object CreateInstance(Type type, TomlValue tomlValue, TomlSerializerOptions options, out HashSet<string> assignedMembers)
+#endif
     {
         if (tomlValue is not TomlTable table)
             throw new TomlTypeMismatchException(typeof(TomlTable), tomlValue.GetType(), type);
@@ -146,7 +157,7 @@ internal static class TomlCompositeDeserializer
 
             try
             {
-                argument = TomlSerializationMethods.GetDeserializer(parameter.ParameterType, options).Invoke(entry!);
+                argument = TomlSerializationMethods.GetDeserializer(parameter.ParameterType, options).Invoke(entry);
             }
             catch (TomlTypeMismatchException e)
             {

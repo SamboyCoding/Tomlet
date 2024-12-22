@@ -1,25 +1,24 @@
-﻿namespace Tomlet.Models
+﻿namespace Tomlet.Models;
+
+public abstract class TomlValue
 {
-    public abstract class TomlValue
-    {
-        public TomlCommentData Comments { get; } = new();
+    public TomlCommentData Comments { get; } = new();
         
-        public abstract string StringValue
-        {
-            get;
-        }
+    public abstract string StringValue
+    {
+        get;
+    }
 
-        /// <summary>
-        /// The value that should be used to represent this instance when it is written to a TOML file.
-        /// </summary>
-        public abstract string SerializedValue
-        {
-            get;
-        }
+    /// <summary>
+    /// The value that should be used to represent this instance when it is written to a TOML file.
+    /// </summary>
+    public abstract string SerializedValue
+    {
+        get;
+    }
 
-        public override string ToString()
-        {
-            return StringValue;
-        }
+    public override string ToString()
+    {
+        return StringValue;
     }
 }

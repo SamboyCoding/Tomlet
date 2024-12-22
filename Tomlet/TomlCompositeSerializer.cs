@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -10,7 +11,12 @@ namespace Tomlet;
 
 internal static class TomlCompositeSerializer
 {
+#if MODERN_DOTNET
+    [UnconditionalSuppressMessage("AOT", "IL2072", Justification = "Any field that is being serialized must have been used as a field in the consuming code in order for the code path that queries it to run, so the dynamic code requirement is already satisfied.")]
+    public static TomlSerializationMethods.Serialize<object> For([DynamicallyAccessedMembers(TomlSerializationMethods.MainDeserializerAccessedMemberTypes)] Type type, TomlSerializerOptions options)
+#else
     public static TomlSerializationMethods.Serialize<object> For(Type type, TomlSerializerOptions options)
+#endif
     {
         TomlSerializationMethods.Serialize<object> serializer;
 
