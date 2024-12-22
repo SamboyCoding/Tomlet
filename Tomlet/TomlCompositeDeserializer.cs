@@ -34,6 +34,9 @@ internal static class TomlCompositeDeserializer
                 }
                 catch (Exception)
                 {
+                    if(options.IgnoreInvalidEnumValues)
+                        return Enum.GetValues(type).GetValue(0)!;
+                    
                     throw new TomlEnumParseException(enumName, type);
                 }
             };
