@@ -4,6 +4,7 @@
 
 - [Tomlet Changelog](#tomlet-changelog)
   - [Contents](#contents)
+  - [6.0.0](#600)
   - [5.4.0](#540)
   - [5.3.1](#531)
   - [5.3.0](#530)
@@ -43,6 +44,14 @@
   - [1.0.2](#102)
   - [1.0.1](#101)
   - [1.0.0](#100)
+
+## 6.0.0
+
+- Adds .NET trimming compatibility and annotations to hopefully prevent classes that are passed to Tomlet from having their members stripped.
+- Makes behavior of passing `null` to methods in `TomletMain` more consistent - they will all now return null if you pass null, rather than some throwing, some returning null, and some returning an empty table/doc.
+  - This is a breaking change, hence the bump to 6.0.0. 
+- Implements deserialization of dictionaries using primitives as keys. Thanks to [@Sprixitite](https://github.com/Sprixitite) in [#44](https://github.com/SamboyCoding/Tomlet/pull/44)
+- Adds an option to ignore invalid enum values (i.e. an invalid name) when deserializing. 
 
 ## 5.4.0
 
