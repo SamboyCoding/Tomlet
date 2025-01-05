@@ -100,6 +100,9 @@ public class TomlTable : TomlValue, IEnumerable<KeyValuePair<string, TomlValue>>
 
         var hadBlankLine = builder.Length < 2 || builder[builder.Length - 2] == '\n';
 
+        if (value.Comments.PrecedingPaddingLines > 0)
+            builder.Append('\n', value.Comments.PrecedingPaddingLines);
+
         //Handle any preceding comment - this will ALWAYS go before any sort of value
         if (value.Comments.PrecedingComment != null)
             builder.Append(value.Comments.FormatPrecedingComment())

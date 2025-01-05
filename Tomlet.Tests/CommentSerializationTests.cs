@@ -1,13 +1,19 @@
 using System;
+using System.Collections.Generic;
 using Tomlet.Models;
 using Tomlet.Tests.CommentProvider;
 using Tomlet.Tests.TestModelClasses;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Tomlet.Tests;
 
 public class CommentSerializationTests
 {
+    public CommentSerializationTests(ITestOutputHelper testOutputHelper)
+    {
+    }
+
     [Fact]
     public void CommentsOnSimpleKeyValuePairsWork()
     {
@@ -145,5 +151,60 @@ key = ""value"" # Inline comment on value".Trim();
         Assert.Equal(TestInlineCommentProvider.Comments["InlineComment"],
             doc.GetValue("InlineComment").Comments.InlineComment);
         Assert.Equal("PlainPrecedingComment", doc.GetValue("InlineComment").Comments.PrecedingComment);
+    }
+    
+    [Fact]
+    public void PaddingLinesTest()
+    {
+        var data = new PaddingTestModel()
+        {
+            A = "str a",
+            B = 1,
+            C = new PaddingTestModel.NestedModel()
+            {
+                E = "str",
+                F = 2,
+            },
+            D = new List<PaddingTestModel.NestedModel>()
+            {
+                new()
+                {
+                    E = "str0",
+                    F = 0,
+                },
+                new()
+                {
+                    E = "str1",
+                    F = 1,
+                },
+            }
+        };
+
+        var expected = @"
+A = ""str a""
+B = 1
+
+# Nested Object
+[C]
+# Preceding Comment
+E = ""str"" # Preceding Comment
+# Preceding Comment
+F = 2 # Preceding Comment
+
+
+# Nested Array
+[[D]]
+# Preceding Comment
+E = ""str0"" # Preceding Comment
+# Preceding Comment
+F = 0 # Preceding Comment
+
+[[D]]
+# Preceding Comment
+E = ""str1"" # Preceding Comment
+# Preceding Comment
+F = 1 # Preceding Comment
+".Trim();
+        Assert.Equal(expected.ReplaceLineEndings(), TomletMain.TomlStringFrom(data).ReplaceLineEndings().Trim());
     }
 }

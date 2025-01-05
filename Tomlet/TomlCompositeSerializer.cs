@@ -39,7 +39,8 @@ internal static class TomlCompositeSerializer
                 {
                     inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentProviderAttribute>(f), 
                     preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentProviderAttribute>(f), 
-                    noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(f)
+                    noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(f),
+                    paddingLines = GenericExtensions.GetCustomAttribute<TomlPaddingLinesAttribute>(f),
                 });
             var props = type.GetProperties(memberFlags)
                 .ToArray();
@@ -49,7 +50,8 @@ internal static class TomlCompositeSerializer
                     inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentProviderAttribute>(p), 
                     preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentProviderAttribute>(p), 
                     prop = GenericExtensions.GetCustomAttribute<TomlPropertyAttribute>(p), 
-                    noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(p)
+                    noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(p),
+                    paddingLines = GenericExtensions.GetCustomAttribute<TomlPaddingLinesAttribute>(p),
                 });
 
             var isForcedNoInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(type) != null;
@@ -94,6 +96,7 @@ internal static class TomlCompositeSerializer
 
                     tomlValue.Comments.InlineComment = commentAttribs.inline?.GetComment();
                     tomlValue.Comments.PrecedingComment = commentAttribs.preceding?.GetComment();
+                    tomlValue.Comments.PrecedingPaddingLines = commentAttribs.paddingLines?.PaddingLines ?? 0;
                     
                     if(commentAttribs.noInline != null && tomlValue is TomlTable table)
                         table.ForceNoInline = true;
@@ -123,6 +126,7 @@ internal static class TomlCompositeSerializer
                     
                     tomlValue.Comments.InlineComment = thisPropAttribs.inline?.GetComment();
                     tomlValue.Comments.PrecedingComment = thisPropAttribs.preceding?.GetComment();
+                    tomlValue.Comments.PrecedingPaddingLines = thisPropAttribs.paddingLines?.PaddingLines ?? 0;
 
                     if (thisPropAttribs.noInline != null && tomlValue is TomlTable table)
                         table.ForceNoInline = true;
