@@ -111,5 +111,20 @@ namespace Tomlet.Tests
             //We need to use a type of T that actually has something to serialize
             Assert.Null(TomletMain.DocumentFrom(typeof(SimplePrimitiveTestClass), null!, null));
         }
+
+        [Fact]
+        public void SerializingAbstractObjectToStringWorks()
+        {
+            var testObject = new InheritedClass
+            {
+                MyBool = true,
+                MyFloat = 420.69f,
+                MyString = "Hello, world!",
+                MyDateTime = new DateTime(1970, 1, 1, 7, 0, 0, DateTimeKind.Utc)
+            };
+
+            var serializedForm = TomletMain.TomlStringFrom((AbstractClass)testObject);
+            Assert.Equal("MyString = \"Hello, world!\"\nMyFloat = 420.69000244140625\nMyBool = true\nMyDateTime = 1970-01-01T07:00:00", serializedForm.Trim());
+        }
     }
 }

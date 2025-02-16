@@ -116,8 +116,7 @@ public static class TomletMain
     {
         if (t == null)
             return null;
-
-        return DocumentFrom(typeof(T), t, options);
+        return DocumentFrom(t.GetType(), t, options);
     }
 
 #if MODERN_DOTNET
