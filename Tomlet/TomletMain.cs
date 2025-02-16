@@ -116,6 +116,7 @@ public static class TomletMain
     {
         if (t == null)
             return null;
+        
         return DocumentFrom(t.GetType(), t, options);
     }
 
