@@ -398,7 +398,7 @@ public static class TomlSerializationMethods
 
                     try
                     {
-                        return (TKey)Enum.Parse(type, entry.Key);
+                        return (TKey)Enum.Parse(type, entry.Key, true);
                     }
                     catch (ArgumentException)
                     {
