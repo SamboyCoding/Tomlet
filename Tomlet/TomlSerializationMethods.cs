@@ -382,14 +382,32 @@ public static class TomlSerializationMethods
 #endif
     {
         var valueDeserializer = GetDeserializer(typeof(TValue), options);
-
+        var type = typeof(TKey);
         return value =>
         {
             if (value is not TomlTable table)
                 throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType(), typeof(Dictionary<TKey, TValue>));
 
             return table.Entries.ToDictionary(
-                entry => (TKey)(entry.Key as IConvertible).ToType(typeof(TKey), CultureInfo.InvariantCulture),
+                entry =>
+                {
+                    if (!type.IsEnum)
+                    {
+                        return (TKey)(entry.Key as IConvertible).ToType(typeof(TKey), CultureInfo.InvariantCulture);
+                    }
+
+                    try
+                    {
+                        return (TKey)Enum.Parse(type, entry.Key);
+                    }
+                    catch (ArgumentException)
+                    {
+                        if (options.IgnoreInvalidEnumValues)
+                            return (TKey)Enum.GetValues(type).GetValue(0)!;
+
+                        throw new TomlEnumParseException(entry.Key, typeof(TKey));
+                    }
+                },
                 entry => (TValue)valueDeserializer(entry.Value)
             );
         };
