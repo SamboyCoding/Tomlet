@@ -35,11 +35,24 @@ internal static class TomlCompositeSerializer
 
             var fields = type.GetFields(memberFlags);
             var fieldAttribs = fields
-                .ToDictionary(f => f, f => new {inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentAttribute>(f), preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentAttribute>(f), noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(f)});
+                .ToDictionary(f => f, f => new
+                {
+                    inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentProviderAttribute>(f), 
+                    preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentProviderAttribute>(f), 
+                    noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(f),
+                    paddingLines = GenericExtensions.GetCustomAttribute<TomlPaddingLinesAttribute>(f),
+                });
             var props = type.GetProperties(memberFlags)
                 .ToArray();
             var propAttribs = props
-                .ToDictionary(p => p, p => new {inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentAttribute>(p), preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentAttribute>(p), prop = GenericExtensions.GetCustomAttribute<TomlPropertyAttribute>(p), noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(p)});
+                .ToDictionary(p => p, p => new
+                {
+                    inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentProviderAttribute>(p), 
+                    preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentProviderAttribute>(p), 
+                    prop = GenericExtensions.GetCustomAttribute<TomlPropertyAttribute>(p), 
+                    noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(p),
+                    paddingLines = GenericExtensions.GetCustomAttribute<TomlPaddingLinesAttribute>(p),
+                });
 
             var isForcedNoInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(type) != null;
 
@@ -81,8 +94,9 @@ internal static class TomlCompositeSerializer
                         //in its supertype. 
                         continue;
 
-                    tomlValue.Comments.InlineComment = commentAttribs.inline?.Comment;
-                    tomlValue.Comments.PrecedingComment = commentAttribs.preceding?.Comment;
+                    tomlValue.Comments.InlineComment = commentAttribs.inline?.GetComment();
+                    tomlValue.Comments.PrecedingComment = commentAttribs.preceding?.GetComment();
+                    tomlValue.Comments.PrecedingPaddingLines = commentAttribs.paddingLines?.PaddingLines ?? 0;
                     
                     if(commentAttribs.noInline != null && tomlValue is TomlTable table)
                         table.ForceNoInline = true;
@@ -110,8 +124,9 @@ internal static class TomlCompositeSerializer
                     
                     var thisPropAttribs = propAttribs[prop];
                     
-                    tomlValue.Comments.InlineComment = thisPropAttribs.inline?.Comment;
-                    tomlValue.Comments.PrecedingComment = thisPropAttribs.preceding?.Comment;
+                    tomlValue.Comments.InlineComment = thisPropAttribs.inline?.GetComment();
+                    tomlValue.Comments.PrecedingComment = thisPropAttribs.preceding?.GetComment();
+                    tomlValue.Comments.PrecedingPaddingLines = thisPropAttribs.paddingLines?.PaddingLines ?? 0;
 
                     if (thisPropAttribs.noInline != null && tomlValue is TomlTable table)
                         table.ForceNoInline = true;

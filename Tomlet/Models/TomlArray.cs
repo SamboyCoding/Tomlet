@@ -105,7 +105,10 @@ public class TomlArray : TomlValue, IEnumerable<TomlValue>
                     //if we have a preceding comment on the array itself, we add a blank line
                     //prior to the preceding comment on the first table.
                     builder.Append('\n');
-                    
+
+                if (first && value.Comments.PrecedingPaddingLines > 0)
+                    builder.Append('\n', value.Comments.PrecedingPaddingLines);
+
                 builder.Append(value.Comments.FormatPrecedingComment())
                     .Append('\n');
             }
