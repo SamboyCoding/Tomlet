@@ -52,7 +52,10 @@ internal static class TomlCompositeDeserializer
             var fields = type.GetFields(memberFlags);
 
             //Ignore NonSerialized and CompilerGenerated fields.
-            fields = fields.Where(f => !f.IsNotSerialized && GenericExtensions.GetCustomAttribute<CompilerGeneratedAttribute>(f) == null).ToArray();
+            var fieldsDict = fields
+                .Where(f => !f.IsNotSerialized && GenericExtensions.GetCustomAttribute<CompilerGeneratedAttribute>(f) == null)
+                .Select(f => new KeyValuePair<FieldInfo, TomlFieldAttribute?>(f, GenericExtensions.GetCustomAttribute<TomlFieldAttribute>(f)))
+                .ToDictionary(tuple => tuple.Key, tuple => tuple.Value);
 
             var props = type.GetProperties(memberFlags);
 
@@ -62,7 +65,7 @@ internal static class TomlCompositeDeserializer
                 .Select(p => new KeyValuePair<PropertyInfo, TomlPropertyAttribute?>(p, GenericExtensions.GetCustomAttribute<TomlPropertyAttribute>(p)))
                 .ToDictionary(tuple => tuple.Key, tuple => tuple.Value);
 
-            if (fields.Length + propsDict.Count == 0)
+            if (fieldsDict.Count + propsDict.Count == 0)
                 return value => CreateInstance(type, value, options, out _);
 
             deserializer = value =>
@@ -72,12 +75,13 @@ internal static class TomlCompositeDeserializer
 
                 var instance = CreateInstance(type, value, options, out var assignedMembers);
 
-                foreach (var field in fields)
+                foreach (var (field, attribute) in fieldsDict)
                 {
-                    if (!options.OverrideConstructorValues && assignedMembers.Contains(field.Name))
+                    var name = attribute?.GetMappedString() ?? field.Name;
+                    if (!options.OverrideConstructorValues && assignedMembers.Contains(name))
                         continue;
                         
-                    if (!table.TryGetValue(field.Name, out var entry))
+                    if (!table.TryGetValue(name, out var entry))
                         continue; //TODO: Do we want to make this configurable? As in, throw exception if data is missing?
 
                     object fieldValue;
