@@ -35,7 +35,7 @@ internal static class TomlCompositeSerializer
 
             var fields = type.GetFields(memberFlags);
             var fieldAttribs = fields
-                .ToDictionary(f => f, f => new {inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentAttribute>(f), preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentAttribute>(f), noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(f)});
+                .ToDictionary(f => f, f => new {inline = GenericExtensions.GetCustomAttribute<TomlInlineCommentAttribute>(f), preceding = GenericExtensions.GetCustomAttribute<TomlPrecedingCommentAttribute>(f), field = GenericExtensions.GetCustomAttribute<TomlFieldAttribute>(f), noInline = GenericExtensions.GetCustomAttribute<TomlDoNotInlineObjectAttribute>(f)});
             var props = type.GetProperties(memberFlags)
                 .ToArray();
             var propAttribs = props
@@ -73,7 +73,7 @@ internal static class TomlCompositeSerializer
                     if(tomlValue == null)
                         continue;
                     
-                    var commentAttribs = fieldAttribs[field];
+                    var thisFieldAttribs = fieldAttribs[field];
 
                     if (resultTable.ContainsKey(field.Name))
                         //Do not overwrite fields if they have the same name as something already in the table
@@ -81,13 +81,13 @@ internal static class TomlCompositeSerializer
                         //in its supertype. 
                         continue;
 
-                    tomlValue.Comments.InlineComment = commentAttribs.inline?.Comment;
-                    tomlValue.Comments.PrecedingComment = commentAttribs.preceding?.Comment;
+                    tomlValue.Comments.InlineComment = thisFieldAttribs.inline?.Comment;
+                    tomlValue.Comments.PrecedingComment = thisFieldAttribs.preceding?.Comment;
                     
-                    if(commentAttribs.noInline != null && tomlValue is TomlTable table)
+                    if(thisFieldAttribs.noInline != null && tomlValue is TomlTable table)
                         table.ForceNoInline = true;
 
-                    resultTable.PutValue(field.Name, tomlValue);
+                    resultTable.PutValue(thisFieldAttribs.field?.GetMappedString() ?? field.Name, tomlValue);
                 }
 
                 foreach (var prop in props)
