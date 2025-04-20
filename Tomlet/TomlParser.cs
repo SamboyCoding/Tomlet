@@ -476,7 +476,7 @@ public class TomlParser
             default:
                 if (allowNewline && escapedChar.IsNewline())
                     return null;
-                throw new InvalidTomlEscapeException(_lineNumber, $"\\{escapedChar}");
+                throw new InvalidTomlEscapeException(_lineNumber, $"\\{(char) escapedChar}");
         }
 
         return toAppend;
@@ -604,6 +604,43 @@ public class TomlParser
             if (escapeMode)
             {
                 escapeMode = false;
+                
+                //If the escaped char is whitespace, and there's no other non-whitespace on this line, we skip all whitespace until the next non-whitespace char.
+                if (nextChar.IsWhitespace() || nextChar.IsNewline())
+                {
+                    //Check that everything else on this line is whitespace
+                    var backtrack = 0;
+                    var skipWhitespace = false;
+                    while (reader.TryPeek(out var nextCharOnLine))
+                    {
+                        backtrack++;
+                        reader.Read();
+
+                        if (nextCharOnLine.IsNewline())
+                        {
+                            skipWhitespace = true;
+                            break;
+                        }
+
+                        if (!nextCharOnLine.IsWhitespace())
+                        {
+                            //Backslash-whitespace but then non-whitespace char before newline, this is invalid, we can break here and let HandleEscapedChar deal with it
+                            break;
+                        }
+                    }
+                    
+                    //Return back to where we were
+                    reader.Backtrack(backtrack);
+
+                    if (skipWhitespace)
+                    {
+                        _lineNumber += reader.SkipAnyNewlineOrWhitespace();
+                        continue; //The main while loop
+                    }
+                    
+                    //Otherwise we drop down to HandleEscapedChar, which will throw due to the whitespace
+                }
+                
                 var toAppend = HandleEscapedChar(nextChar, out fourDigitUnicodeMode, out eightDigitUnicodeMode, true);
 
                 if (toAppend.HasValue)
@@ -618,7 +655,7 @@ public class TomlParser
                     _lineNumber++;
 
                     //Escaped newline indicates we skip this newline and any whitespace at the start of the next line
-                    reader.SkipAnyNewlineOrWhitespace();
+                    _lineNumber += reader.SkipAnyNewlineOrWhitespace();
                 }
 
                 continue;
