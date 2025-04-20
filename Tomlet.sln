@@ -13,6 +13,8 @@ ProjectSection(SolutionItems) = preProject
 	Docs\InlineCommentsOnTableArrays.md = Docs\InlineCommentsOnTableArrays.md
 EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomlTestDecoder", "TomlTestDecoder\TomlTestDecoder.csproj", "{DDBC07E0-61B8-438D-A9DE-8384ADA1D9C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,5 +29,9 @@ Global
 		{5252C673-A239-47DD-A804-FD0003811A21}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5252C673-A239-47DD-A804-FD0003811A21}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5252C673-A239-47DD-A804-FD0003811A21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDBC07E0-61B8-438D-A9DE-8384ADA1D9C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDBC07E0-61B8-438D-A9DE-8384ADA1D9C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDBC07E0-61B8-438D-A9DE-8384ADA1D9C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDBC07E0-61B8-438D-A9DE-8384ADA1D9C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
