@@ -45,6 +45,13 @@
   - [1.0.1](#101)
   - [1.0.0](#100)
 
+## 6.1.0
+
+- Fixes an issue where enums could not be used as keys in dictionaries. Thanks to [@ITR13](https://github.com/ITR13) for the fix in [#53](https://github.com/SamboyCoding/Tomlet/pull/53)
+- Adds support for a `TomlFieldAttribute` which functions like `TomlPropertyAttribute`, but is used for fields instead of properties. Thanks to [@ting-liang-rocketwerkz](https://github.com/ting-liang-rocketwerkz) in [#55](https://github.com/SamboyCoding/Tomlet/pull/55)
+- Fixes support for the line-ending backslash functionality in multiline basic TOML strings.
+- Fixes a regression where `TomlInstantiationException` would no longer (since 5.2.0) tell you which type failed to be instantiated.
+
 ## 6.0.0
 
 - Adds .NET trimming compatibility and annotations to hopefully prevent classes that are passed to Tomlet from having their members stripped.
