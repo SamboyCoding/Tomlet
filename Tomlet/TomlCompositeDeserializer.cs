@@ -142,7 +142,7 @@ internal static class TomlCompositeDeserializer
         
         if (!type.TryGetBestMatchConstructor(out var constructor))
         {
-            throw new TomlInstantiationException();
+            throw new TomlInstantiationException(type);
         }
 
         var parameters = constructor!.GetParameters();
