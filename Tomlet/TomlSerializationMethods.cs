@@ -388,28 +388,32 @@ public static class TomlSerializationMethods
             if (value is not TomlTable table)
                 throw new TomlTypeMismatchException(typeof(TomlTable), value.GetType(), typeof(Dictionary<TKey, TValue>));
 
-            return table.Entries.ToDictionary(
-                entry =>
+            return table.Entries
+                .Where(entry =>
+                {
+                    if (!type.IsEnum || !options.IgnoreInvalidEnumValues)
+                        return true;
+
+                    try
+                    {
+                        _ = Enum.Parse(type, entry.Key, true);
+                        return true;
+                    }
+                    catch (ArgumentException)
+                    {
+                        return false;
+                    }
+                })
+                .ToDictionary(entry =>
                 {
                     if (!type.IsEnum)
                     {
                         return (TKey)(entry.Key as IConvertible).ToType(typeof(TKey), CultureInfo.InvariantCulture);
                     }
 
-                    try
-                    {
-                        return (TKey)Enum.Parse(type, entry.Key, true);
-                    }
-                    catch (ArgumentException)
-                    {
-                        if (options.IgnoreInvalidEnumValues)
-                            return (TKey)Enum.GetValues(type).GetValue(0)!;
-
-                        throw new TomlEnumParseException(entry.Key, typeof(TKey));
-                    }
+                    return (TKey)Enum.Parse(type, entry.Key, true);
                 },
-                entry => (TValue)valueDeserializer(entry.Value)
-            );
+                entry => (TValue)valueDeserializer(entry.Value));
         };
     }
 

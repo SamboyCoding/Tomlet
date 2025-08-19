@@ -141,6 +141,12 @@ namespace Tomlet.Tests {
             }
         }
         
+        internal static string EnumKeyRedefinitionViaTableTestInput {
+            get {
+                return ResourceManager.GetString("EnumKeyRedefinitionViaTableTestInput", resourceCulture);
+            }
+        }
+        
         internal static string ReDefiningSubTableAsSubTableArrayTestInput {
             get {
                 return ResourceManager.GetString("ReDefiningSubTableAsSubTableArrayTestInput", resourceCulture);

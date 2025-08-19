@@ -64,7 +64,16 @@ public class EnumTests
         var expected = new Dictionary<TestEnum, int> {{TestEnum.Value1, 1}, {TestEnum.Value2, 2}, {TestEnum.Value3, 3}};
         Assert.Equal(expected, result);
     }
-
+    
+    [Fact]
+    public void CanIgnoreInvalidEnumDictionaryKeys()
+    {
+        var toml = "Value1 = 1\nValue2 = 2\nValue3 = 3\nValue4 = 4\nValue5 = 5\nValue6 = 6\n";
+        var result = TomletMain.To<Dictionary<TestEnum, int>>(toml, new TomlSerializerOptions { IgnoreInvalidEnumValues = true });
+        var expected = new Dictionary<TestEnum, int> {{TestEnum.Value1, 1}, {TestEnum.Value2, 2}, {TestEnum.Value3, 3}};
+        Assert.Equal(expected, result);
+    }
+    
     [Fact]
     public void CanDeserializeEnumDictionaryWithFields()
     {
