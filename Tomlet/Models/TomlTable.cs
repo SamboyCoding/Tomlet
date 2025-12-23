@@ -18,12 +18,13 @@ public class TomlTable : TomlValue, IEnumerable<KeyValuePair<string, TomlValue>>
     internal bool Defined;
 
     public bool ForceNoInline { get; set; }
+    public int MaxInlineEntriesCount { get; set; } = 3;
 
     public override string StringValue => $"Table ({Entries.Count} entries)";
 
     public HashSet<string> Keys => new(Entries.Keys);
 
-    public bool ShouldBeSerializedInline => !ForceNoInline && Entries.Count < 4
+    public bool ShouldBeSerializedInline => !ForceNoInline && Entries.Count <= MaxInlineEntriesCount
                                                            && Entries.All(e => !e.Key.Contains(" ")
                                                                                && e.Value.Comments.ThereAreNoComments
                                                                                && (e.Value is TomlArray arr ? arr.IsSimpleArray : e.Value is not TomlTable));

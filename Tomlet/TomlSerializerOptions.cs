@@ -1,4 +1,6 @@
-﻿namespace Tomlet;
+﻿using Tomlet.Models;
+
+namespace Tomlet;
 
 public class TomlSerializerOptions
 {
@@ -18,4 +20,9 @@ public class TomlSerializerOptions
     /// When set to true, the deserializer will ignore invalid enum values (and they will be implicitly left at their default value). When set to false, an exception will be thrown if the enum value is not found.
     /// </summary>
     public bool IgnoreInvalidEnumValues { get; set; } = false;
+    
+    /// <summary>
+    /// The maximum amount of entries a table may have for the table to be serialized as an inline table when <see cref="TomlTable.ForceNoInline"/> is false. The default value is 3.
+    /// </summary>
+    public int MaxTableEntriesCountToInline { get; set; } = 3;
 }
