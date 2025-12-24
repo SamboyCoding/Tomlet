@@ -110,6 +110,10 @@ public class ExceptionTests
         AssertThrows<TomlKeyRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.KeyRedefinitionViaTableTestInput));
     
     [Fact]
+    public void RedefiningAnEnumKeyAsATableEntryThrowsAnException() => 
+        AssertThrows<TomlTableRedefinitionException>(() => GetDocument(DeliberatelyIncorrectTestResources.EnumKeyRedefinitionViaTableTestInput));
+    
+    [Fact]
     public void DefiningATableArrayWithTheSameNameAsATableThrowsAnException() => 
         AssertThrows<TomlTableArrayAlreadyExistsAsNonArrayException>(() => GetDocument(DeliberatelyIncorrectTestResources.DefiningAsArrayWhenAlreadyTableTestInput));
 

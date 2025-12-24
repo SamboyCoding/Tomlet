@@ -82,6 +82,15 @@ apple = "red"
 [fruit.apple]
 texture = "smooth"</value>
     </data>
+    <data name="EnumKeyRedefinitionViaTableTestInput" xml:space="preserve">
+        <value>[Subnames]
+[Subnames.Value1]
+a = 'A'
+b = 'B'
+[Subnames.Value1]
+a = 'A'
+b = 'B'</value>
+    </data>
     <data name="ReDefiningSubTableAsSubTableArrayTestInput" xml:space="preserve">
         <value># INVALID TOML DOC
 [[fruits]]
