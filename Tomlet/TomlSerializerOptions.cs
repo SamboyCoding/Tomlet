@@ -1,4 +1,6 @@
-﻿namespace Tomlet;
+﻿using Tomlet.Models;
+
+namespace Tomlet;
 
 public class TomlSerializerOptions
 {
@@ -21,4 +23,9 @@ public class TomlSerializerOptions
     /// When deserializing dictionaries with enums as keys, invalid enum values will be skipped.
     /// </remarks>
     public bool IgnoreInvalidEnumValues { get; set; } = false;
+    
+    /// <summary>
+    /// The maximum amount of entries a table may have for the table to be serialized as an inline table when <see cref="TomlTable.ForceNoInline"/> is false. The default value is 3.
+    /// </summary>
+    public int MaxTableEntriesCountToInline { get; set; } = 3;
 }

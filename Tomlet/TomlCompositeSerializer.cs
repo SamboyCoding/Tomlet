@@ -59,7 +59,7 @@ internal static class TomlCompositeSerializer
                 if (instance == null)
                     throw new ArgumentNullException(nameof(instance), "Object being serialized is null. TOML does not support null values.");
 
-                var resultTable = new TomlTable {ForceNoInline = isForcedNoInline};
+                var resultTable = new TomlTable {ForceNoInline = isForcedNoInline, MaxInlineEntriesCount = options.MaxTableEntriesCountToInline};
 
                 foreach (var field in fields)
                 {
@@ -84,8 +84,12 @@ internal static class TomlCompositeSerializer
                     tomlValue.Comments.InlineComment = thisFieldAttribs.inline?.Comment;
                     tomlValue.Comments.PrecedingComment = thisFieldAttribs.preceding?.Comment;
                     
-                    if(thisFieldAttribs.noInline != null && tomlValue is TomlTable table)
-                        table.ForceNoInline = true;
+                    if (tomlValue is TomlTable table)
+                    {
+                        table.MaxInlineEntriesCount = options.MaxTableEntriesCountToInline;
+                        if (thisFieldAttribs.noInline != null)
+                            table.ForceNoInline = true;
+                    }
 
                     resultTable.PutValue(thisFieldAttribs.field?.GetMappedString() ?? field.Name, tomlValue);
                 }
@@ -113,8 +117,12 @@ internal static class TomlCompositeSerializer
                     tomlValue.Comments.InlineComment = thisPropAttribs.inline?.Comment;
                     tomlValue.Comments.PrecedingComment = thisPropAttribs.preceding?.Comment;
 
-                    if (thisPropAttribs.noInline != null && tomlValue is TomlTable table)
-                        table.ForceNoInline = true;
+                    if (tomlValue is TomlTable table)
+                    {
+                        table.MaxInlineEntriesCount = options.MaxTableEntriesCountToInline;
+                        if (thisPropAttribs.noInline != null)
+                            table.ForceNoInline = true;
+                    }
 
                     resultTable.PutValue(thisPropAttribs.prop?.GetMappedString() ?? prop.Name, tomlValue);
                 }
