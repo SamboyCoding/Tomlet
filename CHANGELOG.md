@@ -45,6 +45,11 @@
   - [1.0.1](#101)
   - [1.0.0](#100)
 
+## 6.2.0
+
+- Improves behavior for invalid enum keys in Dictionary fields (essentially makes `IgnoreInvalidEnumValues` work for dictionary keys as well). Thanks to [@werkz-by-drake](https://github.com/werkz-by-drake) in [#58](https://github.com/SamboyCoding/Tomlet/pull/58)
+- Adds an option to configure the maximum amount of entries in a TOML table before it's no longer serialized inline via a new `TomlSerializerOptions.MaxTableEntriesCountToInline` field. Thanks to [@aldelaro5](https://github.com/aldelaro5) in [#60](https://github.com/SamboyCoding/Tomlet/pull/60) 
+
 ## 6.1.0
 
 - Fixes an issue where enums could not be used as keys in dictionaries. Thanks to [@ITR13](https://github.com/ITR13) for the fix in [#53](https://github.com/SamboyCoding/Tomlet/pull/53)
