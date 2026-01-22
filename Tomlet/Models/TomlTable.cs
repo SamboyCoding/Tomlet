@@ -66,7 +66,7 @@ public class TomlTable : TomlValue, IEnumerable<KeyValuePair<string, TomlValue>>
             if (value is TomlTable { ShouldBeSerializedInline: false } or TomlArray { CanBeSerializedInline: false })
                 continue;
 
-            WriteValueToStringBuilder(keyName, subKey, builder);
+            WriteValueToStringBuilder(keyName, subKey, value, builder);
         }
 
         foreach (var (subKey, value) in Entries)
@@ -74,7 +74,7 @@ public class TomlTable : TomlValue, IEnumerable<KeyValuePair<string, TomlValue>>
             if (value is not TomlTable { ShouldBeSerializedInline: false })
                 continue;
 
-            WriteValueToStringBuilder(keyName, subKey, builder);
+            WriteValueToStringBuilder(keyName, subKey, value, builder);
         }
 
         foreach (var (subKey, value) in Entries)
@@ -82,20 +82,15 @@ public class TomlTable : TomlValue, IEnumerable<KeyValuePair<string, TomlValue>>
             if (value is not TomlArray { CanBeSerializedInline: false })
                 continue;
 
-            WriteValueToStringBuilder(keyName, subKey, builder);
+            WriteValueToStringBuilder(keyName, subKey, value, builder);
         }
 
         return builder.ToString();
     }
 
-    private void WriteValueToStringBuilder(string? keyName, string subKey, StringBuilder builder)
+    private void WriteValueToStringBuilder(string? keyName, string subKey, TomlValue value, StringBuilder builder)
     {
-        var value = GetValue(subKey);
-
         subKey = EscapeKeyIfNeeded(subKey);
-
-        if (keyName != null)
-            keyName = EscapeKeyIfNeeded(keyName);
 
         var fullSubKey = keyName == null ? subKey : $"{keyName}.{subKey}";
 
@@ -159,8 +154,7 @@ public class TomlTable : TomlValue, IEnumerable<KeyValuePair<string, TomlValue>>
     {
         foreach (var c in key)
         {
-            //TODO Future: This check for period is perhaps not super valid but it was way more broken without it so I'm leaving it in for now.
-            if (!char.IsLetterOrDigit(c) && c != '_' && c != '-' && c != '.')
+            if (!char.IsLetterOrDigit(c) && c != '_' && c != '-')
             {
                 return false;
             }
