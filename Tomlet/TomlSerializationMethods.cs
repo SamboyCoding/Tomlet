@@ -371,14 +371,13 @@ public static class TomlSerializationMethods
         };
     }
 
-    // unmanaged + IConvertible is the closest I can get to expressing "primitives only"
 #if MODERN_DOTNET
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode("The native code for underlying implementations of deserialize helper methods may not be available for a given type.")]
 #endif // NET7_0_OR_GREATER
-    private static Deserialize<Dictionary<TKey, TValue>> PrimitiveKeyedDictionaryDeserializerFor<TKey, [DynamicallyAccessedMembers(MainDeserializerAccessedMemberTypes)] TValue>(TomlSerializerOptions options) where TKey : unmanaged, IConvertible
+    private static Deserialize<Dictionary<TKey, TValue>> PrimitiveKeyedDictionaryDeserializerFor<TKey, [DynamicallyAccessedMembers(MainDeserializerAccessedMemberTypes)] TValue>(TomlSerializerOptions options)
 #else
-        private static Deserialize<Dictionary<TKey, TValue>> PrimitiveKeyedDictionaryDeserializerFor<TKey, TValue>(TomlSerializerOptions options) where TKey : unmanaged, IConvertible
+        private static Deserialize<Dictionary<TKey, TValue>> PrimitiveKeyedDictionaryDeserializerFor<TKey, TValue>(TomlSerializerOptions options)
 #endif
     {
         var valueDeserializer = GetDeserializer(typeof(TValue), options);
