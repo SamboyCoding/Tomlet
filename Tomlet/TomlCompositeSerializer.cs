@@ -11,6 +11,24 @@ namespace Tomlet;
 
 internal static class TomlCompositeSerializer
 {
+    private static string GetEnumName(Type type, object value)
+    {
+        var name = Enum.GetName(type, value);
+        if (name != null)
+            return name;
+
+        //A [Flags] enum value can be a combination of declared values, which ToString writes as "A, B" and Enum.Parse reads back.
+        //If any bit has no declared name, ToString falls back to a number, which we still reject.
+        if (type.IsDefined(typeof(FlagsAttribute), false))
+        {
+            var combined = value.ToString();
+            if (!char.IsDigit(combined[0]) && combined[0] != '-')
+                return combined;
+        }
+
+        throw new ArgumentException($"Tomlet: Cannot serialize {value} as an enum of type {type} because the enum type does not declare a name for that value");
+    }
+
 #if MODERN_DOTNET
     [UnconditionalSuppressMessage("AOT", "IL2072", Justification = "Any field that is being serialized must have been used as a field in the consuming code in order for the code path that queries it to run, so the dynamic code requirement is already satisfied.")]
     public static TomlSerializationMethods.Serialize<object> For([DynamicallyAccessedMembers(TomlSerializationMethods.MainDeserializerAccessedMemberTypes)] Type type, TomlSerializerOptions options)
@@ -23,7 +41,7 @@ internal static class TomlCompositeSerializer
         if (type.IsEnum)
         {
             var stringSerializer = TomlSerializationMethods.GetSerializer(typeof(string), options);
-            serializer = o => stringSerializer.Invoke(Enum.GetName(type, o!) ?? throw new ArgumentException($"Tomlet: Cannot serialize {o} as an enum of type {type} because the enum type does not declare a name for that value"));
+            serializer = o => stringSerializer.Invoke(GetEnumName(type, o!));
         }
         else
         {

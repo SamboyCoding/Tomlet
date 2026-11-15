@@ -32,6 +32,23 @@ public class EnumTests
     }
 
     [Fact]
+    public void CanSerializeAndDeserializeCombinedFlagsEnum()
+    {
+        var toml = TomletMain.TomlStringFrom(new {EnumValue = TestFlagsEnum.Flag1 | TestFlagsEnum.Flag3}).Trim();
+        Assert.Equal("EnumValue = \"Flag1, Flag3\"", toml);
+
+        var result = TomletMain.To<Dictionary<string, TestFlagsEnum>>(toml);
+        Assert.Equal(TestFlagsEnum.Flag1 | TestFlagsEnum.Flag3, result["EnumValue"]);
+    }
+
+    [Fact]
+    public void SerializingAFlagsEnumWithAnUndeclaredBitThrows()
+    {
+        var testObj = new {EnumValue = TestFlagsEnum.Flag1 | (TestFlagsEnum)8};
+        Assert.Throws<ArgumentException>(() => TomletMain.TomlStringFrom(testObj));
+    }
+
+    [Fact]
     public void CanSerializeDictWithEnumValues()
     {
         var testObj = new Dictionary<TestEnum, int> {{TestEnum.Value1, 1}, {TestEnum.Value2, 2}, {TestEnum.Value3, 3}};
