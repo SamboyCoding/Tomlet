@@ -174,9 +174,6 @@ public class TomlParser
             //Read unquoted key
             key = ReadKeyInternal(reader, keyChar => keyChar.IsEquals() || keyChar.IsHashSign());
 
-        key = key.Replace("\\n", "\n")
-            .Replace("\\t", "\t");
-
         return key;
     }
 
