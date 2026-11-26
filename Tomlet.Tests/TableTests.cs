@@ -96,5 +96,32 @@ namespace Tomlet.Tests
                 Assert.Equal(table1.Entries[entry.Key], entry.Value);
             }
         }
+
+        [Theory]
+        [InlineData("[table]")]
+        [InlineData("[table]  ")]
+        [InlineData("[table] # comment")]
+        [InlineData("key = 1\n[table]")]
+        public void TableHeaderCanBeLastLineWithoutNewline(string input)
+        {
+            var document = GetDocument(input);
+
+            Assert.Empty(document.GetSubTable("table").Entries);
+        }
+
+        [Fact]
+        public void SubTableHeaderCanBeLastLineWithoutNewline()
+        {
+            var document = GetDocument("[a]\nb = 1\n[a.c]");
+
+            Assert.Equal(1, document.GetSubTable("a").GetInteger("b"));
+            Assert.Empty(document.GetSubTable("a").GetSubTable("c").Entries);
+        }
+
+        [Fact]
+        public void TableHeaderFollowedByContentOnTheSameLineIsRejected()
+        {
+            Assert.Throws<TomlMissingNewlineException>(() => GetDocument("[table] key = 1"));
+        }
     }
 }

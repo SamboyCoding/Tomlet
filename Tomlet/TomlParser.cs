@@ -912,10 +912,8 @@ public class TomlParser
         table.Comments.InlineComment = ReadAnyPotentialInlineComment(reader);
         reader.SkipPotentialCarriageReturn();
 
-        if (!reader.TryPeek(out var shouldBeNewline))
-            throw new TomlEndOfFileException(_lineNumber);
-
-        if (!shouldBeNewline.IsNewline())
+        //A table header may be the last line of the file, with no trailing newline
+        if (reader.TryPeek(out var shouldBeNewline) && !shouldBeNewline.IsNewline())
             throw new TomlMissingNewlineException(_lineNumber, (char) shouldBeNewline);
 
         _currentTable = table;
