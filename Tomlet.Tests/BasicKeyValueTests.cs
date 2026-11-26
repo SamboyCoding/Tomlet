@@ -155,5 +155,18 @@ namespace Tomlet.Tests
             Assert.Equal("", doc.Entries.Keys.First());
             Assert.Equal("blank", Assert.IsType<TomlString>(doc.Entries[""]).Value);
         }
+
+        [Fact]
+        public void BackslashesInQuotedKeysAreNotTurnedIntoEscapes()
+        {
+            var doc = GetDocument("'C:\\new' = 1\n'C:\\tools' = 2\n\"C:\\\\temp\" = 3\n\"tab\\there\" = 4");
+
+            Assert.Collection(doc.Entries.Keys,
+                key1 => Assert.Equal("C:\\new", key1),
+                key2 => Assert.Equal("C:\\tools", key2),
+                key3 => Assert.Equal("C:\\temp", key3),
+                key4 => Assert.Equal("tab\there", key4)
+            );
+        }
     }
 }
